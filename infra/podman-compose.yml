@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: infra/Containerfile
+    image: homeguard-api:latest
+    container_name: homeguard-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - homeguard-data:/app/data      # SQLite database
+      - homeguard-blobs:/app/blobs    # Local blob fallback (receipts, photos)
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Data Source=/app/data/homeguard.db"
+      Blob__LocalPath: "/app/blobs"
+      # Override in .env or via secret management:
+      # Blob__NextCloudUrl: "https://your-nextcloud/remote.php/dav/files/user/"
+      # Blob__NextCloudUser: ""
+      # Blob__NextCloudPassword: ""
+      # Calendar__GoogleServiceAccountJson: ""
+      # WebPush__VapidPublicKey: ""
+      # WebPush__VapidPrivateKey: ""
+      # WebPush__VapidSubject: "mailto:you@example.com"
+
+volumes:
+  homeguard-data:
+  homeguard-blobs:

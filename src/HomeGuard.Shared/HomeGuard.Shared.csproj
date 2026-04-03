@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- No external dependencies: only BCL types and records. -->
+  <!-- Referenced by both HomeGuard.Api and HomeGuard.Client. -->
+</Project>

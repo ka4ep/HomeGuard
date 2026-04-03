@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\HomeGuard.Application\HomeGuard.Application.csproj" />
+    <ProjectReference Include="..\HomeGuard.Infrastructure\HomeGuard.Infrastructure.csproj" />
+    <ProjectReference Include="..\HomeGuard.Shared\HomeGuard.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fido2NetLib" />
+  </ItemGroup>
+
+</Project>

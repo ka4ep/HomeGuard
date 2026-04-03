@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/HomeGuard.Domain/HomeGuard.Domain.csproj" />
+    <Project Path="src/HomeGuard.Application/HomeGuard.Application.csproj" />
+    <Project Path="src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj" />
+    <Project Path="src/HomeGuard.Api/HomeGuard.Api.csproj" />
+    <Project Path="src/HomeGuard.Client/HomeGuard.Client.csproj" />
+    <Project Path="src/HomeGuard.Shared/HomeGuard.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HomeGuard.Tests.Unit/HomeGuard.Tests.Unit.csproj" />
+    <Project Path="tests/HomeGuard.Tests.Integration/HomeGuard.Tests.Integration.csproj" />
+  </Folder>
+</Solution>

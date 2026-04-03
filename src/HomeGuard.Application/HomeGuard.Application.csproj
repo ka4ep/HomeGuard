@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\HomeGuard.Domain\HomeGuard.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

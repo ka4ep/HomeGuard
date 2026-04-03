@@ -1,0 +1,56 @@
+# syntax=docker/dockerfile:1
+# Multi-stage build — works with both Podman and Docker.
+
+# ── Stage 1: base runtime image ──────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+# ── Stage 2: restore + build ─────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+
+# Copy solution and all project files first (layer-cache friendly)
+COPY HomeGuard.slnx .
+COPY Directory.Build.props .
+COPY Directory.Packages.props .
+COPY src/HomeGuard.Domain/HomeGuard.Domain.csproj           src/HomeGuard.Domain/
+COPY src/HomeGuard.Application/HomeGuard.Application.csproj src/HomeGuard.Application/
+COPY src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj src/HomeGuard.Infrastructure/
+COPY src/HomeGuard.Shared/HomeGuard.Shared.csproj           src/HomeGuard.Shared/
+COPY src/HomeGuard.Api/HomeGuard.Api.csproj                 src/HomeGuard.Api/
+
+RUN dotnet restore src/HomeGuard.Api/HomeGuard.Api.csproj
+
+COPY . .
+
+RUN dotnet build src/HomeGuard.Api/HomeGuard.Api.csproj \
+    -c $BUILD_CONFIGURATION \
+    --no-restore \
+    -o /app/build
+
+# ── Stage 3: publish ─────────────────────────────────────────────────────────
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish src/HomeGuard.Api/HomeGuard.Api.csproj \
+    -c $BUILD_CONFIGURATION \
+    --no-restore \
+    -o /app/publish \
+    /p:UseAppHost=false
+
+# ── Stage 4: final image ──────────────────────────────────────────────────────
+FROM base AS final
+WORKDIR /app
+
+# Directories for persistent volumes
+RUN mkdir -p /app/data /app/blobs
+
+COPY --from=publish /app/publish .
+
+# Run as non-root (UID 1000)
+RUN adduser --disabled-password --gecos "" appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+ENTRYPOINT ["dotnet", "HomeGuard.Api.dll"]

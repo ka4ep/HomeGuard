@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\HomeGuard.Application\HomeGuard.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    <PackageReference Include="Google.Apis.Calendar.v3" />
+    <PackageReference Include="Ical.Net" />
+    <PackageReference Include="WebDav.Client" />
+    <PackageReference Include="WebPush" />
+  </ItemGroup>
+
+</Project>
