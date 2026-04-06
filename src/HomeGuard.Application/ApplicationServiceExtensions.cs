@@ -1,7 +1,6 @@
-using HomeGuard.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HomeGuard.Application;
+namespace HomeGuard.Application.Services;
 
 /// <summary>Registers Application-layer services into the DI container.</summary>
 public static class ApplicationServiceExtensions

@@ -15,10 +15,10 @@ public static class ClientServiceExtensions
         services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
         services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
 
-        // IndexedDB wrapper — scoped so each page gets its own interop lifetime.
-        services.AddScoped<HomeGuardDb>();
+        // IndexedDB wrapper — singleton в Blazor WASM (один scope на всё приложение).
+        services.AddSingleton<HomeGuardDb>();
 
-        // Outbox sync — singleton so the queue state is shared across pages.
+        // Outbox sync — singleton, очередь общая для всех страниц.
         services.AddSingleton<OutboxSyncService>();
 
         // Timeline interop — transient, each timeline page creates its own instance.

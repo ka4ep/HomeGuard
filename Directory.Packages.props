@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="EF Core">
+    <PackageVersion Include="Fido2.AspNet" Version="4.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Bcl.TimeProvider" Version="10.0.5" />
@@ -44,7 +45,7 @@
     <PackageVersion Include="WebPush" Version="1.0.12" />
   </ItemGroup>
   <ItemGroup Label="Auth — Passkeys">
-    <PackageVersion Include="Fido2" Version="4.0.0" />
+    <PackageVersion Include="Fido2" Version="4.0.1" />
   </ItemGroup>
   <ItemGroup Label="Blazor / Client">
     <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.5" />
