@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HomeGuard.Common\HomeGuard.Common.csproj" />
     <ProjectReference Include="..\HomeGuard.Domain\HomeGuard.Domain.csproj" />
   </ItemGroup>
 

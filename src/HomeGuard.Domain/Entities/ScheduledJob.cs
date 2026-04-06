@@ -32,6 +32,12 @@ public sealed class ScheduledJob : Entity
     /// <summary>Last exception message, for diagnostics.</summary>
     public string? LastError { get; private set; }
 
+    /// <summary>
+    /// Optional deduplication key. Format is caller-defined, e.g. "notify:warranty:{id}:30d".
+    /// The scheduler checks this before inserting to avoid duplicate notification jobs.
+    /// </summary>
+    public string? CorrelationKey { get; private set; }
+
     // ── Retry policy ─────────────────────────────────────────────────────────
     private const int MaxAttempts = 5;
 
@@ -41,7 +47,11 @@ public sealed class ScheduledJob : Entity
 
     // ── Factory ──────────────────────────────────────────────────────────────
 
-    public static ScheduledJob Create(string jobType, string payloadJson, DateTimeOffset? runAfter = null)
+    public static ScheduledJob Create(
+        string jobType,
+        string payloadJson,
+        DateTimeOffset? runAfter = null,
+        string? correlationKey = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(jobType);
         ArgumentException.ThrowIfNullOrWhiteSpace(payloadJson);
@@ -51,6 +61,7 @@ public sealed class ScheduledJob : Entity
         j.JobType = jobType;
         j.PayloadJson = payloadJson;
         j.RunAfter = runAfter ?? DateTimeOffset.UtcNow;
+        j.CorrelationKey = correlationKey;
         return j;
     }
 

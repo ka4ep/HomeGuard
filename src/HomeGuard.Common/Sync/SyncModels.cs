@@ -1,4 +1,4 @@
-namespace HomeGuard.Shared.Sync;
+namespace HomeGuard.Common.Sync;
 
 /// <summary>
 /// A single client-side operation pending upload to the server.

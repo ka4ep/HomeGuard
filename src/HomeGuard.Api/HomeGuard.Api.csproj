@@ -3,11 +3,27 @@
   <ItemGroup>
     <ProjectReference Include="..\HomeGuard.Application\HomeGuard.Application.csproj" />
     <ProjectReference Include="..\HomeGuard.Infrastructure\HomeGuard.Infrastructure.csproj" />
-    <ProjectReference Include="..\HomeGuard.Shared\HomeGuard.Shared.csproj" />
+    <ProjectReference Include="..\HomeGuard.Common\HomeGuard.Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fido2NetLib" />
+    <PackageReference Include="Fido2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" />
+    <PackageReference Include="NodaTime" />
+    <PackageReference Include="SourceGear.sqlite3" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+    <PackageReference Include="SQLitePCLRaw.core" />
+    <PackageReference Include="System.CodeDom" />
+    <PackageReference Include="System.Composition" />
+    <PackageReference Include="System.Management" />
   </ItemGroup>
 
 </Project>
