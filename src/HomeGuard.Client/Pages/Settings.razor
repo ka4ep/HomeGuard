@@ -1,0 +1,147 @@
+@page "/settings"
+@inject NotificationApiClient NotificationApi
+@inject OutboxSyncService Outbox
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<PageTitle>Settings</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+
+<!-- Sync status -->
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Sync" Class="mr-1" />
+                Offline sync
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText>Pending operations: <strong>@_pendingCount</strong></MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Outlined" OnClick="FlushAsync" Disabled="_flushing">
+            Sync now
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
+<!-- Push notifications -->
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-1" />
+                Push notifications
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (_pushStatus == PushStatus.Granted)
+        {
+            <MudAlert Severity="Severity.Success" Dense="true">
+                Notifications enabled on this device.
+            </MudAlert>
+        }
+        else if (_pushStatus == PushStatus.Denied)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                Notifications blocked. Enable them in browser settings and reload.
+            </MudAlert>
+        }
+        else
+        {
+            <MudText Color="Color.Secondary">
+                Enable push notifications to get reminders about warranties and service dates.
+            </MudText>
+        }
+    </MudCardContent>
+    <MudCardActions>
+        @if (_pushStatus == PushStatus.Default)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="SubscribeAsync" Disabled="_subscribing">
+                Enable notifications
+            </MudButton>
+        }
+    </MudCardActions>
+</MudCard>
+
+@code {
+    private int        _pendingCount;
+    private bool       _flushing;
+    private PushStatus _pushStatus = PushStatus.Default;
+    private bool       _subscribing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pendingCount = await Outbox.PendingCountAsync();
+        _pushStatus   = await GetPushStatusAsync();
+    }
+
+    private async Task FlushAsync()
+    {
+        _flushing = true;
+        var result = await Outbox.FlushAsync();
+        _pendingCount = await Outbox.PendingCountAsync();
+        _flushing = false;
+
+        Snackbar.Add(result.HasFailures
+            ? $"Sync done — {result.Failed} operation(s) failed."
+            : $"All synced ({result.Committed} operation(s)).",
+            result.HasFailures ? Severity.Warning : Severity.Success);
+    }
+
+    private async Task SubscribeAsync()
+    {
+        _subscribing = true;
+        try
+        {
+            var publicKey = await NotificationApi.GetVapidPublicKeyAsync();
+            if (publicKey is null)
+            {
+                Snackbar.Add("Push notifications not configured on the server.", Severity.Warning);
+                return;
+            }
+
+            // Call browser Push API via JS interop.
+            var sub = await JS.InvokeAsync<PushSubscriptionJs?>(
+                "homeGuardPush.subscribe", publicKey);
+
+            if (sub is null)
+            {
+                Snackbar.Add("Notification permission denied.", Severity.Warning);
+                _pushStatus = PushStatus.Denied;
+                return;
+            }
+
+            await NotificationApi.SubscribeAsync(sub.Endpoint, sub.P256dh, sub.Auth);
+            _pushStatus = PushStatus.Granted;
+            Snackbar.Add("Notifications enabled!", Severity.Success);
+        }
+        finally
+        {
+            _subscribing = false;
+        }
+    }
+
+    private async Task<PushStatus> GetPushStatusAsync()
+    {
+        try
+        {
+            var status = await JS.InvokeAsync<string>("homeGuardPush.getPermission");
+            return status switch
+            {
+                "granted" => PushStatus.Granted,
+                "denied"  => PushStatus.Denied,
+                _         => PushStatus.Default,
+            };
+        }
+        catch { return PushStatus.Default; }
+    }
+
+    private enum PushStatus { Default, Granted, Denied }
+    private sealed record PushSubscriptionJs(string Endpoint, string P256dh, string Auth);
+}

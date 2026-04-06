@@ -1,0 +1,47 @@
+@* Reusable form for both create and edit. Bind to EquipmentFormModel. *@
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudTextField @bind-Value="Model.Name" Label="Name" Required="true" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudSelect @bind-Value="Model.Category" Label="Category" Required="true">
+            <MudSelectItem Value="@("Vehicle")">Vehicle</MudSelectItem>
+            <MudSelectItem Value="@("HomeAppliance")">Home appliance</MudSelectItem>
+            <MudSelectItem Value="@("Electronics")">Electronics</MudSelectItem>
+            <MudSelectItem Value="@("Heating")">Heating</MudSelectItem>
+            <MudSelectItem Value="@("Garden")">Garden</MudSelectItem>
+            <MudSelectItem Value="@("Furniture")">Furniture</MudSelectItem>
+            <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudDatePicker @bind-Date="Model.PurchaseDateNullable"
+                       Label="Purchase date" DateFormat="yyyy-MM-dd" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField @bind-Value="Model.Brand" Label="Brand" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField @bind-Value="Model.Model" Label="Model" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudTextField @bind-Value="Model.SerialNumber" Label="Serial number" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudNumericField @bind-Value="Model.PurchasePrice" Label="Purchase price"
+                         Format="F2" Adornment="Adornment.Start" AdornmentText="€" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudTextField @bind-Value="Model.Tags" Label="Tags (comma-separated)"
+                      HelperText="e.g. kitchen, appliance, samsung" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudTextField @bind-Value="Model.Notes" Label="Notes" Lines="4"
+                      HelperText="Markdown supported" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter, EditorRequired] public EquipmentFormModel Model { get; set; } = null!;
+}

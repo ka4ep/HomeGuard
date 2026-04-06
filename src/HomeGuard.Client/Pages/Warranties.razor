@@ -1,0 +1,211 @@
+@page "/warranties"
+@inject WarrantyApiClient Api
+@inject EquipmentApiClient EquipmentApi
+
+<PageTitle>Warranties</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h5">Warranties</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add
+    </MudButton>
+</MudStack>
+
+<MudTabs Elevation="1" Rounded="true" Class="mb-4" @bind-ActivePanelIndex="_tab">
+    <MudTabPanel Text="Active" />
+    <MudTabPanel Text="Expiring soon" />
+</MudTabs>
+
+@if (_items is null)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No warranties found.</MudAlert>
+}
+else
+{
+    <MudTable Items="_items" Hover="true" Dense="true" Elevation="1">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Equipment</MudTh>
+            <MudTh>Provider</MudTh>
+            <MudTh>Expires</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@(_equipmentNames.GetValueOrDefault(context.EquipmentId, "…"))</MudTd>
+            <MudTd>@(context.Provider ?? "—")</MudTd>
+            <MudTd>@context.EndDate.ToString("yyyy-MM-dd", null)</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="@StatusColor(context.DaysRemaining)">
+                    @StatusLabel(context.DaysRemaining)
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
+                               OnClick="() => OpenEditDialog(context)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
+                               Color="Color.Error"
+                               OnClick="() => DeleteAsync(context.Id)" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+<!-- Add / Edit dialog -->
+<MudDialog @bind-Visible="_showDialog">
+    <TitleContent>@(_editId.HasValue ? "Edit warranty" : "Add warranty")</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudSelect @bind-Value="_form.EquipmentId" Label="Equipment" Required="true">
+                    @foreach (var e in _equipment)
+                    {
+                        <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Name" Label="Name" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.StartDateNullable" Label="Start date"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.EndDateNullable" Label="End date"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Provider" Label="Provider" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.ContractNumber" Label="Contract number" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3"
+                              HelperText="Markdown supported" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showDialog = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<WarrantyDto>?    _items;
+    private List<EquipmentSummary> _equipment = [];
+    private Dictionary<Guid, string> _equipmentNames = [];
+    private int  _tab;
+    private bool _showDialog;
+    private bool _saving;
+    private Guid? _editId;
+    private WarrantyFormModel _form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _equipment     = await EquipmentApi.GetAllAsync() ?? [];
+        _equipmentNames = _equipment.ToDictionary(e => e.Id, e => e.Name);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _items = _tab == 0
+            ? await Api.GetActiveAsync() ?? []
+            : await Api.GetExpiringAsync(90) ?? [];
+    }
+
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    private void OpenAddDialog()
+    {
+        _editId     = null;
+        _form       = new WarrantyFormModel
+        {
+            EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty
+        };
+        _showDialog = true;
+    }
+
+    private void OpenEditDialog(WarrantyDto w)
+    {
+        _editId = w.Id;
+        _form = new WarrantyFormModel
+        {
+            EquipmentId        = w.EquipmentId,
+            Name               = w.Name,
+            Provider           = w.Provider,
+            ContractNumber     = w.ContractNumber,
+            Notes              = w.Notes,
+            StartDateNullable  = w.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDateNullable    = w.EndDate.ToDateTime(TimeOnly.MinValue),
+        };
+        _showDialog = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        if (_editId.HasValue)
+        {
+            var dto = new UpdateWarrantyDto(
+                _form.Name, _form.StartDate, _form.EndDate,
+                _form.Provider, _form.ContractNumber, _form.Notes);
+            await Api.UpdateAsync(_editId.Value, dto);
+        }
+        else
+        {
+            var dto = new CreateWarrantyDto(
+                _form.EquipmentId, _form.Name, _form.StartDate, _form.EndDate,
+                _form.Provider, _form.ContractNumber, _form.Notes);
+            await Api.CreateAsync(dto);
+        }
+        await LoadAsync();
+        _saving     = false;
+        _showDialog = false;
+    }
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await Api.DeleteAsync(id);
+        _items?.RemoveAll(w => w.Id == id);
+    }
+
+    private static Color StatusColor(int days) => days switch
+    {
+        < 0   => Color.Default,
+        <= 7  => Color.Error,
+        <= 30 => Color.Warning,
+        _     => Color.Success,
+    };
+
+    private static string StatusLabel(int days) => days switch
+    {
+        < 0   => "Expired",
+        0     => "Today",
+        1     => "Tomorrow",
+        <= 30 => $"{days}d left",
+        _     => $"{days / 30}mo left",
+    };
+}
+
+@code {
+    // WarrantyFormModel extended with EquipmentId for the create case.
+    private sealed class WarrantyFormModel : HomeGuard.Client.Common.WarrantyFormModel
+    {
+        public Guid EquipmentId { get; set; }
+    }
+}

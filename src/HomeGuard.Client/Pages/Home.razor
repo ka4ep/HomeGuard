@@ -1,12 +1,162 @@
 @page "/"
+@inject WarrantyApiClient WarrantyApi
+@inject ServiceRecordApiClient ServiceApi
+@inject OutboxSyncService Outbox
+@implements IDisposable
 
 <PageTitle>HomeGuard — Dashboard</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">Dashboard</MudText>
-<MudText Typo="Typo.body1" Color="Color.Secondary">
-    Welcome to HomeGuard. Your equipment and warranty tracker.
-</MudText>
+<MudText Typo="Typo.h5" Class="mb-4">Dashboard</MudText>
 
-@* TODO: upcoming expirations card *@
-@* TODO: overdue service card *@
-@* TODO: recent activity feed *@
+@if (_pendingSync > 0)
+{
+    <MudAlert Severity="Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.CloudUpload">
+        @_pendingSync change(s) pending sync to server.
+        <MudButton Variant="Variant.Text" OnClick="FlushAsync" Disabled="_flushing">Sync now</MudButton>
+    </MudAlert>
+}
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-1" />
+                        Warranties expiring soon
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (_expiring is null)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else if (_expiring.Count == 0)
+                {
+                    <MudText Color="Color.Success">No warranties expiring in the next 90 days.</MudText>
+                }
+                else
+                {
+                    <MudList T="WarrantyDto" Dense="true">
+                        @foreach (var w in _expiring)
+                        {
+                            <MudListItem>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                    <MudText>@w.Name</MudText>
+                                    <MudChip T="string" Color="@DaysColor(w.DaysRemaining)" Size="Size.Small">
+                                        @DaysLabel(w.DaysRemaining)
+                                    </MudChip>
+                                </MudStack>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="/warranties" Variant="Variant.Text">View all</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-1" />
+                        Service due
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (_dueSoon is null)
+                {
+                    <MudProgressLinear Indeterminate="true" />
+                }
+                else if (_dueSoon.Count == 0)
+                {
+                    <MudText Color="Color.Success">No service due in the next 90 days.</MudText>
+                }
+                else
+                {
+                    <MudList T="ServiceRecordDto" Dense="true">
+                        @foreach (var sr in _dueSoon)
+                        {
+                            <MudListItem>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                    <MudText>@sr.Title</MudText>
+                                    <MudChip T="string"
+                                             Color="@(sr.IsOverdue ? Color.Error : Color.Warning)"
+                                             Size="Size.Small">
+                                        @(sr.IsOverdue ? "Overdue" : DaysLabel(sr.DaysUntilNextService))
+                                    </MudChip>
+                                </MudStack>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="/service" Variant="Variant.Text">View all</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<WarrantyDto>?      _expiring;
+    private List<ServiceRecordDto>? _dueSoon;
+    private int  _pendingSync;
+    private bool _flushing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pendingSync = await Outbox.PendingCountAsync();
+        Outbox.OutboxChanged += OnOutboxChanged;
+        await Task.WhenAll(LoadWarrantiesAsync(), LoadServiceAsync());
+    }
+
+    private async Task LoadWarrantiesAsync()
+        => _expiring = await WarrantyApi.GetExpiringAsync(90) ?? [];
+
+    private async Task LoadServiceAsync()
+    {
+        var overdue = await ServiceApi.GetOverdueAsync() ?? [];
+        var soon    = await ServiceApi.GetDueSoonAsync(90) ?? [];
+        _dueSoon = [.. overdue, .. soon];
+    }
+
+    private async Task FlushAsync()
+    {
+        _flushing = true;
+        await Outbox.FlushAsync();
+        _pendingSync = await Outbox.PendingCountAsync();
+        _flushing = false;
+    }
+
+    private void OnOutboxChanged()
+        => InvokeAsync(async () =>
+        {
+            _pendingSync = await Outbox.PendingCountAsync();
+            StateHasChanged();
+        });
+
+    private static Color DaysColor(int? days) => days switch
+    {
+        null or > 30 => Color.Default,
+        > 7          => Color.Warning,
+        _            => Color.Error,
+    };
+
+    private static string DaysLabel(int? days) => days switch
+    {
+        null  => "—",
+        0     => "Today",
+        1     => "Tomorrow",
+        <= 30 => $"In {days} days",
+        _     => $"In {days / 30} month(s)",
+    };
+
+    public void Dispose() => Outbox.OutboxChanged -= OnOutboxChanged;
+}

@@ -1,0 +1,143 @@
+@page "/equipment"
+@inject EquipmentApiClient Api
+@inject NavigationManager Nav
+
+<PageTitle>Equipment</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h5">Equipment</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="OpenAddDialog">
+        Add
+    </MudButton>
+</MudStack>
+
+<MudTextField @bind-Value="_search" Label="Search" Adornment="Adornment.Start"
+              AdornmentIcon="@Icons.Material.Filled.Search"
+              Immediate="true" Class="mb-4" />
+
+@if (_items is null)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        @foreach (var item in Filtered)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Elevation="1" Style="cursor:pointer"
+                         @onclick="() => OpenDetail(item.Id)">
+                    <MudCardContent>
+                        <MudStack Row="true" AlignItems="AlignItems.Start"
+                                  Justify="Justify.SpaceBetween">
+                            <div>
+                                <MudText Typo="Typo.h6">@item.Name</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @item.Category
+                                    @if (item.Brand is not null)
+                                    {
+                                        <span> · @item.Brand</span>
+                                    }
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Purchased @item.PurchaseDate.ToString("yyyy-MM-dd", null)
+                                </MudText>
+                            </div>
+                            <MudIcon Icon="@CategoryIcon(item.Category)"
+                                     Color="Color.Primary" Size="Size.Large" />
+                        </MudStack>
+
+                        @if (item.Tags.Count > 0)
+                        {
+                            <MudStack Row="true" Class="mt-2" Spacing="1">
+                                @foreach (var tag in item.Tags.Take(4))
+                                {
+                                    <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
+                                        @tag
+                                    </MudChip>
+                                }
+                            </MudStack>
+                        }
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @if (!Filtered.Any())
+    {
+        <MudText Color="Color.Secondary" Class="mt-4">
+            No equipment found. Add some!
+        </MudText>
+    }
+}
+
+<!-- Add dialog -->
+<MudDialog @bind-Visible="_showAdd">
+    <TitleContent>Add equipment</TitleContent>
+    <DialogContent>
+        <EquipmentForm Model="_form" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showAdd = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private List<EquipmentSummary>? _items;
+    private string _search = string.Empty;
+    private bool _showAdd;
+    private bool _saving;
+    private EquipmentFormModel _form = new();
+
+    private IEnumerable<EquipmentSummary> Filtered
+        => _items?.Where(i =>
+               string.IsNullOrWhiteSpace(_search) ||
+               i.Name.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+               (i.Brand?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+               i.Tags.Any(t => t.Contains(_search, StringComparison.OrdinalIgnoreCase)))
+           ?? [];
+
+    protected override async Task OnInitializedAsync()
+        => _items = await Api.GetAllAsync() ?? [];
+
+    private void OpenAddDialog()
+    {
+        _form = new EquipmentFormModel();
+        _showAdd = true;
+    }
+
+    private void OpenDetail(Guid id) => Nav.NavigateTo($"/equipment/{id}");
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        var dto = new CreateEquipmentDto(
+            _form.Name, _form.Category, _form.PurchaseDate,
+            _form.Brand, _form.Model, _form.SerialNumber,
+            _form.PurchasePrice, _form.Notes,
+            _form.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        var result = await Api.CreateAsync(dto);
+        if (result is not null) _items?.Insert(0, result);
+        _saving = false;
+        _showAdd = false;
+    }
+
+    private static string CategoryIcon(string category) => category switch
+    {
+        "Vehicle" => Icons.Material.Filled.DirectionsCar,
+        "HomeAppliance" => Icons.Material.Filled.Countertops,
+        "Electronics" => Icons.Material.Filled.Devices,
+        "Heating" => Icons.Material.Filled.Thermostat,
+        "Garden" => Icons.Material.Filled.Yard,
+        "Furniture" => Icons.Material.Filled.Chair,
+        _ => Icons.Material.Filled.Category,
+    };
+}

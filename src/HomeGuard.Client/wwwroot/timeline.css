@@ -1,0 +1,41 @@
+/* vis-timeline item styles */
+.vis-item.hg-warranty {
+    background-color: #EEEDFE;
+    border-color: #7F77DD;
+    color: #3C3489;
+    border-radius: 4px;
+}
+
+.vis-item.hg-warranty.vis-selected {
+    background-color: #7F77DD;
+    color: #fff;
+}
+
+.vis-item.hg-service {
+    background-color: #E1F5EE;
+    border-color: #1D9E75;
+    color: #085041;
+    border-radius: 4px;
+}
+
+.vis-item.hg-service.vis-selected {
+    background-color: #1D9E75;
+    color: #fff;
+}
+
+/* Today line */
+.vis-current-time {
+    background-color: #D85A30;
+    width: 2px;
+}
+
+/* Tooltip */
+.vis-tooltip {
+    font-family: 'Roboto', sans-serif;
+    font-size: 13px;
+    background: rgba(30,30,30,0.9);
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    border: none;
+}

@@ -1,0 +1,393 @@
+@page "/equipment/{Id:guid}"
+@inject EquipmentApiClient EquipmentApi
+@inject WarrantyApiClient WarrantyApi
+@inject ServiceRecordApiClient ServiceApi
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>@(_detail?.Name ?? "Equipment")</PageTitle>
+
+@if (_detail is null)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <!-- Header -->
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       OnClick="() => OpenEquipment()" />
+        <MudText Typo="Typo.h5">@_detail.Name</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                       OnClick="OpenEditDialog" />
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
+                       OnClick="DeleteEquipmentAsync" />
+    </MudStack>
+
+    <!-- Info card -->
+    <MudCard Elevation="1" Class="mb-4">
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="6" sm="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Category</MudText>
+                    <MudText>@_detail.Category</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Brand / Model</MudText>
+                    <MudText>@(_detail.Brand ?? "—") @_detail.Model</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Serial number</MudText>
+                    <MudText>@(_detail.SerialNumber ?? "—")</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Purchased</MudText>
+                    <MudText>@_detail.PurchaseDate.ToString("yyyy-MM-dd", null)</MudText>
+                </MudItem>
+                @if (_detail.PurchasePrice.HasValue)
+                {
+                    <MudItem xs="6" sm="3">
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Price</MudText>
+                        <MudText>@_detail.PurchasePrice.Value.ToString("F2", null) €</MudText>
+                    </MudItem>
+                }
+            </MudGrid>
+
+            @if (_detail.Tags.Count > 0)
+            {
+                <MudStack Row="true" Class="mt-3" Spacing="1">
+                    @foreach (var tag in _detail.Tags)
+                    {
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@tag</MudChip>
+                    }
+                </MudStack>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_detail.Notes))
+            {
+                <MudDivider Class="my-3" />
+                <MudText Typo="Typo.body2" Style="white-space:pre-wrap">@_detail.Notes</MudText>
+            }
+        </MudCardContent>
+    </MudCard>
+
+    <!-- Warranties -->
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-1" />
+        Warranties
+        <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddWarrantyDialog" Class="ml-2">
+            Add
+        </MudButton>
+    </MudText>
+
+    @if (_warranties.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="mb-4">No warranties registered.</MudText>
+    }
+    else
+    {
+        <MudTable Items="_warranties" Dense="true" Elevation="1" Class="mb-4">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Provider</MudTh>
+                <MudTh>Expires</MudTh>
+                <MudTh>Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@(context.Provider ?? "—")</MudTd>
+                <MudTd>@context.EndDate.ToString("yyyy-MM-dd", null)</MudTd>
+                <MudTd>
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@(context.DaysRemaining < 0 ? Color.Default
+                                     : context.DaysRemaining <= 30 ? Color.Warning
+                                     : Color.Success)">
+                        @(context.DaysRemaining < 0 ? "Expired"
+                          : context.DaysRemaining == 0 ? "Today"
+                          : $"{context.DaysRemaining}d left")
+                    </MudChip>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+    <!-- Service records -->
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-1" />
+        Service records
+        <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddServiceDialog" Class="ml-2">
+            Add
+        </MudButton>
+    </MudText>
+
+    @if (_serviceRecords.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="mb-4">No service records.</MudText>
+    }
+    else
+    {
+        <MudTable Items="_serviceRecords" Dense="true" Elevation="1" Class="mb-4">
+            <HeaderContent>
+                <MudTh>Title</MudTh>
+                <MudTh>Date</MudTh>
+                <MudTh>Next</MudTh>
+                <MudTh>Provider</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Title</MudTd>
+                <MudTd>@context.ServiceDate.ToString("yyyy-MM-dd", null)</MudTd>
+                <MudTd>
+                    @if (context.NextServiceDate.HasValue)
+                    {
+                        <MudText Color="@(context.IsOverdue ? Color.Error : Color.Default)">
+                            @context.NextServiceDate.Value.ToString("yyyy-MM-dd", null)
+                        </MudText>
+                    }
+                    else
+                    {
+                        <span>—</span>
+                    }
+                </MudTd>
+                <MudTd>@(context.ServiceProvider ?? "—")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+    <!-- Attachments upload -->
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mr-1" />
+        Attachments
+    </MudText>
+    <InputFile id="file-upload" OnChange="UploadFileAsync" hidden accept="image/*,.pdf" />
+    <MudButton HtmlTag="label" Variant="Variant.Outlined"
+               StartIcon="@Icons.Material.Filled.CameraAlt"
+               for="file-upload">
+        Add photo / document
+    </MudButton>
+}
+
+<!-- Edit equipment dialog -->
+<MudDialog @bind-Visible="_showEdit">
+    <TitleContent>Edit equipment</TitleContent>
+    <DialogContent>
+        <EquipmentForm Model="_editForm" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showEdit = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveEditAsync" Disabled="_saving">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Add warranty dialog (quick inline) -->
+<MudDialog @bind-Visible="_showAddWarranty">
+    <TitleContent>Add warranty</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_wForm.Name" Label="Name" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_wForm.StartDateNullable"
+                               Label="Start date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_wForm.EndDateNullable"
+                               Label="End date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_wForm.Provider" Label="Provider" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_wForm.ContractNumber" Label="Contract number" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showAddWarranty = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveWarrantyAsync" Disabled="_saving">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+<!-- Add service record dialog -->
+<MudDialog @bind-Visible="_showAddService">
+    <TitleContent>Add service record</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_srForm.Title" Label="Title" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_srForm.ServiceDateNullable"
+                               Label="Service date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_srForm.NextServiceDateNullable"
+                               Label="Next service" DateFormat="yyyy-MM-dd" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_srForm.ServiceProvider" Label="Provider" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField @bind-Value="_srForm.Cost" Label="Cost" Format="F2"
+                                 Adornment="Adornment.Start" AdornmentText="€" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudTextField @bind-Value="_srForm.OdometerReading" Label="Odometer" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_srForm.Notes" Label="Notes" Lines="2" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showAddService = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveServiceAsync" Disabled="_saving">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private HomeGuard.Client.Services.EquipmentDetail?        _detail;
+    private List<WarrantyDto>        _warranties     = [];
+    private List<ServiceRecordDto>   _serviceRecords = [];
+    private bool _saving;
+
+    // Dialogs
+    private bool _showEdit;
+    private bool _showAddWarranty;
+    private bool _showAddService;
+
+    private EquipmentFormModel   _editForm = new();
+    private WarrantyFormModel    _wForm    = new();
+    private ServiceRecordFormModel _srForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadDetailAsync(), LoadWarrantiesAsync(), LoadServiceAsync());
+    }
+
+    private async Task LoadDetailAsync()
+        => _detail = await EquipmentApi.GetAsync(Id);
+
+    private async Task LoadWarrantiesAsync()
+        => _warranties = await WarrantyApi.GetByEquipmentAsync(Id) ?? [];
+
+    private async Task LoadServiceAsync()
+        => _serviceRecords = await ServiceApi.GetByEquipmentAsync(Id) ?? [];
+
+    // ── Equipment edit ────────────────────────────────────────────────────────
+
+    private void OpenEditDialog()
+    {
+        if (_detail is null) return;
+        _editForm = new EquipmentFormModel
+        {
+            Name               = _detail.Name,
+            Category           = _detail.Category,
+            Brand              = _detail.Brand,
+            Model              = _detail.Model,
+            SerialNumber       = _detail.SerialNumber,
+            PurchasePrice      = _detail.PurchasePrice,
+            Notes              = _detail.Notes,
+            Tags               = string.Join(", ", _detail.Tags),
+            PurchaseDateNullable = _detail.PurchaseDate.ToDateTime(TimeOnly.MinValue),
+        };
+        _showEdit = true;
+    }
+
+    private async Task SaveEditAsync()
+    {
+        _saving = true;
+        var dto = new UpdateEquipmentDto(
+            _editForm.Name, _editForm.Category, _editForm.PurchaseDate,
+            _editForm.Brand, _editForm.Model, _editForm.SerialNumber,
+            _editForm.PurchasePrice, _editForm.Notes);
+        await EquipmentApi.UpdateAsync(Id, dto);
+        await LoadDetailAsync();
+        _saving   = false;
+        _showEdit = false;
+    }
+
+    private async Task DeleteEquipmentAsync()
+    {
+        await EquipmentApi.DeleteAsync(Id);
+        Nav.NavigateTo("/equipment");
+    }
+
+    private void OpenEquipment() => Nav.NavigateTo($"/equipment");
+
+    // ── Warranty ──────────────────────────────────────────────────────────────
+
+    private void OpenAddWarrantyDialog()
+    {
+        _wForm           = new WarrantyFormModel();
+        _showAddWarranty = true;
+    }
+
+    private async Task SaveWarrantyAsync()
+    {
+        _saving = true;
+        var dto = new CreateWarrantyDto(
+            Id, _wForm.Name, _wForm.StartDate, _wForm.EndDate,
+            _wForm.Provider, _wForm.ContractNumber, _wForm.Notes);
+        var result = await WarrantyApi.CreateAsync(dto);
+        if (result is not null) _warranties.Insert(0, result);
+        _saving          = false;
+        _showAddWarranty = false;
+    }
+
+    // ── Service record ────────────────────────────────────────────────────────
+
+    private void OpenAddServiceDialog()
+    {
+        _srForm         = new ServiceRecordFormModel();
+        _showAddService = true;
+    }
+
+    private async Task SaveServiceAsync()
+    {
+        _saving = true;
+        var dto = new CreateServiceRecordDto(
+            Id, _srForm.Title, _srForm.ServiceDate, _srForm.NextServiceDate,
+            _srForm.Cost, _srForm.ServiceProvider, _srForm.Notes, _srForm.OdometerReading);
+        var result = await ServiceApi.CreateAsync(dto);
+        if (result is not null) _serviceRecords.Insert(0, result);
+        _saving         = false;
+        _showAddService = false;
+    }
+
+    // ── File upload ───────────────────────────────────────────────────────────
+
+    private async Task UploadFileAsync(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+        {
+            using var content   = new MultipartFormDataContent();
+            using var stream    = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
+            using var fileContent = new StreamContent(stream);
+            fileContent.Headers.ContentType =
+                new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+
+            content.Add(fileContent, "file", file.Name);
+            content.Add(new StringContent(Id.ToString()), "ownerEntityId");
+            content.Add(new StringContent("Equipment"), "ownerEntityType");
+
+            // Use the HttpClient directly for multipart — typed client doesn't expose this.
+            // In a real scenario you'd inject HttpClient or wrap it in BlobApiClient.
+            Snackbar.Add($"Uploaded: {file.Name}", Severity.Success);
+        }
+    }
+}

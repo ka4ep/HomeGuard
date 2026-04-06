@@ -8,14 +8,11 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
-});
+// API base — in production this is the same origin; in dev the Api runs separately.
+var apiBase = builder.Configuration["ApiBaseAddress"]
+              ?? builder.HostEnvironment.BaseAddress;
 
 builder.Services.AddMudServices();
-
-// TODO: builder.Services.AddHomeGuardClientServices();
-// TODO: builder.Services.AddOfflineSync();
+builder.Services.AddHomeGuardClientServices(apiBase);
 
 await builder.Build().RunAsync();

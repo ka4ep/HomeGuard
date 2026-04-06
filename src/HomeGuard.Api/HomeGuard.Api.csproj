@@ -3,7 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HomeGuard.Application\HomeGuard.Application.csproj" />
     <ProjectReference Include="..\HomeGuard.Infrastructure\HomeGuard.Infrastructure.csproj" />
-    <ProjectReference Include="..\HomeGuard.Common\HomeGuard.Common.csproj" />
+    <ProjectReference Include="..\HomeGuard.Common\HomeGuard.Common.csproj" />    
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +24,12 @@
     <PackageReference Include="System.CodeDom" />
     <PackageReference Include="System.Composition" />
     <PackageReference Include="System.Management" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
+
+
 
 </Project>

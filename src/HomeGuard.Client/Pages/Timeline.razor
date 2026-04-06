@@ -1,0 +1,91 @@
+@page "/timeline"
+@inject WarrantyApiClient WarrantyApi
+@inject ServiceRecordApiClient ServiceApi
+@inject TimelineInterop TimelineInterop
+@implements IAsyncDisposable
+
+<PageTitle>Timeline</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-2">Timeline</MudText>
+
+<MudStack Row="true" Class="mb-4" Spacing="2">
+    <MudButton Variant="Variant.Outlined" Size="Size.Small"
+               OnClick="() => TimelineInterop.FocusTodayAsync()">
+        Today
+    </MudButton>
+    <MudButton Variant="Variant.Outlined" Size="Size.Small"
+               OnClick="() => TimelineInterop.FitAsync()">
+        Fit all
+    </MudButton>
+    <MudSpacer />
+    <MudChip T="string" Style="background:#7F77DD;color:white" Size="Size.Small">
+        Warranties
+    </MudChip>
+    <MudChip T="string" Style="background:#1D9E75;color:white" Size="Size.Small">
+        Service
+    </MudChip>
+</MudStack>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Class="mb-2" />
+}
+
+<!-- vis-timeline renders into this div -->
+<div id="vis-timeline"
+     style="height: 420px; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px;">
+</div>
+
+@code {
+    private bool _loading = true;
+    private const string ElementId = "vis-timeline";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var items = await BuildItemsAsync();
+        await TimelineInterop.CreateAsync(ElementId, items, new TimelineOptions(
+            MinDate: DateOnly.FromDateTime(DateTime.Today.AddYears(-2)).ToString("yyyy-MM-dd", null),
+            MaxDate: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
+        ));
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task<IEnumerable<TimelineItem>> BuildItemsAsync()
+    {
+        var warranties = await WarrantyApi.GetActiveAsync() ?? [];
+        var services   = await ServiceApi.GetDueSoonAsync(365) ?? [];
+
+        var items = new List<TimelineItem>();
+
+        foreach (var w in warranties)
+        {
+            items.Add(new TimelineItem(
+                Id:        $"w-{w.Id}",
+                Content:   w.Name,
+                Start:     w.StartDate,
+                End:       w.EndDate,
+                ClassName: "hg-warranty",
+                Tooltip:   $"{w.Name} — expires {w.EndDate:yyyy-MM-dd}"
+            ));
+        }
+
+        foreach (var sr in services.Where(s => s.NextServiceDate.HasValue))
+        {
+            items.Add(new TimelineItem(
+                Id:        $"s-{sr.Id}",
+                Content:   sr.Title,
+                Start:     sr.NextServiceDate!.Value,
+                ClassName: "hg-service",
+                Tooltip:   $"{sr.Title} — due {sr.NextServiceDate:yyyy-MM-dd}"
+            ));
+        }
+
+        return items;
+    }
+
+    public async ValueTask DisposeAsync() => await TimelineInterop.DisposeAsync();
+}
