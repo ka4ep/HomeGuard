@@ -57,33 +57,41 @@ public sealed class WarrantyRepository : RepositoryBase<Warranty>, IWarrantyRepo
 
     public async Task<IReadOnlyList<Warranty>> GetByEquipmentAsync(
         Guid equipmentId, CancellationToken ct = default)
-        => await Set
+    {
+        var all = await Set
             .Include(w => w.NotificationRules)
             .Where(w => w.EquipmentId == equipmentId)
-            .OrderBy(w => w.Period.End)
             .ToListAsync(ct);
+
+        return all.OrderBy(w => w.Period.End).ToList();
+    }
 
     public async Task<IReadOnlyList<Warranty>> GetExpiringAsync(
         DateOnly from, DateOnly to, CancellationToken ct = default)
     {
-        var fromStr = from.ToString("yyyy-MM-dd", null);
-        var toStr   = to.ToString("yyyy-MM-dd", null);
-        return await Set
+        // DateOnly.ToString() is not translatable by EF Core + SQLite.
+        // For a home server the total number of warranties is small —
+        // loading all with includes and filtering in memory is fine.
+        var all = await Set
             .Include(w => w.NotificationRules)
-            .Where(w => string.Compare(w.Period.End.ToString(provider: null), fromStr, StringComparison.Ordinal) >= 0
-                     && string.Compare(w.Period.End.ToString(provider: null), toStr, StringComparison.Ordinal)   <= 0)
             .ToListAsync(ct);
+
+        return all
+            .Where(w => w.Period.End >= from && w.Period.End <= to)
+            .ToList();
     }
 
     public async Task<IReadOnlyList<Warranty>> GetActiveAsync(
         DateOnly asOf, CancellationToken ct = default)
     {
-        var asOfStr = asOf.ToString("yyyy-MM-dd", null);
-        return await Set
+        var all = await Set
             .Include(w => w.NotificationRules)
-            .Where(w => string.Compare(w.Period.End.ToString(provider: null), asOfStr, StringComparison.Ordinal) >= 0)
-            .OrderBy(w => w.Period.End)
             .ToListAsync(ct);
+
+        return all
+            .Where(w => w.Period.End >= asOf)
+            .OrderBy(w => w.Period.End)
+            .ToList();
     }
 }
 
@@ -101,35 +109,39 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
 
     public async Task<IReadOnlyList<ServiceRecord>> GetByEquipmentAsync(
         Guid equipmentId, CancellationToken ct = default)
-        => await Set
+    {
+        var all = await Set
             .Include(sr => sr.NotificationRules)
             .Where(sr => sr.EquipmentId == equipmentId)
-            .OrderByDescending(sr => sr.ServiceDate)
             .ToListAsync(ct);
+
+        return all.OrderByDescending(sr => sr.ServiceDate).ToList();
+    }
 
     public async Task<IReadOnlyList<ServiceRecord>> GetOverdueAsync(
         DateOnly asOf, CancellationToken ct = default)
     {
-        var asOfStr = asOf.ToString("yyyy-MM-dd", null);
-        return await Set
-            .Where(sr => sr.NextServiceDate != null
-                      && string.Compare(sr.NextServiceDate.Value.ToString(provider: null), asOfStr, StringComparison.Ordinal) < 0)
+        var all = await Set.ToListAsync(ct);
+        return all
+            .Where(sr => sr.NextServiceDate.HasValue && sr.NextServiceDate.Value < asOf)
             .OrderBy(sr => sr.NextServiceDate)
-            .ToListAsync(ct);
+            .ToList();
     }
 
     public async Task<IReadOnlyList<ServiceRecord>> GetDueSoonAsync(
         DateOnly asOf, int withinDays, CancellationToken ct = default)
     {
-        var asOfStr  = asOf.ToString("yyyy-MM-dd", null);
-        var untilStr = asOf.AddDays(withinDays).ToString("yyyy-MM-dd", null);
-        return await Set
+        var until = asOf.AddDays(withinDays);
+        var all   = await Set
             .Include(sr => sr.NotificationRules)
-            .Where(sr => sr.NextServiceDate != null
-                      && string.Compare(sr.NextServiceDate.Value.ToString(provider: null), asOfStr, StringComparison.Ordinal)  >= 0
-                      && string.Compare(sr.NextServiceDate.Value.ToString(provider: null), untilStr, StringComparison.Ordinal) <= 0)
-            .OrderBy(sr => sr.NextServiceDate)
             .ToListAsync(ct);
+
+        return all
+            .Where(sr => sr.NextServiceDate.HasValue
+                      && sr.NextServiceDate.Value >= asOf
+                      && sr.NextServiceDate.Value <= until)
+            .OrderBy(sr => sr.NextServiceDate)
+            .ToList();
     }
 }
 

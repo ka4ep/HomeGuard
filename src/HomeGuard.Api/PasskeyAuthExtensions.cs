@@ -50,8 +50,8 @@ internal static class PasskeyAuthExtensions
         services.AddFido2(opts =>
         {
             opts.ServerDomain = configuration["Fido2:ServerDomain"] ?? "localhost";
-            opts.ServerName = configuration["Fido2:ServerName"] ?? "HomeGuard";
-            opts.Origins = configuration
+            opts.ServerName   = configuration["Fido2:ServerName"]   ?? "HomeGuard";
+            opts.Origins      = configuration
                 .GetSection("Fido2:Origins")
                 .Get<HashSet<string>>()
                 ?? ["http://localhost:5010", "https://localhost:5011"];
