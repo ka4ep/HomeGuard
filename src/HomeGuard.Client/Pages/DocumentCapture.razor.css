@@ -1,0 +1,290 @@
+/* DocumentCapture.razor.css
+   Все цвета — через переменные из variables.css
+   Никаких хардкодных hex здесь.
+*/
+
+/* ── Root ─────────────────────────────────────────────────── */
+.dc-root {
+    display:        flex;
+    flex-direction: column;
+    gap:            .5rem;
+    font-family:    var(--hg-font);
+}
+
+.dc-label {
+    font-size:   .75rem;
+    font-weight: 500;
+    color:       var(--hg-text-muted);
+    margin:      0 0 .25rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+/* ── Tabs ─────────────────────────────────────────────────── */
+.dc-tabs {
+    display:          flex;
+    gap:              4px;
+    background:       rgba(0,0,0,.08);
+    border-radius:    var(--hg-radius-md);
+    padding:          4px;
+}
+
+.dc-tab {
+    flex:             1;
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+    gap:              6px;
+    padding:          7px 12px;
+    border:           none;
+    border-radius:    calc(var(--hg-radius-md) - 2px);
+    background:       transparent;
+    color:            var(--hg-text-on-bg-muted);
+    font-family:      var(--hg-font);
+    font-size:        .8125rem;
+    font-weight:      500;
+    cursor:           pointer;
+    transition:       background var(--hg-transition), color var(--hg-transition);
+}
+
+.dc-tab:hover:not(.is-active) {
+    background: rgba(255,255,255,.1);
+    color:      var(--hg-text-on-bg);
+}
+
+.dc-tab.is-active {
+    background: var(--hg-card);
+    color:      var(--hg-text);
+    box-shadow: var(--hg-shadow-card);
+}
+
+/* ── Body / Panels ────────────────────────────────────────── */
+.dc-body {
+    position: relative;
+    min-height: 200px;
+}
+
+.dc-panel {
+    display:    none;
+    flex-direction: column;
+    align-items: center;
+    gap:        .75rem;
+}
+
+.dc-panel.is-visible {
+    display: flex;
+}
+
+/* ── Drop zone ────────────────────────────────────────────── */
+.dc-drop-zone {
+    width:          100%;
+    min-height:     180px;
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    justify-content: center;
+    gap:            .35rem;
+    padding:        2rem 1.5rem;
+    border:         1.5px dashed var(--hg-border-on-bg);
+    border-radius:  var(--hg-radius-lg);
+    background:     rgba(255,255,255,.06);
+    color:          var(--hg-text-on-bg-muted);
+    cursor:         pointer;
+    transition:     border-color var(--hg-transition),
+                    background   var(--hg-transition),
+                    color        var(--hg-transition);
+    user-select:    none;
+}
+
+.dc-drop-zone:hover,
+.dc-drop-zone.is-dragging {
+    border-color: var(--hg-accent-on-bg);
+    background:   rgba(79,111,160,.15);
+    color:        var(--hg-text-on-bg);
+}
+
+.dc-drop-zone.is-dragging {
+    border-style: solid;
+}
+
+.dc-drop-icon {
+    color:      var(--hg-accent-on-bg);
+    opacity:    .8;
+    margin-bottom: .25rem;
+    transition: transform var(--hg-transition);
+}
+
+.dc-drop-zone:hover .dc-drop-icon,
+.dc-drop-zone.is-dragging .dc-drop-icon {
+    transform: translateY(-3px);
+    opacity:   1;
+}
+
+.dc-drop-title {
+    font-size:   .9375rem;
+    font-weight: 500;
+    color:       var(--hg-text-on-bg);
+    margin:      0;
+}
+
+.dc-drop-sub {
+    font-size:   .8125rem;
+    color:       var(--hg-text-on-bg-muted);
+    margin:      0;
+}
+
+.dc-drop-formats {
+    font-size:   .75rem;
+    color:       var(--hg-text-on-bg-subtle);
+    margin:      .25rem 0 0;
+    letter-spacing: .04em;
+}
+
+.dc-file-input {
+    position: absolute;
+    width: 1px; height: 1px;
+    opacity: 0; pointer-events: none;
+}
+
+/* ── Camera ───────────────────────────────────────────────── */
+.dc-camera-wrap {
+    width:          100%;
+    position:       relative;
+    border-radius:  var(--hg-radius-lg);
+    overflow:       hidden;
+    background:     var(--hg-bg-deep);
+    aspect-ratio:   4/3;
+}
+
+.dc-camera-video {
+    width:          100%;
+    height:         100%;
+    object-fit:     cover;
+    display:        block;
+    opacity:        0;
+    transition:     opacity var(--hg-transition);
+}
+
+.dc-camera-video.is-active {
+    opacity: 1;
+}
+
+.dc-camera-overlay {
+    position:       absolute;
+    inset:          0;
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    justify-content: center;
+    gap:            .75rem;
+    cursor:         pointer;
+    color:          var(--hg-text-on-bg-muted);
+    transition:     color var(--hg-transition);
+}
+
+.dc-camera-overlay:hover {
+    color: var(--hg-text-on-bg);
+}
+
+.dc-camera-overlay span {
+    font-size:   .875rem;
+    font-weight: 500;
+}
+
+/* ── Capture button (shutter) ─────────────────────────────── */
+.dc-btn-capture {
+    width:          56px;
+    height:         56px;
+    border-radius:  50%;
+    border:         2.5px solid var(--hg-text-on-bg);
+    background:     transparent;
+    cursor:         pointer;
+    display:        flex;
+    align-items:    center;
+    justify-content: center;
+    padding:        0;
+    transition:     transform var(--hg-transition), border-color var(--hg-transition);
+    align-self:     center;
+}
+
+.dc-btn-capture:hover  { transform: scale(1.06); }
+.dc-btn-capture:active { transform: scale(.96);  }
+
+.dc-capture-ring {
+    display:        block;
+    width:          42px;
+    height:         42px;
+    border-radius:  50%;
+    background:     var(--hg-text-on-bg);
+    transition:     background var(--hg-transition);
+}
+
+.dc-btn-capture:hover .dc-capture-ring {
+    background: var(--hg-accent-on-bg);
+}
+
+/* ── Preview ──────────────────────────────────────────────── */
+.dc-preview {
+    width:          100%;
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    gap:            .75rem;
+}
+
+.dc-preview-img {
+    width:          100%;
+    max-height:     320px;
+    object-fit:     contain;
+    border-radius:  var(--hg-radius-md);
+    background:     var(--hg-bg-deep);
+}
+
+.dc-pdf-badge {
+    display:        flex;
+    align-items:    center;
+    gap:            .6rem;
+    padding:        .75rem 1rem;
+    background:     rgba(255,255,255,.1);
+    border-radius:  var(--hg-radius-md);
+    color:          var(--hg-text-on-bg);
+    font-size:      .875rem;
+    font-weight:    500;
+    width:          100%;
+}
+
+.dc-preview-actions {
+    display:    flex;
+    gap:        .5rem;
+    align-self: flex-end;
+}
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.dc-btn-secondary {
+    padding:        6px 14px;
+    border-radius:  var(--hg-radius-sm);
+    border:         1px solid var(--hg-border-on-bg);
+    background:     transparent;
+    color:          var(--hg-text-on-bg-muted);
+    font-family:    var(--hg-font);
+    font-size:      .8125rem;
+    cursor:         pointer;
+    transition:     border-color var(--hg-transition), color var(--hg-transition),
+                    background var(--hg-transition);
+}
+
+.dc-btn-secondary:hover {
+    border-color: var(--hg-text-on-bg);
+    color:        var(--hg-text-on-bg);
+    background:   rgba(255,255,255,.08);
+}
+
+/* ── Error ────────────────────────────────────────────────── */
+.dc-error {
+    font-size:   .8125rem;
+    color:       var(--hg-danger-text);
+    background:  var(--hg-danger-bg);
+    padding:     .5rem .75rem;
+    border-radius: var(--hg-radius-sm);
+    margin:      0;
+}

@@ -1,0 +1,199 @@
+/* mud-overrides.css
+   Точечные оверрайды MudBlazor — всё через CSS-переменные из variables.css.
+   Подключать ПОСЛЕ mudblazor.min.css.
+*/
+
+/* ── Страница ──────────────────────────────────────────────────────────────── */
+
+body, .mud-layout {
+    background-color: var(--hg-bg) !important;
+    font-family: var(--hg-font);
+}
+
+/* ── AppBar ────────────────────────────────────────────────────────────────── */
+
+.mud-appbar {
+    background-color: var(--hg-bg-deep) !important;
+    color: var(--hg-text-on-bg) !important;
+    /* Тонкая граница вместо тени */
+    border-bottom: 1px solid var(--hg-border-on-bg) !important;
+    box-shadow: none !important;
+}
+
+/* ── Drawer ────────────────────────────────────────────────────────────────── */
+
+.mud-drawer,
+.mud-drawer-content {
+    background-color: var(--hg-bg-deep) !important;
+    border-right: 1px solid var(--hg-border-on-bg) !important;
+    box-shadow: none !important;
+}
+
+.mud-nav-link {
+    color: var(--hg-text-on-bg-muted) !important;
+    border-radius: var(--hg-radius-sm) !important;
+    margin: 2px 8px !important;
+    transition: background var(--hg-transition), color var(--hg-transition) !important;
+}
+
+    .mud-nav-link:hover,
+    .mud-nav-link.active {
+        background-color: rgba(255,255,255,.1) !important;
+        color: var(--hg-text-on-bg) !important;
+    }
+
+    .mud-nav-link.active {
+        background-color: rgba(255,255,255,.15) !important;
+    }
+
+/* ── Cards ─────────────────────────────────────────────────────────────────── */
+
+.mud-card,
+.mud-paper-outlined {
+    background-color: var(--hg-card) !important;
+    color: var(--hg-text) !important;
+    border: .5px solid var(--hg-border-card) !important;
+    box-shadow: var(--hg-shadow-card) !important;
+}
+
+/* Elevation 0 — плоские панели */
+.mud-elevation-0 {
+    background-color: var(--hg-card) !important;
+    box-shadow: none !important;
+    border: .5px solid var(--hg-border-card) !important;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────────── */
+
+.mud-table-container {
+    background-color: var(--hg-card) !important;
+    border-radius: var(--hg-radius-md) !important;
+    overflow: hidden;
+}
+
+.mud-table-head .mud-table-cell {
+    background-color: var(--hg-card) !important;
+    color: var(--hg-text-muted) !important;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--hg-border-card) !important;
+}
+
+.mud-table-body .mud-table-row:hover td {
+    background-color: rgba(79,111,160,.06) !important;
+}
+
+.mud-table-cell {
+    color: var(--hg-text) !important;
+    border-color: var(--hg-border-card) !important;
+}
+
+/* ── Dialogs ───────────────────────────────────────────────────────────────── */
+
+.mud-dialog {
+    background-color: var(--hg-card-top) !important;
+    color: var(--hg-text) !important;
+    box-shadow: var(--hg-shadow-modal) !important;
+    border: .5px solid var(--hg-border-card) !important;
+}
+
+.mud-dialog-title {
+    color: var(--hg-text) !important;
+    font-weight: 600;
+}
+
+.mud-overlay {
+    background-color: var(--hg-bg-deep) !important;
+    opacity: .5 !important;
+}
+
+/* ── Form fields ───────────────────────────────────────────────────────────── */
+
+.mud-input-label,
+.mud-label {
+    color: var(--hg-text-muted) !important;
+    font-size: .8125rem !important;
+}
+
+.mud-input-slot {
+    color: var(--hg-text) !important;
+}
+
+.mud-input-underline:before {
+    border-color: var(--hg-border-strong) !important;
+}
+
+/* ── Chips / Badges ────────────────────────────────────────────────────────── */
+
+.mud-chip {
+    font-size: .75rem !important;
+    font-weight: 500 !important;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+
+.mud-button-root {
+    font-family: var(--hg-font) !important;
+    letter-spacing: 0 !important;
+}
+
+/* Outlined кнопки на сером фоне страницы — белый контур */
+.mud-button-outlined-primary {
+    border-color: var(--hg-border-on-bg) !important;
+    color: var(--hg-text-on-bg) !important;
+}
+
+    .mud-button-outlined-primary:hover {
+        background-color: rgba(255,255,255,.08) !important;
+        border-color: var(--hg-text-on-bg) !important;
+    }
+
+/* Outlined кнопки внутри карточки — тёмный контур */
+.mud-card .mud-button-outlined-primary,
+.mud-dialog .mud-button-outlined-primary {
+    border-color: var(--hg-border-card) !important;
+    color: var(--hg-accent) !important;
+}
+
+/* ── Text colors ───────────────────────────────────────────────────────────── */
+
+/* Текст вне карточек — белый */
+.mud-main-content > .mud-container > * > .mud-text,
+.mud-typography {
+    color: inherit;
+}
+
+/* MudText Color.Secondary — адаптируем под контекст */
+.mud-secondary-text {
+    color: var(--hg-text-muted) !important;
+}
+
+/* ── Snackbar ──────────────────────────────────────────────────────────────── */
+
+.mud-snackbar {
+    border-radius: var(--hg-radius-md) !important;
+    font-family: var(--hg-font) !important;
+}
+
+/* ── Scrollbar (Chromium/Firefox) ──────────────────────────────────────────── */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hg-bg-raised) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--hg-bg-raised);
+    border-radius: 3px;
+}

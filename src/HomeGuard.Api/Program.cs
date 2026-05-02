@@ -3,11 +3,17 @@ using HomeGuard.Infrastructure;
 using HomeGuard.Api.BackgroundServices;
 using HomeGuard.Api.Endpoints;
 using HomeGuard.Api;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHomeGuardInfrastructure(builder.Configuration);
 builder.Services.AddHomeGuardApplication();
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 // В продакшне CORS не нужен — клиент и Api на одном origin.
 // Оставляем только для dev запуска двух проектов отдельно.

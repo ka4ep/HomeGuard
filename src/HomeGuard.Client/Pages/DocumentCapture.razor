@@ -1,0 +1,253 @@
+@using HomeGuard.Client.Model
+@* Components/DocumentCapture.razor
+   Параметры:
+     OnCapture  — EventCallback<CapturedDocument>, срабатывает при выборе/съёмке
+     Label      — опциональный заголовок над компонентом
+*@
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div class="dc-root">
+
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <p class="dc-label">@Label</p>
+    }
+
+    @* ── Табы ── *@
+    <div class="dc-tabs" role="tablist">
+        <button class="dc-tab @(activeTab == Tab.File   ? "is-active" : "")"
+                role="tab" aria-selected="@(activeTab == Tab.File)"
+                @onclick='() => SwitchTab(Tab.File)'>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3 2a1 1 0 0 1 1-1h5.586a1 1 0 0 1 .707.293l3.414 3.414A1 1 0 0 1 14 5.414V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+                <path d="M9 1.5V5a1 1 0 0 0 1 1h3.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            </svg>
+            Файл
+        </button>
+        <button class="dc-tab @(activeTab == Tab.Camera ? "is-active" : "")"
+                role="tab" aria-selected="@(activeTab == Tab.Camera)"
+                @onclick='() => SwitchTab(Tab.Camera)'>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="1" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.25"/>
+                <circle cx="8" cy="9" r="2.5" stroke="currentColor" stroke-width="1.25"/>
+                <path d="M5.5 4l1-2h3l1 2" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+            </svg>
+            Камера
+        </button>
+    </div>
+
+    @* ── Тело ── *@
+    <div class="dc-body">
+
+        @* ── Вкладка: Файл ── *@
+        <div class="dc-panel @(activeTab == Tab.File ? "is-visible" : "")" role="tabpanel">
+            @if (captured == null)
+            {
+                <div @ref="dropZoneRef" class="dc-drop-zone">
+                    <svg class="dc-drop-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                        <path d="M16 22V10M16 10L11 15M16 10l5 5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 22v1a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-1" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                    </svg>
+                    <p class="dc-drop-title">Перетащите файл сюда</p>
+                    <p class="dc-drop-sub">или нажмите для выбора</p>
+                    <p class="dc-drop-formats">PDF · JPG · PNG · макс. 20 МБ</p>
+                </div>
+                <input @ref="fileInputRef" type="file"
+                       accept=".pdf,.jpg,.jpeg,.png"
+                       class="dc-file-input" tabindex="-1" aria-hidden="true" />
+            }
+            else
+            {
+                <div class="dc-preview">
+                    @if (captured.MimeType.StartsWith("image/"))
+                    {
+                        <img src="@previewDataUrl" class="dc-preview-img" alt="Предпросмотр" />
+                    }
+                    else
+                    {
+                        <div class="dc-pdf-badge">
+                            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                                <rect x="4" y="2" width="18" height="24" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M16 2.5V8a1 1 0 0 0 1 1h5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                            <span>@captured.FileName</span>
+                        </div>
+                    }
+                    <div class="dc-preview-actions">
+                        <button class="dc-btn-secondary" @onclick="ClearCapture">Удалить</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* ── Вкладка: Камера ── *@
+        <div class="dc-panel @(activeTab == Tab.Camera ? "is-visible" : "")" role="tabpanel">
+            @if (captured == null)
+            {
+                <div class="dc-camera-wrap">
+                    <video @ref="videoRef" autoplay playsinline muted
+                           class="dc-camera-video @(cameraStarted ? "is-active" : "")">
+                    </video>
+                    <canvas @ref="canvasRef" hidden></canvas>
+
+                    @if (!cameraStarted)
+                    {
+                        <div class="dc-camera-overlay" @onclick="StartCamera">
+                            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+                                <rect x="2" y="8" width="32" height="22" rx="4" stroke="currentColor" stroke-width="1.75"/>
+                                <circle cx="18" cy="19" r="6" stroke="currentColor" stroke-width="1.75"/>
+                                <path d="M12 8l2.5-4h7L24 8" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Включить камеру</span>
+                        </div>
+                    }
+                </div>
+                @if (cameraStarted)
+                {
+                    <button class="dc-btn-capture" @onclick="CapturePhoto">
+                        <span class="dc-capture-ring"></span>
+                    </button>
+                }
+            }
+            else
+            {
+                <div class="dc-preview">
+                    <img src="@previewDataUrl" class="dc-preview-img" alt="Снимок" />
+                    <div class="dc-preview-actions">
+                        <button class="dc-btn-secondary" @onclick="ClearCapture">Переснять</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+    </div>
+
+    @* ── Ошибка ── *@
+    @if (errorMessage != null)
+    {
+        <p class="dc-error" role="alert">@errorMessage</p>
+    }
+
+</div>
+
+@code {
+    // ── Параметры ──────────────────────────────────────────────
+    [Parameter] public EventCallback<CapturedDocument> OnCapture { get; set; }
+    [Parameter] public string? Label { get; set; }
+
+    // ── Состояние ──────────────────────────────────────────────
+    private enum Tab { File, Camera }
+    private Tab    activeTab    = Tab.File;
+    private bool   cameraStarted;
+    private string? errorMessage;
+    private string? previewDataUrl;
+    private CapturedDocument? captured;
+
+    // ── Refs ───────────────────────────────────────────────────
+    private ElementReference dropZoneRef;
+    private ElementReference fileInputRef;
+    private ElementReference videoRef;
+    private ElementReference canvasRef;
+
+    // ── JS ─────────────────────────────────────────────────────
+    private IJSObjectReference?         jsModule;
+    private DotNetObjectReference<DocumentCapture>? selfRef;
+
+    // ── Lifecycle ──────────────────────────────────────────────
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        jsModule = await JS.InvokeAsync<IJSObjectReference>(
+            "import", "./js/documentCapture.js");
+
+        selfRef = DotNetObjectReference.Create(this);
+
+        await jsModule.InvokeVoidAsync("initDropZone",
+            dropZoneRef, fileInputRef, selfRef);
+    }
+
+    // ── JS callbacks ───────────────────────────────────────────
+    [JSInvokable]
+    public async Task OnFileReady(string base64, string mimeType, string fileName)
+    {
+        errorMessage = null;
+        var bytes    = Convert.FromBase64String(base64);
+        captured     = new CapturedDocument(bytes, mimeType, fileName);
+        previewDataUrl = mimeType.StartsWith("image/")
+            ? $"data:{mimeType};base64,{base64}"
+            : null;
+
+        await OnCapture.InvokeAsync(captured);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnFileError(string message)
+    {
+        errorMessage = message;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // ── Действия ───────────────────────────────────────────────
+    private async Task SwitchTab(Tab tab)
+    {
+        if (activeTab == Tab.Camera && cameraStarted)
+            await StopCamera();
+
+        activeTab    = tab;
+        errorMessage = null;
+    }
+
+    private async Task StartCamera()
+    {
+        cameraStarted = await jsModule!.InvokeAsync<bool>("startCamera", videoRef);
+        if (!cameraStarted)
+            errorMessage = "Не удалось получить доступ к камере. Проверьте разрешения браузера.";
+        StateHasChanged();
+    }
+
+    private async Task CapturePhoto()
+    {
+        var dataUrl = await jsModule!.InvokeAsync<string>("captureFrame", videoRef, canvasRef);
+        var base64  = dataUrl.Split(',')[1];
+        var bytes   = Convert.FromBase64String(base64);
+        var fileName = $"photo_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+
+        captured       = new CapturedDocument(bytes, "image/jpeg", fileName);
+        previewDataUrl = dataUrl;
+
+        await StopCamera();
+        await OnCapture.InvokeAsync(captured);
+        StateHasChanged();
+    }
+
+    private async Task StopCamera()
+    {
+        if (jsModule != null)
+            await jsModule.InvokeVoidAsync("stopCamera");
+        cameraStarted = false;
+    }
+
+    private async Task ClearCapture()
+    {
+        captured       = null;
+        previewDataUrl = null;
+        errorMessage   = null;
+
+        if (activeTab == Tab.Camera)
+            await StartCamera();
+        else
+            StateHasChanged();
+    }
+
+    // ── Dispose ────────────────────────────────────────────────
+    public async ValueTask DisposeAsync()
+    {
+        await StopCamera();
+        selfRef?.Dispose();
+        if (jsModule != null)
+            await jsModule.DisposeAsync();
+    }
+}

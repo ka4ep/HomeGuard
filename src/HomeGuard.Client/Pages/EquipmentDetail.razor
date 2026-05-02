@@ -1,4 +1,5 @@
 @page "/equipment/{Id:guid}"
+@using HomeGuard.Client.Model
 @inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
@@ -162,22 +163,55 @@ else
         <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mr-1" />
         Attachments
     </MudText>
-    <InputFile id="file-upload" OnChange="UploadFileAsync" hidden
-               accept="image/*,.pdf" multiple />
-    <MudButton HtmlTag="label" Variant="Variant.Outlined"
-               StartIcon="@(_uploading ? null : Icons.Material.Filled.CameraAlt)"
-               for="file-upload" Disabled="_uploading">
-        @if (_uploading)
-        {
-            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-            <span>Uploading…</span>
-        }
-        else
-        {
-            <span>Add photo / document</span>
-        }
-    </MudButton>
+
+    <MudStack Row="true" Spacing="2">
+        @* Кнопка 1: быстрый выбор файлов с диска (multiple) *@
+        <InputFile id="file-upload" OnChange="UploadFileAsync" hidden
+                   accept="image/*,.pdf" multiple />
+        <MudButton HtmlTag="label" Variant="Variant.Outlined"
+                   StartIcon="@(_uploading ? null : Icons.Material.Filled.FolderOpen)"
+                   for="file-upload" Disabled="_uploading || _uploadingCapture">
+            @if (_uploading)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                <span>Uploading…</span>
+            }
+            else
+            {
+                <span>Browse files</span>
+            }
+        </MudButton>
+
+        @* Кнопка 2: сканирование / камера через DocumentCapture *@
+        <MudButton Variant="Variant.Outlined"
+                   StartIcon="@Icons.Material.Filled.DocumentScanner"
+                   OnClick="() => _showCapture = true"
+                   Disabled="_uploading || _uploadingCapture">
+            Scan / Camera
+        </MudButton>
+    </MudStack>
+
+    @if (_uploadingCapture)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mt-2" Spacing="1">
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Uploading scan…</MudText>
+        </MudStack>
+    }
 }
+
+<!-- Scan / Camera dialog -->
+<MudDialog @bind-Visible="_showCapture" Options="_captureDialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Scan or take a photo</MudText>
+    </TitleContent>
+    <DialogContent>
+        <DocumentCapture OnCapture="HandleDocumentCapturedAsync" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _showCapture = false">Close</MudButton>
+    </DialogActions>
+</MudDialog>
 
 <!-- Edit equipment dialog -->
 <MudDialog @bind-Visible="_showEdit">
@@ -380,6 +414,15 @@ else
     // ── File upload ───────────────────────────────────────────────────────────
 
     private bool _uploading;
+    private bool _uploadingCapture;
+    private bool _showCapture;
+
+    private readonly DialogOptions _captureDialogOptions = new()
+    {
+        MaxWidth  = MaxWidth.Small,
+        FullWidth = true,
+        CloseOnEscapeKey = true
+    };
 
     private async Task UploadFileAsync(InputFileChangeEventArgs e)
     {
@@ -403,6 +446,24 @@ else
 
         if (uploaded > 0)
             Snackbar.Add($"{uploaded} file(s) uploaded.", Severity.Success);
+    }
+
+    private async Task HandleDocumentCapturedAsync(CapturedDocument doc)
+    {
+        _showCapture     = false;
+        _uploadingCapture = true;
+        StateHasChanged();
+
+        var blobId = await BlobApi.UploadAsync(doc.Data, doc.MimeType, doc.FileName, Id, "Equipment");
+
+        _uploadingCapture = false;
+
+        if (blobId.HasValue)
+            Snackbar.Add("Document uploaded.", Severity.Success);
+        else
+            Snackbar.Add($"Failed to upload: {doc.FileName}", Severity.Error);
+
+        StateHasChanged();
     }
 
     private void NavigateToEquipment()

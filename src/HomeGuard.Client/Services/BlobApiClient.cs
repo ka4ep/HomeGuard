@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -37,6 +38,23 @@ public sealed class BlobApiClient
 
         var body = await resp.Content.ReadFromJsonAsync<BlobUploadResult>(ct);
         return body?.Id;
+    }
+
+    // В BlobApiClient добавить рядом с существующим UploadAsync:
+    public async Task<Guid?> UploadAsync(
+        byte[] data, string mimeType, string fileName,
+        Guid entityId, string entityType)
+    {
+        using var content = new MultipartFormDataContent();
+        var fileContent = new ByteArrayContent(data);
+        fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(mimeType);
+        content.Add(fileContent, "file", fileName);
+        content.Add(new StringContent(entityId.ToString()), "entityId");
+        content.Add(new StringContent(entityType), "entityType");
+
+        var resp = await _http.PostAsync("api/blobs", content);
+        if (!resp.IsSuccessStatusCode) return null;
+        return await resp.Content.ReadFromJsonAsync<Guid>();
     }
 
     /// <summary>Returns a URL to stream the blob directly from the API.</summary>
