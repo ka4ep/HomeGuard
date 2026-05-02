@@ -1,3 +1,6 @@
+@inject AuthApiClient AuthApi
+@inject NavigationManager Nav
+
 <MudNavMenu>
     <MudNavLink Href="" Match="NavLinkMatch.All"
                 Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
@@ -12,4 +15,38 @@
     <MudDivider Class="my-2" />
     <MudNavLink Href="settings"
                 Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+    <MudDivider Class="my-2" />
+
+    @if (_displayName is not null)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-4 py-2">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
+                     Color="Color.Secondary" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@_displayName</MudText>
+        </MudStack>
+        <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">
+            Sign out
+        </MudNavLink>
+    }
+    else
+    {
+        <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">Sign in</MudNavLink>
+    }
 </MudNavMenu>
+
+@code {
+    private string? _displayName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var me = await AuthApi.GetMeAsync();
+        _displayName = me?.DisplayName;
+    }
+
+    private async Task LogoutAsync()
+    {
+        await AuthApi.LogoutAsync();
+        _displayName = null;
+        Nav.NavigateTo("/login");
+    }
+}

@@ -159,11 +159,14 @@ public sealed class BlobEntryRepository : RepositoryBase<BlobEntry>, IBlobEntryR
             .ToListAsync(ct);
 
     public async Task<IReadOnlyList<BlobEntry>> GetPendingSyncAsync(CancellationToken ct = default)
-        => await Set
+    {
+        var all = await Set.ToListAsync(ct);
+        return all
             .Where(b => b.SyncStatus == BlobSyncStatus.LocalOnly
                      || b.SyncStatus == BlobSyncStatus.SyncFailed)
             .OrderBy(b => b.CreatedAt)
-            .ToListAsync(ct);
+            .ToList();
+    }
 }
 
 // ── ScheduledJob ──────────────────────────────────────────────────────────────
@@ -174,17 +177,25 @@ public sealed class ScheduledJobRepository : RepositoryBase<ScheduledJob>, ISche
 
     public async Task<IReadOnlyList<ScheduledJob>> GetReadyJobsAsync(
         DateTimeOffset now, int limit = 20, CancellationToken ct = default)
-        => await Set
+    {
+        // Enum and DateTimeOffset comparisons are not translatable in SQLite via EF Core.
+        // Job count stays small — client-side filtering is fine.
+        var all = await Set.ToListAsync(ct);
+        return all
             .Where(j => j.Status == JobStatus.Pending && j.RunAfter <= now)
             .OrderBy(j => j.RunAfter)
             .Take(limit)
-            .ToListAsync(ct);
+            .ToList();
+    }
 
     public async Task<bool> ExistsPendingAsync(string correlationKey, CancellationToken ct = default)
-        => await Set.AnyAsync(
-            j => j.CorrelationKey == correlationKey
-              && (j.Status == JobStatus.Pending || j.Status == JobStatus.Running),
-            ct);
+    {
+        var all = await Set
+            .Where(j => j.CorrelationKey == correlationKey)
+            .ToListAsync(ct);
+
+        return all.Any(j => j.Status == JobStatus.Pending || j.Status == JobStatus.Running);
+    }
 }
 
 // ── AppUser ───────────────────────────────────────────────────────────────────

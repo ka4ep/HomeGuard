@@ -108,7 +108,7 @@ public sealed class JobRunnerService : BackgroundService
                     Title: "HomeGuard reminder",
                     Body: body,
                     Url: $"/{payload.EntityType.ToLowerInvariant()}s/{payload.EntityId}",
-                    Tag: $"hg-{payload.EntityType.ToLower()}-{payload.EntityId}"
+                    Tag: $"hg-{payload.EntityType.ToLower(System.Globalization.CultureInfo.InvariantCulture)}-{payload.EntityId}"
                 );
 
                 await sender.SendToAllAsync(notification, ct);

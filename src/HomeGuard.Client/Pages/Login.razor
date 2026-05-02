@@ -1,0 +1,229 @@
+@page "/login"
+@inject AuthApiClient AuthApi
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject ISnackbar Snackbar
+
+<PageTitle>HomeGuard — Sign in</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
+    <MudCard Elevation="3">
+        <MudCardContent Class="pa-6">
+
+            <MudStack AlignItems="AlignItems.Center" Class="mb-6">
+                <MudIcon Icon="@Icons.Material.Filled.Home"
+                         Color="Color.Primary" Style="font-size:3rem" />
+                <MudText Typo="Typo.h5">HomeGuard</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    Sign in with your passkey
+                </MudText>
+            </MudStack>
+
+            @if (!_supported)
+            {
+                <MudAlert Severity="Severity.Error">
+                    This browser does not support Passkeys. Use a modern browser on a device
+                    with biometric authentication.
+                </MudAlert>
+            }
+            else
+            {
+                @if (_mode == Mode.Login)
+                {
+                    <!-- Login -->
+                    <MudStack Spacing="3">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   FullWidth="true" Size="Size.Large"
+                                   StartIcon="@Icons.Material.Filled.Fingerprint"
+                                   OnClick="LoginAsync" Disabled="_busy">
+                            @(_busy ? "Authenticating…" : "Sign in with passkey")
+                        </MudButton>
+
+                        <MudDivider />
+
+                        <MudText Typo="Typo.body2" Align="Align.Center"
+                                 Color="Color.Secondary">
+                            First time? Register a new passkey.
+                        </MudText>
+
+                        <MudButton Variant="Variant.Outlined" FullWidth="true"
+                                   OnClick="() => _mode = Mode.Register">
+                            Register
+                        </MudButton>
+                    </MudStack>
+                }
+                else
+                {
+                    <!-- Register -->
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_displayName"
+                                      Label="Your name (e.g. Mom, Alex)"
+                                      Placeholder="How should we call you?"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Person" />
+
+                        <MudTextField @bind-Value="_deviceName"
+                                      Label="This device (e.g. iPhone 16, Work laptop)"
+                                      Placeholder="So you recognise it later"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Devices" />
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   FullWidth="true" Size="Size.Large"
+                                   StartIcon="@Icons.Material.Filled.AddCircle"
+                                   OnClick="RegisterAsync"
+                                   Disabled="_busy || string.IsNullOrWhiteSpace(_displayName)">
+                            @(_busy ? "Registering…" : "Register passkey")
+                        </MudButton>
+
+                        <MudButton Variant="Variant.Text" FullWidth="true"
+                                   OnClick="() => _mode = Mode.Login">
+                            Back to sign in
+                        </MudButton>
+                    </MudStack>
+                }
+
+                @if (_error is not null)
+                {
+                    <MudAlert Severity="Severity.Error" Class="mt-4" Dense="true">
+                        @_error
+                    </MudAlert>
+                }
+            }
+
+        </MudCardContent>
+    </MudCard>
+
+    <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary"
+             Class="mt-4 d-block">
+        No passwords. Your device handles authentication securely.
+    </MudText>
+</MudContainer>
+
+@code {
+    private enum Mode { Login, Register }
+
+    private Mode   _mode = Mode.Login;
+    private bool   _busy;
+    private bool   _supported;
+    private string _displayName = string.Empty;
+    private string _deviceName  = string.Empty;
+    private string? _error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        _supported = await JS.InvokeAsync<bool>("homeGuardAuth.isSupported");
+        StateHasChanged();
+    }
+
+    // ── Login ─────────────────────────────────────────────────────────────────
+
+    private async Task LoginAsync()
+    {
+        _busy  = true;
+        _error = null;
+
+        try
+        {
+            // Step 1: get challenge from server.
+            var optionsJson = await AuthApi.GetLoginOptionsJsonAsync();
+            if (optionsJson is null)
+            {
+                _error = "Could not reach the server.";
+                return;
+            }
+
+            // Step 2: let the browser handle biometric / passkey.
+            var assertionElement = await JS.InvokeAsync<System.Text.Json.JsonElement>(
+                "homeGuardAuth.authenticate", optionsJson);
+
+            if (assertionElement.TryGetProperty("error", out var err))
+            {
+                _error = err.GetString();
+                return;
+            }
+
+            var assertionJson = assertionElement.GetRawText();
+
+            // Step 3: send to server, receive session cookie.
+            var result = await AuthApi.CompleteLoginAsync(assertionJson);
+
+            if (!result.Success)
+            {
+                _error = result.Error ?? "Authentication failed.";
+                return;
+            }
+
+            Snackbar.Add($"Welcome back, {result.DisplayName}!", Severity.Success);
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    // ── Register ──────────────────────────────────────────────────────────────
+
+    private async Task RegisterAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_displayName)) return;
+
+        _busy  = true;
+        _error = null;
+
+        var deviceName = string.IsNullOrWhiteSpace(_deviceName)
+            ? "My device"
+            : _deviceName.Trim();
+
+        try
+        {
+            // Step 1: get registration options from server.
+            var optionsJson = await AuthApi.GetRegisterOptionsJsonAsync(
+                _displayName.Trim(), deviceName);
+
+            if (optionsJson is null)
+            {
+                _error = "Could not reach the server.";
+                return;
+            }
+
+            // Step 2: browser creates a new passkey.
+            var attestationElement = await JS.InvokeAsync<System.Text.Json.JsonElement>(
+                "homeGuardAuth.register", optionsJson);
+
+            if (attestationElement.TryGetProperty("error", out var err))
+            {
+                _error = err.GetString();
+                return;
+            }
+
+            var attestationJson = attestationElement.GetRawText();
+
+            // Step 3: send to server, receive session cookie.
+            var result = await AuthApi.CompleteRegisterAsync(attestationJson);
+
+            if (!result.Success)
+            {
+                _error = result.Error ?? "Registration failed.";
+                return;
+            }
+
+            Snackbar.Add($"Welcome, {result.DisplayName}! Passkey registered.", Severity.Success);
+            Nav.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

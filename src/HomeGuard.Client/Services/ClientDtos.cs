@@ -13,7 +13,7 @@ public sealed record EquipmentSummary(
     DateTimeOffset UpdatedAt
 );
 
-public sealed record EquipmentDetail(
+public sealed record EquipmentDetailDto(
     Guid Id,
     string Name,
     string Category,

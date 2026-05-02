@@ -1,54 +1,55 @@
 # syntax=docker/dockerfile:1
-# Multi-stage build — works with both Podman and Docker.
+# Работает с Podman и Docker.
 
-# ── Stage 1: base runtime image ──────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+# ── Stage 1: base runtime ─────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
-# ── Stage 2: restore + build ─────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+# ── Stage 2: build ────────────────────────────────────────────────────────────
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy solution and all project files first (layer-cache friendly)
+# Копируем solution-файлы для кэширования restore
 COPY HomeGuard.slnx .
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
+
+# Копируем все csproj для restore
 COPY src/HomeGuard.Domain/HomeGuard.Domain.csproj           src/HomeGuard.Domain/
 COPY src/HomeGuard.Application/HomeGuard.Application.csproj src/HomeGuard.Application/
 COPY src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj src/HomeGuard.Infrastructure/
-COPY src/HomeGuard.Shared/HomeGuard.Shared.csproj           src/HomeGuard.Shared/
+COPY src/HomeGuard.Common/HomeGuard.Common.csproj           src/HomeGuard.Common/
+COPY src/HomeGuard.Client/HomeGuard.Client.csproj           src/HomeGuard.Client/
 COPY src/HomeGuard.Api/HomeGuard.Api.csproj                 src/HomeGuard.Api/
 
+# Restore включает и Blazor WASM workload
 RUN dotnet restore src/HomeGuard.Api/HomeGuard.Api.csproj
 
+# Копируем весь исходник
 COPY . .
 
-RUN dotnet build src/HomeGuard.Api/HomeGuard.Api.csproj \
-    -c $BUILD_CONFIGURATION \
-    --no-restore \
-    -o /app/build
-
-# ── Stage 3: publish ─────────────────────────────────────────────────────────
+# ── Stage 3: publish ──────────────────────────────────────────────────────────
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+
+# Публикуем Api — он автоматически соберёт и вложит Client (через ProjectReference)
+# в wwwroot благодаря BlazorWebAssemblyLazyLoad и стандартному механизму публикации.
 RUN dotnet publish src/HomeGuard.Api/HomeGuard.Api.csproj \
     -c $BUILD_CONFIGURATION \
-    --no-restore \
     -o /app/publish \
     /p:UseAppHost=false
 
-# ── Stage 4: final image ──────────────────────────────────────────────────────
+# ── Stage 4: final ────────────────────────────────────────────────────────────
 FROM base AS final
 WORKDIR /app
 
-# Directories for persistent volumes
 RUN mkdir -p /app/data /app/blobs
 
 COPY --from=publish /app/publish .
 
-# Run as non-root (UID 1000)
+# Запускаем без root
 RUN adduser --disabled-password --gecos "" appuser \
     && chown -R appuser:appuser /app
 USER appuser

@@ -8,4 +8,9 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <NoWarn>CA1848;CA1873;CA1725;</NoWarn>
+  </PropertyGroup>
+
 </Project>

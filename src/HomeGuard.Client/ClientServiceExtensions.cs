@@ -14,6 +14,8 @@ public static class ClientServiceExtensions
         services.AddHttpClient<ServiceRecordApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
         services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
         services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
+        services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
+        services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
 
         // IndexedDB wrapper — singleton в Blazor WASM (один scope на всё приложение).
         services.AddSingleton<HomeGuardDb>();

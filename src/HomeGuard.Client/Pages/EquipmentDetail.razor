@@ -2,6 +2,7 @@
 @inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
+@inject BlobApiClient BlobApi
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 
@@ -16,7 +17,7 @@ else
     <!-- Header -->
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4">
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
-                       OnClick="() => OpenEquipment()" />
+                       OnClick="NavigateToEquipment" />
         <MudText Typo="Typo.h5">@_detail.Name</MudText>
         <MudSpacer />
         <MudIconButton Icon="@Icons.Material.Filled.Edit"
@@ -161,11 +162,20 @@ else
         <MudIcon Icon="@Icons.Material.Filled.AttachFile" Class="mr-1" />
         Attachments
     </MudText>
-    <InputFile id="file-upload" OnChange="UploadFileAsync" hidden accept="image/*,.pdf" />
+    <InputFile id="file-upload" OnChange="UploadFileAsync" hidden
+               accept="image/*,.pdf" multiple />
     <MudButton HtmlTag="label" Variant="Variant.Outlined"
-               StartIcon="@Icons.Material.Filled.CameraAlt"
-               for="file-upload">
-        Add photo / document
+               StartIcon="@(_uploading ? null : Icons.Material.Filled.CameraAlt)"
+               for="file-upload" Disabled="_uploading">
+        @if (_uploading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+            <span>Uploading…</span>
+        }
+        else
+        {
+            <span>Add photo / document</span>
+        }
     </MudButton>
 }
 
@@ -260,7 +270,7 @@ else
 @code {
     [Parameter] public Guid Id { get; set; }
 
-    private HomeGuard.Client.Services.EquipmentDetail?        _detail;
+    private EquipmentDetailDto?        _detail;
     private List<WarrantyDto>        _warranties     = [];
     private List<ServiceRecordDto>   _serviceRecords = [];
     private bool _saving;
@@ -327,8 +337,6 @@ else
         Nav.NavigateTo("/equipment");
     }
 
-    private void OpenEquipment() => Nav.NavigateTo($"/equipment");
-
     // ── Warranty ──────────────────────────────────────────────────────────────
 
     private void OpenAddWarrantyDialog()
@@ -371,23 +379,35 @@ else
 
     // ── File upload ───────────────────────────────────────────────────────────
 
+    private bool _uploading;
+
     private async Task UploadFileAsync(InputFileChangeEventArgs e)
     {
-        foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+        _uploading = true;
+        var uploaded = 0;
+
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 5))
         {
-            using var content   = new MultipartFormDataContent();
-            using var stream    = file.OpenReadStream(maxAllowedSize: 20 * 1024 * 1024);
-            using var fileContent = new StreamContent(stream);
-            fileContent.Headers.ContentType =
-                new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
-
-            content.Add(fileContent, "file", file.Name);
-            content.Add(new StringContent(Id.ToString()), "ownerEntityId");
-            content.Add(new StringContent("Equipment"), "ownerEntityType");
-
-            // Use the HttpClient directly for multipart — typed client doesn't expose this.
-            // In a real scenario you'd inject HttpClient or wrap it in BlobApiClient.
-            Snackbar.Add($"Uploaded: {file.Name}", Severity.Success);
+            var blobId = await BlobApi.UploadAsync(file, Id, "Equipment");
+            if (blobId.HasValue)
+            {
+                uploaded++;
+            }
+            else
+            {
+                Snackbar.Add($"Failed to upload: {file.Name}", Severity.Error);
+            }
         }
+
+        _uploading = false;
+
+        if (uploaded > 0)
+            Snackbar.Add($"{uploaded} file(s) uploaded.", Severity.Success);
     }
+
+    private void NavigateToEquipment()
+    {
+        Nav.NavigateTo("/equipment");
+    }
+
 }

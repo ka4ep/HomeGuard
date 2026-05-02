@@ -1,6 +1,6 @@
-using HomeGuard.Common.Sync;
 using System.Net.Http.Json;
 using System.Text.Json;
+using HomeGuard.Common.Sync;
 
 namespace HomeGuard.Client.Services;
 
@@ -25,8 +25,8 @@ public sealed class EquipmentApiClient
     public Task<List<EquipmentSummary>?> GetAllAsync(CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<EquipmentSummary>>("api/equipment", ct);
 
-    public Task<EquipmentDetail?> GetAsync(Guid id, CancellationToken ct = default)
-        => _http.GetFromJsonAsync<EquipmentDetail>($"api/equipment/{id}", ct);
+    public Task<EquipmentDetailDto?> GetAsync(Guid id, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<EquipmentDetailDto>($"api/equipment/{id}", ct);
 
     public async Task<EquipmentSummary?> CreateAsync(CreateEquipmentDto dto, CancellationToken ct = default)
     {
