@@ -46,8 +46,8 @@
 
         var items = await BuildItemsAsync();
         await TimelineInterop.CreateAsync(ElementId, items, new TimelineOptions(
-            MinDate: DateOnly.FromDateTime(DateTime.Today.AddYears(-2)).ToString("yyyy-MM-dd", null),
-            MaxDate: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
+            Min: DateOnly.FromDateTime(DateTime.Today.AddYears(-2)).ToString("yyyy-MM-dd", null),
+            Max: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
         ));
 
         _loading = false;

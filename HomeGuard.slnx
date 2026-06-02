@@ -6,15 +6,16 @@
     <File Path="global.json" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/HomeGuard.Diagnostics/HomeGuard.Diagnostics.csproj" Id="5701b7c7-08c9-4ded-8bb7-1172a52e6555" />
+    <Project Path="src/HomeGuard.Api/HomeGuard.Api.csproj" />
+    <Project Path="src/HomeGuard.Application/HomeGuard.Application.csproj" />
+    <Project Path="src/HomeGuard.Client/HomeGuard.Client.csproj" />
     <Project Path="src/HomeGuard.Common/HomeGuard.Common.csproj" />
     <Project Path="src/HomeGuard.Domain/HomeGuard.Domain.csproj" />
-    <Project Path="src/HomeGuard.Application/HomeGuard.Application.csproj" />
     <Project Path="src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj" />
-    <Project Path="src/HomeGuard.Api/HomeGuard.Api.csproj" />
-    <Project Path="src/HomeGuard.Client/HomeGuard.Client.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/HomeGuard.Tests.Unit/HomeGuard.Tests.Unit.csproj" />
     <Project Path="tests/HomeGuard.Tests.Integration/HomeGuard.Tests.Integration.csproj" />
+    <Project Path="tests/HomeGuard.Tests.Unit/HomeGuard.Tests.Unit.csproj" />
   </Folder>
 </Solution>

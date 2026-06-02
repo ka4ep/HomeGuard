@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Даёт доступ к IWebHostEnvironment, WebApplication, IServer,
+         IHostedService, IConfiguration, ILogger* и всему остальному
+         из Microsoft.AspNetCore.App — без смены Sdk и без NuGet-пакетов. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Serilog" />
+  </ItemGroup>
+
+</Project>

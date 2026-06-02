@@ -39,65 +39,53 @@
 /* --- Tokens --- */
 :root {
     /* Typography */
-    --hg-font:          'Plus Jakarta Sans', system-ui, sans-serif;
-
+    --hg-font: 'Plus Jakarta Sans', system-ui, sans-serif;
     /* Backgrounds — от среднего тона вниз и вверх */
-    --hg-bg:            #9c9590;   /* страница, основной фон */
-    --hg-bg-deep:       #7a7672;   /* sidebar, nav, header */
-    --hg-bg-raised:     #b0aca7;   /* разделители, hover на bg */
-
+    /*--hg-bg: #9c9590; */ /* страница, основной фон */
+    --hg-bg: #BAB2AC;
+    --hg-bg-deep: #7a7672; /* sidebar, nav, header */
+    --hg-bg-raised: #b0aca7; /* разделители, hover на bg */
     /* Карточки — всплывают над серым фоном */
-    --hg-card:          #eeeae4;   /* стандартная карточка */
-    --hg-card-top:      #faf8f5;   /* elevated / modal */
-
+    --hg-card: #eeeae4; /* стандартная карточка */
+    --hg-card-top: #faf8f5; /* elevated / modal */
     /* Границы */
-    --hg-border-on-bg:  rgba(255, 255, 255, 0.18);
-    --hg-border-card:   rgba(60, 50, 40, 0.12);
+    --hg-border-on-bg: rgba(255, 255, 255, 0.18);
+    --hg-border-card: rgba(60, 50, 40, 0.12);
     --hg-border-strong: rgba(60, 50, 40, 0.25);
-
     /* Текст на сером фоне */
-    --hg-text-on-bg:       #ffffff;
+    --hg-text-on-bg: #5E5B58;
     --hg-text-on-bg-muted: rgba(255, 255, 255, 0.65);
-    --hg-text-on-bg-subtle:rgba(255, 255, 255, 0.38);
-
+    --hg-text-on-bg-subtle: rgba(255, 255, 255, 0.38);
     /* Текст на карточках */
-    --hg-text:          #1e1c1a;
-    --hg-text-muted:    #6b6560;
-    --hg-text-subtle:   #9c9590;
-
+    --hg-text: #1e1c1a;
+    --hg-text-muted: #6b6560;
+    --hg-text-subtle: #9c9590;
     /* Акцент — slate blue, три варианта под разный фон */
-    --hg-accent:          #4f6fa0;
-    --hg-accent-dark:     #3a5278;
-    --hg-accent-on-bg:    #a8c4e8;   /* акцент поверх серого bg */
-    --hg-accent-on-card:  #dce6f2;   /* badge/tag внутри карточки */
-    --hg-accent-text:     #3a5278;   /* текст акцентных элементов на карточке */
-
+    --hg-accent: #4f6fa0;
+    --hg-accent-dark: #3a5278;
+    --hg-accent-on-bg: #a8c4e8; /* акцент поверх серого bg */
+    --hg-accent-on-card: #dce6f2; /* badge/tag внутри карточки */
+    --hg-accent-text: #3a5278; /* текст акцентных элементов на карточке */
     /* Семантические — на карточках */
-    --hg-success-bg:    #d8eee0;
-    --hg-success-text:  #2d6040;
-    --hg-warning-bg:    #f5ede0;
-    --hg-warning-text:  #7a4f10;
-    --hg-danger-bg:     #f5e8e8;
-    --hg-danger-text:   #7a2a2a;
-
+    --hg-success-bg: #d8eee0;
+    --hg-success-text: #2d6040;
+    --hg-warning-bg: #f5ede0;
+    --hg-warning-text: #7a4f10;
+    --hg-danger-bg: #f5e8e8;
+    --hg-danger-text: #7a2a2a;
     /* Timeline */
     --hg-timeline-line: #d4cfc8;
-    --hg-timeline-dot:  var(--hg-accent);
+    --hg-timeline-dot: var(--hg-accent);
     --hg-timeline-dot-past: #c8c3bc;
-
     /* Радиусы */
-    --hg-radius-sm:     6px;
-    --hg-radius-md:     10px;
-    --hg-radius-lg:     16px;
-
+    --hg-radius-sm: 6px;
+    --hg-radius-md: 10px;
+    --hg-radius-lg: 16px;
     /* Тени — лёгкие, под карточки */
-    --hg-shadow-card:   0 2px 8px rgba(30, 28, 26, 0.10),
-                        0 0 0 0.5px rgba(60, 50, 40, 0.10);
-    --hg-shadow-modal:  0 8px 32px rgba(30, 28, 26, 0.18),
-                        0 0 0 0.5px rgba(60, 50, 40, 0.12);
-
+    --hg-shadow-card: 0 2px 8px rgba(30, 28, 26, 0.10), 0 0 0 0.5px rgba(60, 50, 40, 0.10);
+    --hg-shadow-modal: 0 8px 32px rgba(30, 28, 26, 0.18), 0 0 0 0.5px rgba(60, 50, 40, 0.12);
     /* Переходы */
-    --hg-transition:    160ms ease;
+    --hg-transition: 160ms ease;
 }
 
 /* --- Базовые стили --- */
