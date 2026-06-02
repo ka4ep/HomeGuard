@@ -38,6 +38,40 @@ public sealed class AppUser : Entity
         DisplayName = displayName.Trim();
         Touch();
     }
+
+    /// <summary>
+    /// Attaches a newly created <see cref="PasskeyCredential"/> to this user.
+    /// EF Core change tracking picks up the new entity via the navigation collection.
+    /// Call before <c>SaveChangesAsync</c>.
+    /// </summary>
+    public void AddCredential(PasskeyCredential credential)
+    {
+        ArgumentNullException.ThrowIfNull(credential);
+        _credentials.Add(credential);
+        Touch();
+    }
+
+    /// <summary>
+    /// Removes a credential by its entity id.
+    /// EF Core cascades the DELETE automatically (OnDelete: Cascade is configured).
+    /// </summary>
+    /// <exception cref="KeyNotFoundException">Credential not found on this user.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Attempt to remove the last credential — would lock the user out.
+    /// </exception>
+    public void RemoveCredential(Guid credentialId)
+    {
+        if (_credentials.Count <= 1)
+            throw new InvalidOperationException(
+                "Cannot remove the last passkey — the user would be locked out.");
+
+        var cred = _credentials.FirstOrDefault(c => c.Id == credentialId)
+            ?? throw new KeyNotFoundException(
+                $"Credential {credentialId} does not belong to user {Id}.");
+
+        _credentials.Remove(cred);
+        Touch();
+    }
 }
 
 /// <summary>
@@ -85,11 +119,11 @@ public sealed class PasskeyCredential : Entity
 
         var c = new PasskeyCredential();
         c.InitNew();
-        c.UserId = userId;
+        c.UserId       = userId;
         c.CredentialId = credentialId;
-        c.PublicKey = publicKey;
-        c.DeviceName = deviceName.Trim();
-        c.SignCount = initialSignCount;
+        c.PublicKey    = publicKey;
+        c.DeviceName   = deviceName.Trim();
+        c.SignCount     = initialSignCount;
         return c;
     }
 
@@ -101,7 +135,7 @@ public sealed class PasskeyCredential : Entity
         if (newSignCount < SignCount)
             throw new InvalidOperationException(
                 $"Sign count decreased ({SignCount} → {newSignCount}). Possible cloned credential.");
-        SignCount = newSignCount;
+        SignCount  = newSignCount;
         LastUsedAt = DateTimeOffset.UtcNow;
         Touch();
     }

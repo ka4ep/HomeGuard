@@ -84,8 +84,9 @@ src/
   HomeGuard.Application/      Services, repository interfaces, sync protocol
   HomeGuard.Infrastructure/   EF Core, SQLite, Google Calendar, WebDAV, WebPush
   HomeGuard.Api/              ASP.NET Core Minimal API, background services
+  HomeGuard.Diagnostics/      Api server startup diagnostics code
   HomeGuard.Client/           Blazor WASM PWA
-  HomeGuard.Shared/           DTOs shared between Api and Client (formerly Common)
+  HomeGuard.Common/           DTOs shared between Api and Client (formerly Common)
 tests/
   HomeGuard.Tests.Unit/
   HomeGuard.Tests.Integration/

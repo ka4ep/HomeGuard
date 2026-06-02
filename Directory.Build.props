@@ -8,6 +8,20 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <VersionPrefix>1.0</VersionPrefix>
+    <VersionStamped>$(VersionPrefix).$([System.DateTime]::Now.Year.ToString()[3])$([System.DateTime]::Now.Month.ToString().PadLeft(2,'0'))$([System.DateTime]::Now.Day.ToString().PadLeft(2,'0')).$([System.DateTime]::Now.Hour.ToString().PadLeft(2,'0'))$([System.DateTime]::Now.Minute.ToString().PadLeft(2,'0'))</VersionStamped>
+    <AssemblyVersion>$(VersionStamped)</AssemblyVersion>
+    <FileVersion>$(VersionStamped)</FileVersion>
+    <InformationalVersion>$(VersionPrefix)-$([System.DateTime]::Now.ToString("yy-MM-dd-HH-mm"))</InformationalVersion>
+
+    <!-- Assembly metadata -->
+    <Company>Sergey Misnik</Company>
+    <Product>Home Guard</Product>
+    <Copyright>Copyright © $(Company) $([System.DateTime]::Now.Year.ToString())</Copyright>
+
+  </PropertyGroup>
 
   <PropertyGroup>
     <NoWarn>CA1848;CA1873;CA1725;</NoWarn>

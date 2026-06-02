@@ -1,41 +1,57 @@
 @inject AuthApiClient AuthApi
 @inject NavigationManager Nav
 
-<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All"
-                Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="equipment"
-                Icon="@Icons.Material.Filled.Devices">Equipment</MudNavLink>
-    <MudNavLink Href="warranties"
-                Icon="@Icons.Material.Filled.VerifiedUser">Warranties</MudNavLink>
-    <MudNavLink Href="service"
-                Icon="@Icons.Material.Filled.Build">Service records</MudNavLink>
-    <MudNavLink Href="timeline"
-                Icon="@Icons.Material.Filled.Timeline">Timeline</MudNavLink>
-    <MudDivider Class="my-2" />
-    <MudNavLink Href="settings"
-                Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-    <MudDivider Class="my-2" />
+@* Обёртка на всю высоту drawer *@
+<div style="display:flex; flex-direction:column; height:100%">
 
-    @if (_displayName is not null)
-    {
-        <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-4 py-2">
-            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
-                     Color="Color.Secondary" />
-            <MudText Typo="Typo.body2" Color="Color.Secondary">@_displayName</MudText>
-        </MudStack>
-        <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">
-            Sign out
-        </MudNavLink>
-    }
-    else
-    {
-        <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">Sign in</MudNavLink>
-    }
-</MudNavMenu>
+    <MudNavMenu>
+        <MudNavLink Href="" Match="NavLinkMatch.All"
+                    Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="equipment"
+                    Icon="@Icons.Material.Filled.Devices">Equipment</MudNavLink>
+        <MudNavLink Href="warranties"
+                    Icon="@Icons.Material.Filled.VerifiedUser">Warranties</MudNavLink>
+        <MudNavLink Href="service"
+                    Icon="@Icons.Material.Filled.Build">Service records</MudNavLink>
+        <MudNavLink Href="timeline"
+                    Icon="@Icons.Material.Filled.Timeline">Timeline</MudNavLink>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="settings"
+                    Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        <MudDivider Class="my-2" />
+
+        @if (_displayName is not null)
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-4 py-2">
+                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
+                         Color="Color.Secondary" />
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@_displayName</MudText>
+            </MudStack>
+            <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">
+                Sign out
+            </MudNavLink>
+        }
+        else
+        {
+            <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">Sign in</MudNavLink>
+        }
+
+
+    </MudNavMenu>
+
+    <div class="px-4 pb-3 mt-auto">
+        <MudText Typo="Typo.caption"
+                 Style="color: var(--hg-text-on-bg-subtle)">
+            v@_version
+        </MudText>
+    </div>
+</div>
 
 @code {
     private string? _displayName;
+
+    private static readonly string _version =
+    typeof(NavMenu).Assembly.GetName().Version?.ToString(4) ?? "—";
 
     protected override async Task OnInitializedAsync()
     {

@@ -1,14 +1,98 @@
 @page "/settings"
+@inject AuthApiClient      AuthApi
 @inject NotificationApiClient NotificationApi
-@inject OutboxSyncService Outbox
-@inject IJSRuntime JS
-@inject ISnackbar Snackbar
+@inject OutboxSyncService  Outbox
+@inject IJSRuntime         JS
+@inject ISnackbar          Snackbar
+@inject IDialogService     Dialog
 
 <PageTitle>Settings</PageTitle>
 
 <MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
 
-<!-- Sync status -->
+@* ── Passkey devices ───────────────────────────────────────────────────────── *@
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-1" />
+                Passkey devices
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+
+    <MudCardContent>
+        @if (_credentials is null)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-2" />
+        }
+        else if (_credentials.Count == 0)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true">No devices found.</MudAlert>
+        }
+        else
+        {
+            <MudList T="CredentialDto" Dense="true">
+                @foreach (var cred in _credentials)
+                {
+                    <MudListItem T="CredentialDto">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body1">@cred.DeviceName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    Added @cred.CreatedAt.LocalDateTime.ToString("d MMM yyyy")
+                                    @if (cred.LastUsedAt.HasValue)
+                                    {
+                                        <span> · Last used @cred.LastUsedAt.Value.LocalDateTime.ToString("d MMM yyyy")</span>
+                                    }
+                                </MudText>
+                            </MudStack>
+                            <MudTooltip Text="@(_credentials.Count <= 1 ? "Can't remove last device" : "Revoke this device")">
+                                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                               Size="Size.Small"
+                                               Color="Color.Error"
+                                               Disabled="@(_credentials.Count <= 1 || _revoking == cred.Id)"
+                                               OnClick="@(() => ConfirmRevokeAsync(cred))" />
+                            </MudTooltip>
+                        </MudStack>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        }
+    </MudCardContent>
+
+    <MudCardActions>
+        @if (!_addingDevice)
+        {
+            <MudButton Variant="Variant.Outlined"
+                       StartIcon="@Icons.Material.Filled.AddCircleOutline"
+                       OnClick="@(() => _addingDevice = true)">
+                Add this device
+            </MudButton>
+        }
+        else
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="px-2 pb-2 w-100">
+                <MudTextField @bind-Value="_newDeviceName"
+                              Label="Device name"
+                              Placeholder="e.g. iPhone 16, Work laptop"
+                              Immediate="true"
+                              Style="flex:1" />
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="@(string.IsNullOrWhiteSpace(_newDeviceName) || _registeringDevice)"
+                           OnClick="AddDeviceAsync">
+                    @(_registeringDevice ? "Registering…" : "Register passkey")
+                </MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                               OnClick="@(() => _addingDevice = false)" />
+            </MudStack>
+        }
+    </MudCardActions>
+</MudCard>
+
+@* ── Offline sync ──────────────────────────────────────────────────────────── *@
 <MudCard Elevation="1" Class="mb-4">
     <MudCardHeader>
         <CardHeaderContent>
@@ -28,7 +112,7 @@
     </MudCardActions>
 </MudCard>
 
-<!-- Push notifications -->
+@* ── Push notifications ────────────────────────────────────────────────────── *@
 <MudCard Elevation="1" Class="mb-4">
     <MudCardHeader>
         <CardHeaderContent>
@@ -70,16 +154,105 @@
 </MudCard>
 
 @code {
-    private int        _pendingCount;
-    private bool       _flushing;
-    private PushStatus _pushStatus = PushStatus.Default;
+    // ── Credentials ───────────────────────────────────────────────────────────
+    private List<CredentialDto>? _credentials;
+    private Guid?   _revoking;
+    private bool    _addingDevice;
+    private string  _newDeviceName = string.Empty;
+    private bool    _registeringDevice;
+
+    // ── Sync ──────────────────────────────────────────────────────────────────
+    private int  _pendingCount;
+    private bool _flushing;
+
+    // ── Push ──────────────────────────────────────────────────────────────────
+    private PushStatus _pushStatus  = PushStatus.Default;
     private bool       _subscribing;
 
     protected override async Task OnInitializedAsync()
     {
+        _credentials  = await AuthApi.GetCredentialsAsync();
         _pendingCount = await Outbox.PendingCountAsync();
         _pushStatus   = await GetPushStatusAsync();
     }
+
+    // ── Add device ────────────────────────────────────────────────────────────
+
+    private async Task AddDeviceAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newDeviceName)) return;
+
+        _registeringDevice = true;
+        try
+        {
+            var optionsJson = await AuthApi.GetAddDeviceOptionsJsonAsync(_newDeviceName.Trim());
+            if (optionsJson is null)
+            {
+                Snackbar.Add("Could not start device registration.", Severity.Error);
+                return;
+            }
+
+            var attestationElement = await JS.InvokeAsync<System.Text.Json.JsonElement>(
+                "homeGuardAuth.register", optionsJson);
+
+            if (attestationElement.TryGetProperty("error", out var err))
+            {
+                Snackbar.Add(err.GetString() ?? "Registration cancelled.", Severity.Warning);
+                return;
+            }
+
+            var result = await AuthApi.CompleteAddDeviceAsync(attestationElement.GetRawText());
+            if (!result.Success)
+            {
+                Snackbar.Add(result.Error ?? "Registration failed.", Severity.Error);
+                return;
+            }
+
+            Snackbar.Add($"Device \"{_newDeviceName.Trim()}\" registered.", Severity.Success);
+            _credentials  = await AuthApi.GetCredentialsAsync();
+            _newDeviceName = string.Empty;
+            _addingDevice  = false;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _registeringDevice = false;
+        }
+    }
+
+    // ── Revoke ────────────────────────────────────────────────────────────────
+
+    private async Task ConfirmRevokeAsync(CredentialDto cred)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: "Revoke device",
+            message: $"Remove \"{cred.DeviceName}\"? This passkey will stop working immediately.",
+            yesText: "Remove",
+            cancelText: "Cancel");
+
+        if (confirmed != true) return;
+
+        _revoking = cred.Id;
+        StateHasChanged();
+
+        var (success, error) = await AuthApi.RevokeCredentialAsync(cred.Id);
+        if (success)
+        {
+            Snackbar.Add($"\"{cred.DeviceName}\" removed.", Severity.Success);
+            _credentials = await AuthApi.GetCredentialsAsync();
+        }
+        else
+        {
+            Snackbar.Add(error ?? "Could not revoke device.", Severity.Error);
+        }
+
+        _revoking = null;
+    }
+
+    // ── Sync ──────────────────────────────────────────────────────────────────
 
     private async Task FlushAsync()
     {
@@ -94,22 +267,37 @@
             result.HasFailures ? Severity.Warning : Severity.Success);
     }
 
+    // ── Push notifications ────────────────────────────────────────────────────
+
+    private async Task<PushStatus> GetPushStatusAsync()
+    {
+        try
+        {
+            var perm = await JS.InvokeAsync<string>("homeGuardPush.getPermission");
+            return perm switch
+            {
+                "granted" => PushStatus.Granted,
+                "denied"  => PushStatus.Denied,
+                _         => PushStatus.Default,
+            };
+        }
+        catch { return PushStatus.Default; }
+    }
+
     private async Task SubscribeAsync()
     {
         _subscribing = true;
         try
         {
-            var publicKey = await NotificationApi.GetVapidPublicKeyAsync();
-            if (publicKey is null)
+            var vapidKey = await NotificationApi.GetVapidPublicKeyAsync();
+            if (vapidKey is null)
             {
                 Snackbar.Add("Push notifications not configured on the server.", Severity.Warning);
                 return;
             }
 
-            // Call browser Push API via JS interop.
-            var sub = await JS.InvokeAsync<PushSubscriptionJs?>(
-                "homeGuardPush.subscribe", publicKey);
-
+            // homeGuardPush.subscribe returns { endpoint, p256dh, auth } or null on denial.
+            var sub = await JS.InvokeAsync<PushSubscriptionJs?>("homeGuardPush.subscribe", vapidKey);
             if (sub is null)
             {
                 Snackbar.Add("Notification permission denied.", Severity.Warning);
@@ -121,25 +309,8 @@
             _pushStatus = PushStatus.Granted;
             Snackbar.Add("Notifications enabled!", Severity.Success);
         }
-        finally
-        {
-            _subscribing = false;
-        }
-    }
-
-    private async Task<PushStatus> GetPushStatusAsync()
-    {
-        try
-        {
-            var status = await JS.InvokeAsync<string>("homeGuardPush.getPermission");
-            return status switch
-            {
-                "granted" => PushStatus.Granted,
-                "denied"  => PushStatus.Denied,
-                _         => PushStatus.Default,
-            };
-        }
-        catch { return PushStatus.Default; }
+        catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
+        finally { _subscribing = false; }
     }
 
     private enum PushStatus { Default, Granted, Denied }

@@ -9,6 +9,11 @@
   "prefer_related_applications": false,
   "icons": [
     {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
       "src": "icon-192.png",
       "type": "image/png",
       "sizes": "192x192"

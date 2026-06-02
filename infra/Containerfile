@@ -16,15 +16,16 @@ COPY HomeGuard.slnx .
 COPY Directory.Build.props .
 COPY Directory.Packages.props .
 
-# Копируем все csproj для restore
+# Копируем все csproj для restore — только src/, тесты не нужны в образе
 COPY src/HomeGuard.Domain/HomeGuard.Domain.csproj           src/HomeGuard.Domain/
 COPY src/HomeGuard.Application/HomeGuard.Application.csproj src/HomeGuard.Application/
 COPY src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj src/HomeGuard.Infrastructure/
 COPY src/HomeGuard.Common/HomeGuard.Common.csproj           src/HomeGuard.Common/
 COPY src/HomeGuard.Client/HomeGuard.Client.csproj           src/HomeGuard.Client/
+COPY src/HomeGuard.Diagnostics/HomeGuard.Diagnostics.csproj src/HomeGuard.Diagnostics/
 COPY src/HomeGuard.Api/HomeGuard.Api.csproj                 src/HomeGuard.Api/
 
-# Restore включает и Blazor WASM workload
+# Restore через Api — тянет все зависимости транзитивно, включая Client (WASM workload)
 RUN dotnet restore src/HomeGuard.Api/HomeGuard.Api.csproj
 
 # Копируем весь исходник
@@ -34,8 +35,8 @@ COPY . .
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 
-# Публикуем Api — он автоматически соберёт и вложит Client (через ProjectReference)
-# в wwwroot благодаря BlazorWebAssemblyLazyLoad и стандартному механизму публикации.
+# Публикуем Api — он автоматически соберёт и встроит Client в wwwroot
+# благодаря ProjectReference и стандартному механизму публикации Blazor WASM.
 RUN dotnet publish src/HomeGuard.Api/HomeGuard.Api.csproj \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
@@ -45,7 +46,10 @@ RUN dotnet publish src/HomeGuard.Api/HomeGuard.Api.csproj \
 FROM base AS final
 WORKDIR /app
 
-RUN mkdir -p /app/data /app/blobs
+# data    — SQLite база
+# blobs   — локальные файлы (fallback до NextCloud)
+# logs    — Serilog file sink (путь logs/homeguard-.log в appsettings.json)
+RUN mkdir -p /app/data /app/blobs /app/logs
 
 COPY --from=publish /app/publish .
 

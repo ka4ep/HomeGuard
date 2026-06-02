@@ -1,5 +1,9 @@
 version: "3.8"
 
+# Использование:
+#   cp .env.example .env   # заполни ключи
+#   podman-compose up -d
+
 services:
   homeguard:
     build:
@@ -13,16 +17,48 @@ services:
     volumes:
       - homeguard-data:/app/data
       - homeguard-blobs:/app/blobs
+      - homeguard-logs:/app/logs
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
+
+      # ── База данных ───────────────────────────────────────────────────
       ConnectionStrings__DefaultConnection: "Data Source=/app/data/homeguard.db"
+
+      # ── FIDO2 / Passkeys ──────────────────────────────────────────────
+      # ServerDomain — hostname без схемы и порта, должен совпадать с Origin.
+      # Origins — полные URL (схема + хост + порт) с которых открывается приложение.
+      Fido2__ServerDomain: "${SERVER_DOMAIN}"
+      Fido2__ServerName: "HomeGuard"
+      Fido2__Origins__0: "http://${SERVER_DOMAIN}:8080"
+      # Fido2__Origins__1: "https://${SERVER_DOMAIN}"   # раскомментировать при HTTPS
+
+      # ── Web Push / VAPID ──────────────────────────────────────────────
+      # Генерация: dotnet tool install -g webpush-keygen && webpush-keygen
+      WebPush__VapidPublicKey:  "${VAPID_PUBLIC_KEY}"
+      WebPush__VapidPrivateKey: "${VAPID_PRIVATE_KEY}"
+      WebPush__VapidSubject:    "${VAPID_SUBJECT}"
+
+      # ── Blob storage ──────────────────────────────────────────────────
       Blob__LocalPath: "/app/blobs"
-      Fido2__ServerDomain: "192.168.1.100"
-      Fido2__Origins__0: "http://192.168.1.100:8080"
-      # Заменить на реальный IP твоей машины.
-      # Или использовать .env файл (см. ниже).
+      # NextCloud — опционально. Оставь пустыми если не используешь.
+      Blob__NextCloudBaseUrl:  "${NEXTCLOUD_URL}"
+      Blob__NextCloudUser:     "${NEXTCLOUD_USER}"
+      Blob__NextCloudPassword: "${NEXTCLOUD_PASSWORD}"
+      Blob__NextCloudFolder:   "${NEXTCLOUD_FOLDER}"
+
+      # ── Google Calendar ───────────────────────────────────────────────
+      # По умолчанию выключен — iCal feed достаточен для Family Wall и NextCloud.
+      Calendar__Google__Enabled: "false"
+      # Calendar__Google__CalendarId: "primary"
+      # Calendar__Google__ServiceAccountJson: ""
+
+      # ── Логи ─────────────────────────────────────────────────────────
+      # Путь задан в appsettings.json (logs/homeguard-.log).
+      # Том homeguard-logs монтируется в /app/logs — Serilog пишет туда.
+      # Для просмотра: podman exec homeguard ls /app/logs
 
 volumes:
   homeguard-data:
   homeguard-blobs:
+  homeguard-logs:
