@@ -13,7 +13,9 @@
     </MudButton>
 </MudStack>
 
-<MudTabs Elevation="1" Rounded="true" Class="mb-4" @bind-ActivePanelIndex="_tab">
+<MudTabs Elevation="1" Rounded="true" Class="mb-4"
+         @bind-ActivePanelIndex="_tab"
+         @bind-ActivePanelIndex:after="LoadAsync">
     <MudTabPanel Text="Active" />
     <MudTabPanel Text="Expiring soon" />
 </MudTabs>
@@ -28,38 +30,84 @@ else if (_items.Count == 0)
 }
 else
 {
-    <MudTable Items="_items" Hover="true" Dense="true" Elevation="1">
-        <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Equipment</MudTh>
-            <MudTh>Provider</MudTh>
-            <MudTh>Expires</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Name</MudTd>
-            <MudTd>@(_equipmentNames.GetValueOrDefault(context.EquipmentId, "…"))</MudTd>
-            <MudTd>@(context.Provider ?? "—")</MudTd>
-            <MudTd>@context.EndDate.ToString("yyyy-MM-dd", null)</MudTd>
-            <MudTd>
-                <MudChip T="string" Size="Size.Small"
-                         Color="@StatusColor(context.DaysRemaining)">
-                    @StatusLabel(context.DaysRemaining)
-                </MudChip>
-            </MudTd>
-            <MudTd>
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                               OnClick="() => OpenEditDialog(context)" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                               Color="Color.Error"
-                               OnClick="() => DeleteAsync(context.Id)" />
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudExpansionPanels Elevation="1">
+        @foreach (var w in _items)
+        {
+            <MudExpansionPanel>
+
+                <TitleContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3"
+                              Style="flex-wrap:wrap; width:100%">
+
+                        <MudStack Spacing="0" Style="min-width:160px; flex:1">
+                            <MudText Typo="Typo.body1" Style="font-weight:600">@w.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(_equipmentNames.GetValueOrDefault(w.EquipmentId, "…"))
+                            </MudText>
+                        </MudStack>
+
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Period</MudText>
+                            <MudText Typo="Typo.body2">
+                                @w.StartDate.ToString("d MMM yyyy", null) → @w.EndDate.ToString("d MMM yyyy", null)
+                            </MudText>
+                        </MudStack>
+
+                        <MudChip T="string" Size="Size.Small" Color="@StatusColor(w.DaysRemaining)">
+                            @StatusLabel(w.DaysRemaining)
+                        </MudChip>
+
+                    </MudStack>
+                </TitleContent>
+
+                <ChildContent>
+                    <MudStack Spacing="3">
+
+                        @if (w.Provider is not null || w.ContractNumber is not null)
+                        {
+                            <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
+                                @if (w.Provider is not null)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                        <MudText Typo="Typo.body2">@w.Provider</MudText>
+                                    </MudStack>
+                                }
+                                @if (w.ContractNumber is not null)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Contract №</MudText>
+                                        <MudText Typo="Typo.body2">@w.ContractNumber</MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(w.Notes))
+                        {
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                                <MudText Typo="Typo.body2" Style="white-space:pre-line">@w.Notes</MudText>
+                            </MudStack>
+                        }
+
+                        <MudStack Row="true" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                           Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(w)" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                           Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeleteAsync(w.Id)" />
+                        </MudStack>
+
+                    </MudStack>
+                </ChildContent>
+
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
 }
 
-<!-- Add / Edit dialog -->
 <MudDialog @bind-Visible="_showDialog">
     <TitleContent>@(_editId.HasValue ? "Edit warranty" : "Add warranty")</TitleContent>
     <DialogContent>
@@ -90,33 +138,31 @@ else
                 <MudTextField @bind-Value="_form.ContractNumber" Label="Contract number" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3"
-                              HelperText="Markdown supported" />
+                <MudTextField @bind-Value="_form.Notes" Label="Notes"
+                              Lines="3" Sizing="InputSizing.Auto" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="() => _showDialog = false">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveAsync" Disabled="_saving">
-            Save
-        </MudButton>
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    private List<WarrantyDto>?    _items;
-    private List<EquipmentSummary> _equipment = [];
-    private Dictionary<Guid, string> _equipmentNames = [];
-    private int  _tab;
-    private bool _showDialog;
-    private bool _saving;
+    private List<WarrantyDto>?        _items;
+    private List<EquipmentSummary>    _equipment      = [];
+    private Dictionary<Guid, string>  _equipmentNames = [];
+    private int   _tab;
+    private bool  _showDialog;
+    private bool  _saving;
     private Guid? _editId;
     private WarrantyFormModel _form = new();
 
     protected override async Task OnInitializedAsync()
     {
-        _equipment     = await EquipmentApi.GetAllAsync() ?? [];
+        _equipment      = await EquipmentApi.GetAllAsync() ?? [];
         _equipmentNames = _equipment.ToDictionary(e => e.Id, e => e.Name);
         await LoadAsync();
     }
@@ -124,34 +170,29 @@ else
     private async Task LoadAsync()
     {
         _items = _tab == 0
-            ? await Api.GetActiveAsync() ?? []
-            : await Api.GetExpiringAsync(90) ?? [];
+            ? await Api.GetActiveAsync()      ?? []
+            : await Api.GetExpiringAsync(90)  ?? [];
     }
-
-    protected override async Task OnParametersSetAsync() => await LoadAsync();
 
     private void OpenAddDialog()
     {
-        _editId     = null;
-        _form       = new WarrantyFormModel
-        {
-            EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty
-        };
+        _editId = null;
+        _form   = new WarrantyFormModel { EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty };
         _showDialog = true;
     }
 
     private void OpenEditDialog(WarrantyDto w)
     {
         _editId = w.Id;
-        _form = new WarrantyFormModel
+        _form   = new WarrantyFormModel
         {
-            EquipmentId        = w.EquipmentId,
-            Name               = w.Name,
-            Provider           = w.Provider,
-            ContractNumber     = w.ContractNumber,
-            Notes              = w.Notes,
-            StartDateNullable  = w.StartDate.ToDateTime(TimeOnly.MinValue),
-            EndDateNullable    = w.EndDate.ToDateTime(TimeOnly.MinValue),
+            EquipmentId       = w.EquipmentId,
+            Name              = w.Name,
+            Provider          = w.Provider,
+            ContractNumber    = w.ContractNumber,
+            Notes             = w.Notes,
+            StartDateNullable = w.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDateNullable   = w.EndDate.ToDateTime(TimeOnly.MinValue),
         };
         _showDialog = true;
     }
@@ -161,17 +202,15 @@ else
         _saving = true;
         if (_editId.HasValue)
         {
-            var dto = new UpdateWarrantyDto(
+            await Api.UpdateAsync(_editId.Value, new UpdateWarrantyDto(
                 _form.Name, _form.StartDate, _form.EndDate,
-                _form.Provider, _form.ContractNumber, _form.Notes);
-            await Api.UpdateAsync(_editId.Value, dto);
+                _form.Provider, _form.ContractNumber, _form.Notes));
         }
         else
         {
-            var dto = new CreateWarrantyDto(
+            await Api.CreateAsync(new CreateWarrantyDto(
                 _form.EquipmentId, _form.Name, _form.StartDate, _form.EndDate,
-                _form.Provider, _form.ContractNumber, _form.Notes);
-            await Api.CreateAsync(dto);
+                _form.Provider, _form.ContractNumber, _form.Notes));
         }
         await LoadAsync();
         _saving     = false;
@@ -200,10 +239,7 @@ else
         <= 30 => $"{days}d left",
         _     => $"{days / 30}mo left",
     };
-}
 
-@code {
-    // WarrantyFormModel extended with EquipmentId for the create case.
     private sealed class WarrantyFormModel : HomeGuard.Client.Common.WarrantyFormModel
     {
         public Guid EquipmentId { get; set; }

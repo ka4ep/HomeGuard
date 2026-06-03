@@ -21,13 +21,24 @@ internal static class PasskeyAuthExtensions
                 opts.SlidingExpiration = true;
                 opts.LoginPath         = "/login";
 
-                opts.Events.OnRedirectToLogin = ctx =>
+                opts.Events = new CookieAuthenticationEvents
                 {
-                    if (ctx.Request.Path.StartsWithSegments("/api"))
-                        ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    else
-                        ctx.Response.Redirect(ctx.RedirectUri);
-                    return Task.CompletedTask;
+                    OnRedirectToLogin = ctx =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api"))
+                            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        else
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = ctx =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api"))
+                            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        else
+                            ctx.Response.Redirect(ctx.RedirectUri);
+                        return Task.CompletedTask;
+                    }
                 };
             });
 

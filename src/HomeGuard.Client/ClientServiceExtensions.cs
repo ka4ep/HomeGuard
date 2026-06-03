@@ -9,13 +9,14 @@ public static class ClientServiceExtensions
         this IServiceCollection services, string apiBaseAddress)
     {
         // Typed HTTP clients — all share one HttpClient pointing at the API.
-        services.AddHttpClient<EquipmentApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<WarrantyApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<ServiceRecordApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
-        services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress));
+        services.AddScoped<ApiAuthHandler>();
+        services.AddHttpClient<EquipmentApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<WarrantyApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<ServiceRecordApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
 
         // IndexedDB wrapper — singleton в Blazor WASM (один scope на всё приложение).
         services.AddSingleton<HomeGuardDb>();

@@ -29,45 +29,116 @@ else if (_items.Count == 0)
 }
 else
 {
-    <MudTable Items="_items" Hover="true" Dense="true" Elevation="1">
-        <HeaderContent>
-            <MudTh>Title</MudTh>
-            <MudTh>Equipment</MudTh>
-            <MudTh>Service date</MudTh>
-            <MudTh>Next service</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Title</MudTd>
-            <MudTd>@(_equipmentNames.GetValueOrDefault(context.EquipmentId, "…"))</MudTd>
-            <MudTd>@context.ServiceDate.ToString("yyyy-MM-dd", null)</MudTd>
-            <MudTd>@(context.NextServiceDate?.ToString("yyyy-MM-dd", null) ?? "—")</MudTd>
-            <MudTd>
-                @if (context.IsOverdue)
-                {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Error">Overdue</MudChip>
-                }
-                else if (context.DaysUntilNextService.HasValue)
-                {
-                    <MudChip T="string" Size="Size.Small"
-                             Color="@(context.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
-                        @DaysLabel(context.DaysUntilNextService)
-                    </MudChip>
-                }
-            </MudTd>
-            <MudTd>
-                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small"
-                               OnClick="() => OpenEditDialog(context)" />
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small"
-                               Color="Color.Error"
-                               OnClick="() => DeleteAsync(context.Id)" />
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudExpansionPanels Elevation="1">
+        @foreach (var sr in _items)
+        {
+            <MudExpansionPanel>
+
+                @* ── Заголовок панели ────────────────────────────────────── *@
+                <TitleContent>
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3"
+                              Style="flex-wrap:wrap; width:100%">
+
+                        @* Название + оборудование *@
+                        <MudStack Spacing="0" Style="min-width:160px; flex:1">
+                            <MudText Typo="Typo.body1" Style="font-weight:600">@sr.Title</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(_equipmentNames.GetValueOrDefault(sr.EquipmentId, "…"))
+                            </MudText>
+                        </MudStack>
+
+                        @* Даты *@
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Service date</MudText>
+                            <MudText Typo="Typo.body2">@sr.ServiceDate.ToString("d MMM yyyy", null)</MudText>
+                        </MudStack>
+
+                        @if (sr.NextServiceDate.HasValue)
+                        {
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Next service</MudText>
+                                <MudText Typo="Typo.body2">@sr.NextServiceDate.Value.ToString("d MMM yyyy", null)</MudText>
+                            </MudStack>
+                        }
+
+                        @* Статус *@
+                        <div>
+                            @if (sr.IsOverdue)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Error">Overdue</MudChip>
+                            }
+                            else if (sr.DaysUntilNextService.HasValue)
+                            {
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
+                                    @DaysLabel(sr.DaysUntilNextService)
+                                </MudChip>
+                            }
+                        </div>
+
+                    </MudStack>
+                </TitleContent>
+
+                @* ── Детали (разворачиваются) ────────────────────────────── *@
+                <ChildContent>
+                    <MudStack Spacing="3">
+
+                        @* Цена + одометр — только если есть значение *@
+                        @if (sr.Cost.HasValue || sr.OdometerReading is not null)
+                        {
+                            <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
+                                @if (sr.Cost.HasValue)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Cost</MudText>
+                                        <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
+                                    </MudStack>
+                                }
+                                @if (sr.OdometerReading is not null)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Odometer</MudText>
+                                        <MudText Typo="Typo.body2">@sr.OdometerReading</MudText>
+                                    </MudStack>
+                                }
+                                @if (sr.ServiceProvider is not null)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                        <MudText Typo="Typo.body2">@sr.ServiceProvider</MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+
+                        @* Notes — сохраняем переносы строк *@
+                        @if (!string.IsNullOrWhiteSpace(sr.Notes))
+                        {
+                            <MudStack Spacing="1">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                                <MudText Typo="Typo.body2" Style="white-space:pre-line">@sr.Notes</MudText>
+                            </MudStack>
+                        }
+
+                        @* Кнопки *@
+                        <MudStack Row="true" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                           Size="Size.Small"
+                                           OnClick="() => OpenEditDialog(sr)" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                           Size="Size.Small" Color="Color.Error"
+                                           OnClick="() => DeleteAsync(sr.Id)" />
+                        </MudStack>
+
+                    </MudStack>
+                </ChildContent>
+
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
 }
 
-<!-- Add / Edit dialog -->
+@* ── Диалог добавления / редактирования ─────────────────────────────────────── *@
 <MudDialog @bind-Visible="_showDialog">
     <TitleContent>@(_editId.HasValue ? "Edit service record" : "Add service record")</TitleContent>
     <DialogContent>
@@ -102,24 +173,22 @@ else
                 <MudTextField @bind-Value="_form.OdometerReading" Label="Odometer" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="3"
-                              HelperText="Markdown supported" />
+                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="4"
+                              Sizing="InputSizing.Auto" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="() => _showDialog = false">Cancel</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveAsync" Disabled="_saving">
-            Save
-        </MudButton>
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    private List<ServiceRecordDto>?   _items;
-    private List<EquipmentSummary>    _equipment = [];
-    private Dictionary<Guid, string>  _equipmentNames = [];
+    private List<ServiceRecordDto>?  _items;
+    private List<EquipmentSummary>   _equipment      = [];
+    private Dictionary<Guid, string> _equipmentNames = [];
     private int   _tab;
     private bool  _showDialog;
     private bool  _saving;
@@ -128,7 +197,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _equipment     = await EquipmentApi.GetAllAsync() ?? [];
+        _equipment      = await EquipmentApi.GetAllAsync() ?? [];
         _equipmentNames = _equipment.ToDictionary(e => e.Id, e => e.Name);
         await LoadAsync();
     }
@@ -137,7 +206,7 @@ else
     {
         _items = _tab == 0
             ? await Api.GetDueSoonAsync(90) ?? []
-            : await Api.GetOverdueAsync() ?? [];
+            : await Api.GetOverdueAsync()  ?? [];
     }
 
     private void OpenAddDialog()
@@ -145,7 +214,7 @@ else
         _editId = null;
         _form   = new ServiceFormModel
         {
-            EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty
+            EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty,
         };
         _showDialog = true;
     }
@@ -172,17 +241,15 @@ else
         _saving = true;
         if (_editId.HasValue)
         {
-            var dto = new UpdateServiceRecordDto(
+            await Api.UpdateAsync(_editId.Value, new UpdateServiceRecordDto(
                 _form.Title, _form.ServiceDate, _form.NextServiceDate,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading);
-            await Api.UpdateAsync(_editId.Value, dto);
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading));
         }
         else
         {
-            var dto = new CreateServiceRecordDto(
+            await Api.CreateAsync(new CreateServiceRecordDto(
                 _form.EquipmentId, _form.Title, _form.ServiceDate, _form.NextServiceDate,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading);
-            await Api.CreateAsync(dto);
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading));
         }
         await LoadAsync();
         _saving     = false;
