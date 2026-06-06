@@ -13,4 +13,7 @@ public interface IServiceRecordRepository : IRepository<ServiceRecord>
     Task<IReadOnlyList<ServiceRecord>> GetDueSoonAsync(DateOnly asOf, int withinDays, CancellationToken ct = default);
 
     Task<ServiceRecord?> GetWithDetailsAsync(Guid id, CancellationToken ct = default);
+
+    Task<IReadOnlyList<ServiceRecord>> GetAllAsync(CancellationToken ct = default);
+
 }

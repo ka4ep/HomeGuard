@@ -96,6 +96,9 @@ public sealed class ServiceRecordApiClient
     public Task<List<ServiceRecordDto>?> GetByEquipmentAsync(Guid equipmentId, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<ServiceRecordDto>>($"api/service-records/by-equipment/{equipmentId}", ct);
 
+    public Task<List<ServiceRecordDto>?> GetAllAsync(CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<ServiceRecordDto>>("api/service-records", ct);
+
     public async Task<ServiceRecordDto?> CreateAsync(CreateServiceRecordDto dto, CancellationToken ct = default)
     {
         var resp = await _http.PostAsJsonAsync("api/service-records", dto, ct);
