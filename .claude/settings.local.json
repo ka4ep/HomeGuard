@@ -1,0 +1,11 @@
+{
+  "enabledMcpjsonServers": [
+    "graphify"
+  ],
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "prefersReducedMotion": true,
+  "enableAllProjectMcpServers": true
+}

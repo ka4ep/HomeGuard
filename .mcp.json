@@ -1,0 +1,15 @@
+﻿{
+  "mcpServers": {
+    "graphify": {
+      "command": "python3",
+      "args": [
+        "-m", "graphify.serve",
+        "${CLAUDE_PROJECT_DIR:-.}/graphify-out/graph.json"
+      ],
+      "env": {
+        "GRAPHIFY_MAX_GRAPH_BYTES": "1GB"
+      },
+      "timeout": 3600000
+    }
+  }
+}
