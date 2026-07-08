@@ -1,42 +1,59 @@
 // homeguard-timeline.js
 // Thin wrapper around vis-timeline for Blazor JS interop.
-// vis-timeline is loaded from CDN in index.html.
 
 window.homeGuardTimeline = {
     _instances: {},
 
-    // Create a timeline in the element with the given id.
-    create(elementId, itemsJson, optionsJson) {
+    create(elementId, itemsJson, optionsJson, groupsJson) {
         const container = document.getElementById(elementId);
         if (!container) return;
 
-        const items   = new vis.DataSet(JSON.parse(itemsJson));
+        const rawItems = this._cleanItems(itemsJson);
         const options = JSON.parse(optionsJson);
 
-        const timeline = new vis.Timeline(container, items, options);
-        this._instances[elementId] = { timeline, items };
+        // ↓ Диагностика — убрать когда всё заработает
+        console.log('[timeline] items:', rawItems.length, rawItems);
+
+        const items = new vis.DataSet(rawItems);
+
+        let timeline, groups = null;
+
+        if (groupsJson) {
+            const rawGroups = JSON.parse(groupsJson).map(g => ({
+                ...g,
+                showNested: true,   // ← разворачиваем вложенные группы сразу
+            }));
+            console.log('[timeline] groups:', rawGroups.length, rawGroups);
+            groups = new vis.DataSet(rawGroups);
+            timeline = new vis.Timeline(container, items, groups, options);
+        } else {
+            timeline = new vis.Timeline(container, items, options);
+        }
+
+        this._instances[elementId] = { timeline, items, groups };
     },
 
-    // Replace all items in an existing timeline.
-    updateItems(elementId, itemsJson) {
+    updateItemsAndGroups(elementId, itemsJson, groupsJson) {
         const inst = this._instances[elementId];
         if (!inst) return;
+
         inst.items.clear();
-        inst.items.add(JSON.parse(itemsJson));
-        inst.timeline.fit();
+        inst.items.add(this._cleanItems(itemsJson));
+
+        if (inst.groups) {
+            inst.groups.clear();
+            if (groupsJson) inst.groups.add(JSON.parse(groupsJson));
+        }
     },
 
-    // Fit the visible window to the items.
     fit(elementId) {
         this._instances[elementId]?.timeline.fit();
     },
 
-    // Move window to today.
     focusToday(elementId) {
         const inst = this._instances[elementId];
         if (!inst) return;
-        const now = new Date();
-        inst.timeline.moveTo(now);
+        inst.timeline.moveTo(new Date());
     },
 
     destroy(elementId) {
@@ -44,5 +61,15 @@ window.homeGuardTimeline = {
         if (!inst) return;
         inst.timeline.destroy();
         delete this._instances[elementId];
+    },
+
+    // Убирает null/undefined из каждого item-объекта
+    _cleanItems(json) {
+        return JSON.parse(json).map(item => {
+            const clean = {};
+            for (const [k, v] of Object.entries(item))
+                if (v !== null && v !== undefined) clean[k] = v;
+            return clean;
+        });
     },
 };

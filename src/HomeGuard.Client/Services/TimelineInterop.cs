@@ -4,10 +4,6 @@ using System.Text.Json.Serialization;
 
 namespace HomeGuard.Client.Services;
 
-/// <summary>
-/// C# wrapper for the vis-timeline JS component.
-/// Each <c>TimelinePage</c> creates one instance tied to a DOM element id.
-/// </summary>
 public sealed class TimelineInterop : IAsyncDisposable
 {
     private readonly IJSRuntime _js;
@@ -18,28 +14,36 @@ public sealed class TimelineInterop : IAsyncDisposable
     public async Task CreateAsync(
         string elementId,
         IEnumerable<TimelineItem> items,
-        TimelineOptions? options = null)
+        TimelineOptions? options = null,
+        IEnumerable<TimelineGroup>? groups = null)
     {
         _elementId = elementId;
 
-        var itemsJson = JsonSerializer.Serialize(items.Select(ToJs), Json.Options);
+        var itemsJson = JsonSerializer.Serialize(items.Select(ToJsItem), Json.Options);
         var optionsJson = JsonSerializer.Serialize(options ?? TimelineOptions.Default, Json.Options);
+        var groupsJson = groups is not null
+            ? JsonSerializer.Serialize(groups.Select(ToJsGroup), Json.Options)
+            : null;
 
-        await _js.InvokeVoidAsync("homeGuardTimeline.create", elementId, itemsJson, optionsJson);
+        await _js.InvokeVoidAsync("homeGuardTimeline.create",
+            elementId, itemsJson, optionsJson, groupsJson);
     }
 
-    public async Task UpdateItemsAsync(IEnumerable<TimelineItem> items)
+    public async Task UpdateItemsAndGroupsAsync(
+        IEnumerable<TimelineItem> items,
+        IEnumerable<TimelineGroup>? groups = null)
     {
         if (_elementId is null) return;
-        var json = JsonSerializer.Serialize(items.Select(ToJs), Json.Options);
-        await _js.InvokeVoidAsync("homeGuardTimeline.updateItems", _elementId, json);
+        var itemsJson = JsonSerializer.Serialize(items.Select(ToJsItem), Json.Options);
+        var groupsJson = groups is not null
+            ? JsonSerializer.Serialize(groups.Select(ToJsGroup), Json.Options)
+            : null;
+        await _js.InvokeVoidAsync("homeGuardTimeline.updateItemsAndGroups",
+            _elementId, itemsJson, groupsJson);
     }
 
-    public Task FitAsync()
-        => _js.InvokeVoidAsync("homeGuardTimeline.fit", _elementId).AsTask();
-
-    public Task FocusTodayAsync()
-        => _js.InvokeVoidAsync("homeGuardTimeline.focusToday", _elementId).AsTask();
+    public Task FitAsync() => _js.InvokeVoidAsync("homeGuardTimeline.fit", _elementId).AsTask();
+    public Task FocusTodayAsync() => _js.InvokeVoidAsync("homeGuardTimeline.focusToday", _elementId).AsTask();
 
     public async ValueTask DisposeAsync()
     {
@@ -47,21 +51,28 @@ public sealed class TimelineInterop : IAsyncDisposable
             await _js.InvokeVoidAsync("homeGuardTimeline.destroy", _elementId);
     }
 
-    // ── vis-timeline JSON shape ────────────────────────────────────────────────
-
-    private static object ToJs(TimelineItem item) => new
+    private static object ToJsItem(TimelineItem i) => new
     {
-        id = item.Id,
-        content = item.Content,
-        start = item.Start.ToString("yyyy-MM-dd", null),
-        end = item.End?.ToString("yyyy-MM-dd", null),
-        group = item.Group,
-        className = item.ClassName,
-        title = item.Tooltip,
+        id = i.Id,
+        content = i.Content,
+        start = i.Start.ToString("yyyy-MM-dd", null),
+        end = i.End?.ToString("yyyy-MM-dd", null),
+        group = i.Group,
+        subgroup = i.Subgroup,
+        className = i.ClassName,
+        title = i.Tooltip,
+    };
+
+    private static object ToJsGroup(TimelineGroup g) => new
+    {
+        id = g.Id,
+        content = g.Content,
+        order = g.Order,
+        nestedInGroup = g.NestedInGroup,   // null = toplevel, string id = дочерняя
     };
 }
 
-// ── Data models ───────────────────────────────────────────────────────────────
+// ── Data records ──────────────────────────────────────────────────────────────
 
 public sealed record TimelineItem(
     string Id,
@@ -69,29 +80,37 @@ public sealed record TimelineItem(
     DateOnly Start,
     DateOnly? End = null,
     string? Group = null,
+    string? Subgroup = null,
     string? ClassName = null,
     string? Tooltip = null
 );
 
+public sealed record TimelineGroup(
+    string Id,
+    string Content,
+    int Order = 0,
+    string? NestedInGroup = null
+);
+
 public sealed record TimelineOptions(
-    // CamelCase → "min" / "max" — именно так ждёт vis-timeline.
-    // Было MinDate/MaxDate → camelCase давал "minDate"/"maxDate" → Unknown option.
     [property: JsonPropertyName("min")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? Min         = null,
+    string? Min = null,
 
     [property: JsonPropertyName("max")]
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    string? Max         = null,
+    string? Max = null,
+
+    [property: JsonPropertyName("height")]
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? Height = null,
 
     bool Selectable = false,
     bool Zoomable = true,
     bool Moveable = true,
-
-    // Было string Stack = "true" → vis-timeline получал строку, ждёт булево.
     bool Stack = true,
-
-    string Orientation = "top")
+    string Orientation = "top"
+)
 {
     public static TimelineOptions Default => new();
 }

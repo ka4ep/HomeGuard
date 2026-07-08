@@ -143,6 +143,12 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
             .OrderBy(sr => sr.NextServiceDate)
             .ToList();
     }
+
+    public async Task<IReadOnlyList<ServiceRecord>> GetAllAsync(CancellationToken ct = default)
+    => await Set
+        .Include(sr => sr.NotificationRules)
+        .OrderBy(sr => sr.ServiceDate)
+        .ToListAsync(ct);
 }
 
 // ── BlobEntry ─────────────────────────────────────────────────────────────────

@@ -58,6 +58,9 @@ public sealed class ServiceRecordService
         int withinDays, CancellationToken ct = default)
         => _repo.GetDueSoonAsync(DateOnly.FromDateTime(DateTime.UtcNow), withinDays, ct);
 
+    public Task<IReadOnlyList<ServiceRecord>> GetAllAsync(CancellationToken ct = default)
+        => _repo.GetAllAsync(ct);
+
     public async Task<ServiceRecord> CreateAsync(
         CreateServiceRecordCommand cmd, CancellationToken ct = default)
     {

@@ -19,6 +19,7 @@ public static class ServiceRecordEndpoints
         grp.MapPut("/{id:guid}",                   Update);
         grp.MapPatch("/{id:guid}/notifications",   SetNotifications);
         grp.MapDelete("/{id:guid}",                Delete);
+        grp.MapGet("/",                            GetAll);
     }
 
     private static async Task<IResult> GetOverdue(
@@ -39,6 +40,13 @@ public static class ServiceRecordEndpoints
         Guid equipId, ServiceRecordService svc, CancellationToken ct)
     {
         var list = await svc.GetByEquipmentAsync(equipId, ct);
+        return Results.Ok(list.Select(ServiceRecordDto.From));
+    }
+
+    private static async Task<IResult> GetAll(
+        ServiceRecordService svc, CancellationToken ct)
+    {
+        var list = await svc.GetAllAsync(ct);
         return Results.Ok(list.Select(ServiceRecordDto.From));
     }
 

@@ -1,4 +1,8 @@
 @page "/timeline"
+@using System.Net
+@using System.Text
+@using System.Text.RegularExpressions
+@inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
 @inject TimelineInterop TimelineInterop
@@ -10,20 +14,16 @@
 
 <MudStack Row="true" Class="mb-4" Spacing="2">
     <MudButton Variant="Variant.Outlined" Size="Size.Small"
-               OnClick="() => TimelineInterop.FocusTodayAsync()">
-        Today
-    </MudButton>
+               OnClick="@(() => TimelineInterop.FocusTodayAsync())">Today</MudButton>
     <MudButton Variant="Variant.Outlined" Size="Size.Small"
-               OnClick="() => TimelineInterop.FitAsync()">
-        Fit all
-    </MudButton>
+               OnClick="@(() => TimelineInterop.FitAsync())">Fit all</MudButton>
     <MudSpacer />
-    <MudChip T="string" Style="background:#7F77DD;color:white" Size="Size.Small">
-        Warranties
-    </MudChip>
-    <MudChip T="string" Style="background:#1D9E75;color:white" Size="Size.Small">
-        Service
-    </MudChip>
+    <MudChip T="string" Style="@WarrantyChipStyle" Size="Size.Small"
+             Icon="@Icons.Material.Filled.VerifiedUser"
+             OnClick="ToggleWarrantiesAsync">Warranties</MudChip>
+    <MudChip T="string" Style="@ServiceChipStyle" Size="Size.Small"
+             Icon="@Icons.Material.Filled.Build"
+             OnClick="ToggleServicesAsync">Service</MudChip>
 </MudStack>
 
 @if (_loading)
@@ -31,60 +31,309 @@
     <MudProgressLinear Indeterminate="true" Class="mb-2" />
 }
 
-<!-- vis-timeline renders into this div -->
 <div id="vis-timeline"
-     style="height: 420px; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px;">
+     style="height: 500px; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; overflow: hidden;">
 </div>
 
 @code {
     private bool _loading = true;
+    private bool _showWarranties = true;
+    private bool _showServices = true;
     private const string ElementId = "vis-timeline";
+
+    // Raw data (loaded once)
+    private List<WarrantyDto> _warranties = [];
+    private List<ServiceRecordDto> _services = [];
+    private Dictionary<Guid, string> _equipMap = [];
+
+    // Canonical title per service record ID (computed once after load)
+    private Dictionary<Guid, string> _canonicals = [];
+
+    // ── Chip styles ───────────────────────────────────────────────────────────
+
+    private string WarrantyChipStyle => _showWarranties
+        ? "background:#7F77DD;color:white;cursor:pointer"
+        : "background:transparent;color:#7F77DD;border:1px solid #7F77DD;cursor:pointer";
+
+    private string ServiceChipStyle => _showServices
+        ? "background:#1D9E75;color:white;cursor:pointer"
+        : "background:transparent;color:#1D9E75;border:1px solid #1D9E75;cursor:pointer";
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
 
-        var items = await BuildItemsAsync();
-        await TimelineInterop.CreateAsync(ElementId, items, new TimelineOptions(
-            Min: DateOnly.FromDateTime(DateTime.Today.AddYears(-2)).ToString("yyyy-MM-dd", null),
-            Max: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
-        ));
+        await LoadDataAsync();
+        var (items, groups) = BuildItemsAndGroups();
+        await TimelineInterop.CreateAsync(ElementId, items,
+            new TimelineOptions(
+                Min: DateOnly.FromDateTime(DateTime.Today.AddYears(-3)).ToString("yyyy-MM-dd", null),
+                Max: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
+            // Height убрали — vis-timeline берёт высоту из CSS контейнера
+            ),
+            groups);
 
         _loading = false;
         StateHasChanged();
     }
 
-    private async Task<IEnumerable<TimelineItem>> BuildItemsAsync()
+    private async Task LoadDataAsync()
     {
-        var warranties = await WarrantyApi.GetActiveAsync() ?? [];
-        var services   = await ServiceApi.GetDueSoonAsync(365) ?? [];
+        var equipTask = EquipmentApi.GetAllAsync();
+        var warrantyTask = WarrantyApi.GetActiveAsync();
+        var serviceTask = ServiceApi.GetAllAsync();
+        await Task.WhenAll(equipTask, warrantyTask, serviceTask);
 
+        _equipMap = (equipTask.Result ?? []).ToDictionary(e => e.Id, e => e.Name);
+        _warranties = warrantyTask.Result ?? [];
+        _services = serviceTask.Result ?? [];
+
+        // Build canonical title clusters per equipment (fuzzy-matched, stable order)
+        var clustersByEquip = new Dictionary<Guid, List<string>>();
+        foreach (var sr in _services.OrderBy(s => s.ServiceDate))
+        {
+            if (!clustersByEquip.TryGetValue(sr.EquipmentId, out var clusters))
+                clustersByEquip[sr.EquipmentId] = clusters = [];
+            _canonicals[sr.Id] = FuzzyGetOrAdd(clusters, sr.Title);
+        }
+    }
+
+    // ── Toggle handlers ───────────────────────────────────────────────────────
+
+    private async Task ToggleWarrantiesAsync()
+    {
+        _showWarranties = !_showWarranties;
+        await RefreshAsync();
+    }
+
+    private async Task ToggleServicesAsync()
+    {
+        _showServices = !_showServices;
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        var (items, groups) = BuildItemsAndGroups();
+        await TimelineInterop.UpdateItemsAndGroupsAsync(items, groups);
+    }
+
+    // ── Build timeline data ───────────────────────────────────────────────────
+
+    private (List<TimelineItem> items, List<TimelineGroup> groups) BuildItemsAndGroups()
+    {
         var items = new List<TimelineItem>();
+        var groups = new List<TimelineGroup>();
 
-        foreach (var w in warranties)
+        // ── Warranties ────────────────────────────────────────────────────────
+        if (_showWarranties)
         {
-            items.Add(new TimelineItem(
-                Id:        $"w-{w.Id}",
-                Content:   w.Name,
-                Start:     w.StartDate,
-                End:       w.EndDate,
-                ClassName: "hg-warranty",
-                Tooltip:   $"{w.Name} — expires {w.EndDate:yyyy-MM-dd}"
-            ));
+            groups.Add(new TimelineGroup("warranties", "🛡 Warranties", Order: 0));
+            foreach (var w in _warranties)
+            {
+                var equip = _equipMap.TryGetValue(w.EquipmentId, out var n) ? n : "";
+                var tip = $"<b>{Enc(w.Name)}</b>{(equip.Length > 0 ? $"<br>{Enc(equip)}" : "")}" +
+                            $"<br>{w.StartDate:yyyy-MM-dd} → {w.EndDate:yyyy-MM-dd}" +
+                            $"<br>{w.DaysRemaining} days remaining";
+                items.Add(new TimelineItem(
+                    Id: $"w-{w.Id}",
+                    Content: Enc(w.Name),
+                    Start: w.StartDate,
+                    End: w.EndDate,
+                    Group: "warranties",
+                    ClassName: "hg-warranty",
+                    Tooltip: tip
+                ));
+            }
         }
 
-        foreach (var sr in services.Where(s => s.NextServiceDate.HasValue))
+        // ── Service records ───────────────────────────────────────────────────
+        if (_showServices)
         {
-            items.Add(new TimelineItem(
-                Id:        $"s-{sr.Id}",
-                Content:   sr.Title,
-                Start:     sr.NextServiceDate!.Value,
-                ClassName: "hg-service",
-                Tooltip:   $"{sr.Title} — due {sr.NextServiceDate:yyyy-MM-dd}"
-            ));
+            int order = 1;
+            var byEquip = _services
+                .GroupBy(s => s.EquipmentId)
+                .OrderBy(g => _equipMap.TryGetValue(g.Key, out var n) ? n : "");
+
+            foreach (var grp in byEquip)
+            {
+                var equipName = _equipMap.TryGetValue(grp.Key, out var en) ? en : grp.Key.ToString();
+                var equipGrpId = $"equip-{grp.Key}";
+                var sorted = grp.OrderBy(s => s.ServiceDate).ToList();
+
+                // Уникальные canonical-кластеры для этого оборудования (в порядке первого появления)
+                var canonicalsForEquip = sorted
+                    .Select(s => _canonicals.GetValueOrDefault(s.Id, s.Title))
+                    .Distinct()
+                    .ToList();
+
+                // Toplevel-группа = оборудование
+                groups.Add(new TimelineGroup(equipGrpId, Enc(equipName), Order: order++));
+
+                // Дочерние группы = canonical title-ы (nestedInGroup вместо item.subgroup)
+                var subGroupIds = new Dictionary<string, string>();
+                int subOrder = 0;
+                foreach (var canonical in canonicalsForEquip)
+                {
+                    var subId = $"{equipGrpId}-{Math.Abs(canonical.GetHashCode()):x8}";
+                    subGroupIds[canonical] = subId;
+                    groups.Add(new TimelineGroup(
+                        Id: subId,
+                        Content: Enc(canonical),
+                        Order: subOrder++,
+                        NestedInGroup: equipGrpId
+                    ));
+                }
+
+                // Последняя запись каждого кластера — для маркера NextServiceDate
+                var latestIdByCanonical = new Dictionary<string, Guid>();
+                foreach (var sr in sorted)
+                    latestIdByCanonical[_canonicals.GetValueOrDefault(sr.Id, sr.Title)] = sr.Id;
+
+                var prevByCanonical = new Dictionary<string, ServiceRecordDto>();
+
+                foreach (var sr in sorted)
+                {
+                    var canonical = _canonicals.GetValueOrDefault(sr.Id, sr.Title);
+                    var targetGrp = subGroupIds.GetValueOrDefault(canonical, equipGrpId);
+                    prevByCanonical.TryGetValue(canonical, out var prev);
+
+                    // Item идёт в дочернюю группу — subgroup не нужен
+                    items.Add(new TimelineItem(
+                        Id: $"s-{sr.Id}",
+                        Content: BuildContent(sr, prev),
+                        Start: sr.ServiceDate,
+                        Group: targetGrp,
+                        ClassName: "hg-service",
+                        Tooltip: BuildTooltip(sr, prev, equipName)
+                    ));
+
+                    // Due / Overdue маркер — только последняя запись кластера
+                    if (latestIdByCanonical.TryGetValue(canonical, out var latestId) &&
+                        latestId == sr.Id &&
+                        sr.NextServiceDate.HasValue)
+                    {
+                        var dueTip = $"⏰ <b>{Enc(sr.Title)}</b><br>Due {sr.NextServiceDate:yyyy-MM-dd}" +
+                                     (sr.IsOverdue ? "<br>⚠️ Overdue!" : "");
+                        items.Add(new TimelineItem(
+                            Id: $"sn-{sr.Id}",
+                            Content: "⏰",
+                            Start: sr.NextServiceDate!.Value,
+                            Group: targetGrp,
+                            ClassName: sr.IsOverdue ? "hg-service-overdue" : "hg-service-due",
+                            Tooltip: dueTip
+                        ));
+                    }
+
+                    prevByCanonical[canonical] = sr;
+                }
+            }
         }
 
-        return items;
+        return (items, groups);
+    }
+
+    // ── Item content & tooltip ────────────────────────────────────────────────
+
+    private static string BuildContent(ServiceRecordDto sr, ServiceRecordDto? prev)
+    {
+        var title = Enc(sr.Title);
+        if (prev is null) return title;
+
+        var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
+        var parts = new List<string> { FormatSpan(days) };
+
+        if (TryParseOdo(prev.OdometerReading, out var odo1) &&
+            TryParseOdo(sr.OdometerReading, out var odo2) && odo2 > odo1)
+        {
+            parts.Add($"+{odo2 - odo1:N0} km");
+        }
+
+        var diff = $"<div style='font-size:10px;opacity:.5;white-space:nowrap'>↔ {string.Join(" · ", parts)}</div>";
+        return $"{title}{diff}";
+    }
+
+    private static string BuildTooltip(ServiceRecordDto sr, ServiceRecordDto? prev, string equipName)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"<b>{Enc(sr.Title)}</b><br>{Enc(equipName)}<br>");
+        sb.Append($"{sr.ServiceDate:yyyy-MM-dd}");
+        if (sr.ServiceProvider is { Length: > 0 })
+            sb.Append($" · {Enc(sr.ServiceProvider)}");
+        if (sr.OdometerReading is { Length: > 0 })
+            sb.Append($"<br>🔢 {Enc(sr.OdometerReading)} km");
+        if (sr.Cost.HasValue)
+            sb.Append($"<br>💰 {sr.Cost:F2} €");
+
+        if (prev is not null)
+        {
+            var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
+            sb.Append($"<br><span style='opacity:.65'>↔ {FormatSpan(days)}");
+            if (TryParseOdo(prev.OdometerReading, out var o1) &&
+                TryParseOdo(sr.OdometerReading, out var o2) && o2 > o1)
+                sb.Append($" · +{o2 - o1:N0} km");
+            sb.Append("</span>");
+        }
+
+        if (sr.NextServiceDate.HasValue)
+            sb.Append($"<br>⏰ Next: {sr.NextServiceDate:yyyy-MM-dd}");
+
+        return sb.ToString();
+    }
+
+    // ── Fuzzy title clustering (Levenshtein, threshold 25%) ──────────────────
+
+    private static string FuzzyGetOrAdd(List<string> clusters, string title)
+    {
+        var norm = Norm(title);
+        foreach (var c in clusters)
+        {
+            var normC = Norm(c);
+            var maxLen = Math.Max(norm.Length, normC.Length);
+            if (maxLen == 0 || (double)Lev(norm, normC) / maxLen < 0.25)
+                return c;                       // matched → return first-seen canonical
+        }
+        clusters.Add(title);                    // new cluster
+        return title;
+    }
+
+    private static string Norm(string s) =>
+        Regex.Replace(s.Trim().ToLowerInvariant(), @"\s+", " ");
+
+    private static int Lev(string a, string b)
+    {
+        int m = a.Length, n = b.Length;
+        var d = new int[m + 1, n + 1];
+        for (int i = 0; i <= m; i++) d[i, 0] = i;
+        for (int j = 0; j <= n; j++) d[0, j] = j;
+        for (int i = 1; i <= m; i++)
+            for (int j = 1; j <= n; j++)
+                d[i, j] = a[i - 1] == b[j - 1]
+                    ? d[i - 1, j - 1]
+                    : 1 + Math.Min(Math.Min(d[i - 1, j], d[i, j - 1]), d[i - 1, j - 1]);
+        return d[m, n];
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static string Enc(string s) => WebUtility.HtmlEncode(s);
+
+    private static string FormatSpan(int days) => days switch
+    {
+        <= 0 => "—",
+        < 7 => $"{days}d",
+        < 31 => $"{days / 7}w",
+        < 365 => $"{days / 30}mo",
+        _ => $"{days / 365}y {days % 365 / 30}mo"
+    };
+
+    private static bool TryParseOdo(string? s, out long value)
+    {
+        value = 0;
+        if (s is null) return false;
+        return long.TryParse(Regex.Replace(s, @"[^\d]", ""), out value);
     }
 
     public async ValueTask DisposeAsync() => await TimelineInterop.DisposeAsync();
