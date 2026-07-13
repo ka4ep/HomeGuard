@@ -91,11 +91,9 @@ public sealed class NotificationSchedulerService
 
         foreach (var record in dueSoon)
         {
-            if (record.NextServiceDate is null) continue;
-
             foreach (var rule in record.NotificationRules.Where(r => r.IsEnabled))
             {
-                var fireDate = rule.FireDate(record.NextServiceDate.Value);
+                var fireDate = rule.FireDate(record.ServiceDate);
 
                 if (fireDate < today) continue;
 
@@ -107,7 +105,7 @@ public sealed class NotificationSchedulerService
                     EntityId: record.Id,
                     EntityType: "ServiceRecord",
                     Title: record.Title,
-                    TargetDate: record.NextServiceDate.Value,
+                    TargetDate: record.ServiceDate,
                     Offset: rule.Offset
                 );
 

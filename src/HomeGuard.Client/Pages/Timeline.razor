@@ -187,11 +187,6 @@
                     ));
                 }
 
-                // Последняя запись каждого кластера — для маркера NextServiceDate
-                var latestIdByCanonical = new Dictionary<string, Guid>();
-                foreach (var sr in sorted)
-                    latestIdByCanonical[_canonicals.GetValueOrDefault(sr.Id, sr.Title)] = sr.Id;
-
                 var prevByCanonical = new Dictionary<string, ServiceRecordDto>();
 
                 foreach (var sr in sorted)
@@ -209,23 +204,6 @@
                         ClassName: "hg-service",
                         Tooltip: BuildTooltip(sr, prev, equipName)
                     ));
-
-                    // Due / Overdue маркер — только последняя запись кластера
-                    if (latestIdByCanonical.TryGetValue(canonical, out var latestId) &&
-                        latestId == sr.Id &&
-                        sr.NextServiceDate.HasValue)
-                    {
-                        var dueTip = $"⏰ <b>{Enc(sr.Title)}</b><br>Due {sr.NextServiceDate:yyyy-MM-dd}" +
-                                     (sr.IsOverdue ? "<br>⚠️ Overdue!" : "");
-                        items.Add(new TimelineItem(
-                            Id: $"sn-{sr.Id}",
-                            Content: "⏰",
-                            Start: sr.NextServiceDate!.Value,
-                            Group: targetGrp,
-                            ClassName: sr.IsOverdue ? "hg-service-overdue" : "hg-service-due",
-                            Tooltip: dueTip
-                        ));
-                    }
 
                     prevByCanonical[canonical] = sr;
                 }
@@ -245,10 +223,9 @@
         var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
         var parts = new List<string> { FormatSpan(days) };
 
-        if (TryParseOdo(prev.OdometerReading, out var odo1) &&
-            TryParseOdo(sr.OdometerReading, out var odo2) && odo2 > odo1)
+        if (prev.MeterReading.HasValue && sr.MeterReading.HasValue && sr.MeterReading > prev.MeterReading)
         {
-            parts.Add($"+{odo2 - odo1:N0} km");
+            parts.Add($"+{sr.MeterReading - prev.MeterReading:N0}");
         }
 
         var diff = $"<div style='font-size:10px;opacity:.5;white-space:nowrap'>↔ {string.Join(" · ", parts)}</div>";
@@ -262,8 +239,8 @@
         sb.Append($"{sr.ServiceDate:yyyy-MM-dd}");
         if (sr.ServiceProvider is { Length: > 0 })
             sb.Append($" · {Enc(sr.ServiceProvider)}");
-        if (sr.OdometerReading is { Length: > 0 })
-            sb.Append($"<br>🔢 {Enc(sr.OdometerReading)} km");
+        if (sr.MeterReading.HasValue)
+            sb.Append($"<br>🔢 {sr.MeterReading}");
         if (sr.Cost.HasValue)
             sb.Append($"<br>💰 {sr.Cost:F2} €");
 
@@ -271,14 +248,13 @@
         {
             var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
             sb.Append($"<br><span style='opacity:.65'>↔ {FormatSpan(days)}");
-            if (TryParseOdo(prev.OdometerReading, out var o1) &&
-                TryParseOdo(sr.OdometerReading, out var o2) && o2 > o1)
-                sb.Append($" · +{o2 - o1:N0} km");
+            if (prev.MeterReading.HasValue && sr.MeterReading.HasValue && sr.MeterReading > prev.MeterReading)
+                sb.Append($" · +{sr.MeterReading - prev.MeterReading:N0}");
             sb.Append("</span>");
         }
 
-        if (sr.NextServiceDate.HasValue)
-            sb.Append($"<br>⏰ Next: {sr.NextServiceDate:yyyy-MM-dd}");
+        if (sr.Status == "Planned")
+            sb.Append($"<br>⏰ Due: {sr.ServiceDate:yyyy-MM-dd}");
 
         return sb.ToString();
     }
@@ -328,13 +304,6 @@
         < 365 => $"{days / 30}mo",
         _ => $"{days / 365}y {days % 365 / 30}mo"
     };
-
-    private static bool TryParseOdo(string? s, out long value)
-    {
-        value = 0;
-        if (s is null) return false;
-        return long.TryParse(Regex.Replace(s, @"[^\d]", ""), out value);
-    }
 
     public async ValueTask DisposeAsync() => await TimelineInterop.DisposeAsync();
 }

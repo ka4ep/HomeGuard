@@ -55,8 +55,8 @@ public static class ServiceRecordEndpoints
         ServiceRecordService svc, CancellationToken ct)
     {
         var cmd = new CreateServiceRecordCommand(
-            req.EquipmentId, req.Title, req.ServiceDate, req.NextServiceDate,
-            req.Cost, req.ServiceProvider, req.Notes, req.OdometerReading);
+            req.EquipmentId, req.Title, req.ServiceDate, req.Status,
+            req.Cost, req.ServiceProvider, req.Notes, req.MeterReading, req.RecurringRuleId);
 
         var result = await svc.CreateAsync(cmd, ct);
         return Results.Created($"/api/service-records/{result.Id}", ServiceRecordDto.From(result));
@@ -69,8 +69,8 @@ public static class ServiceRecordEndpoints
         try
         {
             var cmd = new UpdateServiceRecordCommand(
-                id, req.Title, req.ServiceDate, req.NextServiceDate,
-                req.Cost, req.ServiceProvider, req.Notes, req.OdometerReading);
+                id, req.Title, req.ServiceDate, req.Status,
+                req.Cost, req.ServiceProvider, req.Notes, req.MeterReading);
 
             var result = await svc.UpdateAsync(cmd, ct);
             return Results.Ok(ServiceRecordDto.From(result));
@@ -109,21 +109,22 @@ public sealed record CreateServiceRecordRequest(
     Guid EquipmentId,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    ServiceStatus Status = ServiceStatus.Completed,
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null,
+    Guid? RecurringRuleId = null
 );
 
 public sealed record UpdateServiceRecordRequest(
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    ServiceStatus Status = ServiceStatus.Completed,
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null
 );
 
 public sealed record ServiceRecordDto(
@@ -131,11 +132,12 @@ public sealed record ServiceRecordDto(
     Guid EquipmentId,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate,
+    string Status,
     decimal? Cost,
     string? ServiceProvider,
     string? Notes,
-    string? OdometerReading,
+    decimal? MeterReading,
+    Guid? RecurringRuleId,
     bool IsOverdue,
     int? DaysUntilNextService,
     IReadOnlyList<NotificationRuleDto> NotificationRules,
@@ -146,8 +148,8 @@ public sealed record ServiceRecordDto(
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         return new(
             sr.Id, sr.EquipmentId, sr.Title,
-            sr.ServiceDate, sr.NextServiceDate,
-            sr.Cost, sr.ServiceProvider, sr.Notes, sr.OdometerReading,
+            sr.ServiceDate, sr.Status.ToString(),
+            sr.Cost, sr.ServiceProvider, sr.Notes, sr.MeterReading, sr.RecurringRuleId,
             sr.IsOverdue(today), sr.DaysUntilNextService(today),
             sr.NotificationRules.Select(NotificationRuleDto.From).ToList(),
             sr.UpdatedAt);

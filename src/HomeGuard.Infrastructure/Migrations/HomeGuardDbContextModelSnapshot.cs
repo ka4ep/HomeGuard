@@ -118,6 +118,10 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("MeterUnit")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Model")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -198,6 +202,48 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.ToTable("Credentials");
                 });
 
+            modelBuilder.Entity("HomeGuard.Domain.Entities.RecurringRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("EquipmentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("IntervalDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("IntervalMeter")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaterializeDaysAhead")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PredictionsAhead")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.ToTable("RecurringRules");
+                });
+
             modelBuilder.Entity("HomeGuard.Domain.Entities.ScheduledJob", b =>
                 {
                     b.Property<Guid>("Id")
@@ -266,14 +312,16 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("NextServiceDate")
+                    b.Property<decimal?>("MeterReading")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("OdometerReading")
-                        .HasMaxLength(50)
+                    b.Property<string>("OriginalPredictedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("RecurringRuleId")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ServiceDate")
@@ -283,6 +331,9 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.Property<string>("ServiceProvider")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -295,6 +346,8 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EquipmentId");
+
+                    b.HasIndex("RecurringRuleId");
 
                     b.ToTable("ServiceRecords");
                 });
@@ -432,6 +485,15 @@ namespace HomeGuard.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HomeGuard.Domain.Entities.RecurringRule", b =>
+                {
+                    b.HasOne("HomeGuard.Domain.Entities.Equipment", null)
+                        .WithMany()
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HomeGuard.Domain.Entities.ServiceRecord", b =>
                 {
                     b.HasOne("HomeGuard.Domain.Entities.Equipment", null)
@@ -439,6 +501,11 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasForeignKey("EquipmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("HomeGuard.Domain.Entities.RecurringRule", null)
+                        .WithMany()
+                        .HasForeignKey("RecurringRuleId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.OwnsMany("HomeGuard.Domain.ValueObjects.NotificationRule", "NotificationRules", b1 =>
                         {

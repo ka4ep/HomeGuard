@@ -122,7 +122,8 @@ else
             _form.Name, _form.Category, _form.PurchaseDate,
             _form.Brand, _form.Model, _form.SerialNumber,
             _form.PurchasePrice, _form.Notes,
-            _form.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            _form.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            _form.MeterUnit);
 
         var result = await Api.CreateAsync(dto);
         if (result is not null) _items?.Insert(0, result);

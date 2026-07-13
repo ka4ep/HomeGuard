@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Microsoft.OpenApi" />
     <PackageReference Include="NodaTime" />
     <PackageReference Include="SourceGear.sqlite3" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />

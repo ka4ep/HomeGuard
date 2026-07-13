@@ -11,6 +11,13 @@ public interface IBlobEntryRepository : IRepository<BlobEntry>
     Task<IReadOnlyList<BlobEntry>> GetPendingSyncAsync(CancellationToken ct = default);
 }
 
+public interface IRecurringRuleRepository : IRepository<RecurringRule>
+{
+    Task<IReadOnlyList<RecurringRule>> GetByEquipmentAsync(Guid equipmentId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<RecurringRule>> GetActiveAsync(CancellationToken ct = default);
+}
+
 public interface IScheduledJobRepository : IRepository<ScheduledJob>
 {
     /// <summary>

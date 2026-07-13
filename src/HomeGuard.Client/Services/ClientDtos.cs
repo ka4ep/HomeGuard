@@ -10,6 +10,7 @@ public sealed record EquipmentSummary(
     string? Brand,
     string? Model,
     IReadOnlyList<string> Tags,
+    string? MeterUnit,
     DateTimeOffset UpdatedAt
 );
 
@@ -24,6 +25,7 @@ public sealed record EquipmentDetailDto(
     decimal? PurchasePrice,
     string? Notes,
     IReadOnlyList<string> Tags,
+    string? MeterUnit,
     int WarrantyCount,
     int ServiceRecordCount,
     DateTimeOffset CreatedAt,
@@ -39,7 +41,8 @@ public sealed record CreateEquipmentDto(
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
     string? Notes = null,
-    IEnumerable<string>? Tags = null
+    IEnumerable<string>? Tags = null,
+    string? MeterUnit = null
 );
 
 public sealed record UpdateEquipmentDto(
@@ -50,7 +53,8 @@ public sealed record UpdateEquipmentDto(
     string? Model = null,
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
-    string? Notes = null
+    string? Notes = null,
+    string? MeterUnit = null
 );
 
 // ── Warranty ──────────────────────────────────────────────────────────────────
@@ -96,11 +100,12 @@ public sealed record ServiceRecordDto(
     Guid EquipmentId,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate,
+    string Status,
     decimal? Cost,
     string? ServiceProvider,
     string? Notes,
-    string? OdometerReading,
+    decimal? MeterReading,
+    Guid? RecurringRuleId,
     bool IsOverdue,
     int? DaysUntilNextService,
     IReadOnlyList<NotificationRuleDto> NotificationRules,
@@ -111,21 +116,21 @@ public sealed record CreateServiceRecordDto(
     Guid EquipmentId,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    string Status = "Completed",
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null
 );
 
 public sealed record UpdateServiceRecordDto(
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    string Status = "Completed",
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null
 );
 
 // ── Shared ────────────────────────────────────────────────────────────────────

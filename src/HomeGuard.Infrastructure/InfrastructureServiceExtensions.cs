@@ -33,6 +33,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IEquipmentRepository,   EquipmentRepository>();
         services.AddScoped<IWarrantyRepository,     WarrantyRepository>();
         services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
+        services.AddScoped<IRecurringRuleRepository, RecurringRuleRepository>();
         services.AddScoped<IBlobEntryRepository,    BlobEntryRepository>();
         services.AddScoped<IScheduledJobRepository, ScheduledJobRepository>();
         services.AddScoped<IAppUserRepository,      AppUserRepository>();

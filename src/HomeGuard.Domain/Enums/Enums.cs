@@ -42,3 +42,14 @@ public enum JobStatus
     Completed = 2,
     Failed    = 3,
 }
+
+/// <summary>
+/// Lifecycle state of a stored <see cref="Entities.ServiceRecord"/>.
+/// "Predicted" is not part of this enum — predicted events are computed at
+/// runtime from <see cref="Entities.RecurringRule"/> and never persisted.
+/// </summary>
+public enum ServiceStatus
+{
+    Completed = 0,
+    Planned   = 1,
+}

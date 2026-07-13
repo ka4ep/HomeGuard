@@ -33,6 +33,9 @@ public sealed class Equipment : Entity
     /// <summary>Freeform notes in Markdown.</summary>
     public string? Notes { get; private set; }
 
+    /// <summary>Unit for this equipment's ServiceRecord.MeterReading, e.g. "km", "mi", "m³", "kWh", "h".</summary>
+    public string? MeterUnit { get; private set; }
+
     // ── Tags (stored as JSON column via EF Core) ─────────────────────────────
 
     private List<string> _tags = [];
@@ -62,7 +65,8 @@ public sealed class Equipment : Entity
         string? serialNumber = null,
         decimal? purchasePrice = null,
         string? notes = null,
-        IEnumerable<string>? tags = null)
+        IEnumerable<string>? tags = null,
+        string? meterUnit = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -77,6 +81,7 @@ public sealed class Equipment : Entity
         e.PurchasePrice = purchasePrice;
         e.Notes = notes;
         e._tags = NormaliseTags(tags);
+        e.MeterUnit = meterUnit?.Trim();
         return e;
     }
 
@@ -90,7 +95,8 @@ public sealed class Equipment : Entity
         string? model = null,
         string? serialNumber = null,
         decimal? purchasePrice = null,
-        string? notes = null)
+        string? notes = null,
+        string? meterUnit = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name.Trim();
@@ -101,6 +107,7 @@ public sealed class Equipment : Entity
         SerialNumber = serialNumber?.Trim();
         PurchasePrice = purchasePrice;
         Notes = notes;
+        MeterUnit = meterUnit?.Trim();
         Touch();
     }
 

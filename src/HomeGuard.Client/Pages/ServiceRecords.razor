@@ -53,14 +53,6 @@ else
                             <MudText Typo="Typo.body2">@sr.ServiceDate.ToString("d MMM yyyy", null)</MudText>
                         </MudStack>
 
-                        @if (sr.NextServiceDate.HasValue)
-                        {
-                            <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Next service</MudText>
-                                <MudText Typo="Typo.body2">@sr.NextServiceDate.Value.ToString("d MMM yyyy", null)</MudText>
-                            </MudStack>
-                        }
-
                         @* Статус *@
                         <div>
                             @if (sr.IsOverdue)
@@ -84,7 +76,7 @@ else
                     <MudStack Spacing="3">
 
                         @* Цена + одометр — только если есть значение *@
-                        @if (sr.Cost.HasValue || sr.OdometerReading is not null)
+                        @if (sr.Cost.HasValue || sr.MeterReading.HasValue)
                         {
                             <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
                                 @if (sr.Cost.HasValue)
@@ -94,11 +86,11 @@ else
                                         <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
                                     </MudStack>
                                 }
-                                @if (sr.OdometerReading is not null)
+                                @if (sr.MeterReading.HasValue)
                                 {
                                     <MudStack Spacing="0">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Odometer</MudText>
-                                        <MudText Typo="Typo.body2">@sr.OdometerReading</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Meter reading</MudText>
+                                        <MudText Typo="Typo.body2">@sr.MeterReading</MudText>
                                     </MudStack>
                                 }
                                 @if (sr.ServiceProvider is not null)
@@ -159,8 +151,10 @@ else
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_form.NextServiceDateNullable" Label="Next service date"
-                               DateFormat="yyyy-MM-dd" Clearable="true" />
+                <MudSelect @bind-Value="_form.Status" Label="Status">
+                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                    <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudTextField @bind-Value="_form.ServiceProvider" Label="Provider / garage" />
@@ -170,7 +164,7 @@ else
                                  Format="F2" Adornment="Adornment.Start" AdornmentText="€" />
             </MudItem>
             <MudItem xs="12" sm="3">
-                <MudTextField @bind-Value="_form.OdometerReading" Label="Odometer" />
+                <MudNumericField @bind-Value="_form.MeterReading" Label="Meter reading" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="4"
@@ -215,6 +209,7 @@ else
         _form   = new ServiceFormModel
         {
             EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty,
+            Status      = "Planned",
         };
         _showDialog = true;
     }
@@ -224,14 +219,14 @@ else
         _editId = sr.Id;
         _form   = new ServiceFormModel
         {
-            EquipmentId             = sr.EquipmentId,
-            Title                   = sr.Title,
-            ServiceProvider         = sr.ServiceProvider,
-            Cost                    = sr.Cost,
-            OdometerReading         = sr.OdometerReading,
-            Notes                   = sr.Notes,
-            ServiceDateNullable     = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
-            NextServiceDateNullable = sr.NextServiceDate?.ToDateTime(TimeOnly.MinValue),
+            EquipmentId         = sr.EquipmentId,
+            Title               = sr.Title,
+            ServiceProvider     = sr.ServiceProvider,
+            Cost                = sr.Cost,
+            MeterReading        = sr.MeterReading,
+            Notes               = sr.Notes,
+            Status              = sr.Status,
+            ServiceDateNullable = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
         };
         _showDialog = true;
     }
@@ -242,14 +237,14 @@ else
         if (_editId.HasValue)
         {
             await Api.UpdateAsync(_editId.Value, new UpdateServiceRecordDto(
-                _form.Title, _form.ServiceDate, _form.NextServiceDate,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading));
+                _form.Title, _form.ServiceDate, _form.Status,
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading));
         }
         else
         {
             await Api.CreateAsync(new CreateServiceRecordDto(
-                _form.EquipmentId, _form.Title, _form.ServiceDate, _form.NextServiceDate,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.OdometerReading));
+                _form.EquipmentId, _form.Title, _form.ServiceDate, _form.Status,
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading));
         }
         await LoadAsync();
         _saving     = false;

@@ -11,22 +11,23 @@ public sealed record CreateServiceRecordCommand(
     Guid EquipmentId,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    ServiceStatus Status = ServiceStatus.Completed,
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null,
+    Guid? RecurringRuleId = null
 );
 
 public sealed record UpdateServiceRecordCommand(
     Guid Id,
     string Title,
     DateOnly ServiceDate,
-    DateOnly? NextServiceDate = null,
+    ServiceStatus Status = ServiceStatus.Completed,
     decimal? Cost = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    string? OdometerReading = null
+    decimal? MeterReading = null
 );
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -65,13 +66,13 @@ public sealed class ServiceRecordService
         CreateServiceRecordCommand cmd, CancellationToken ct = default)
     {
         var sr = ServiceRecord.Create(
-            cmd.EquipmentId, cmd.Title, cmd.ServiceDate, cmd.NextServiceDate,
-            cmd.Cost, cmd.ServiceProvider, cmd.Notes, cmd.OdometerReading);
+            cmd.EquipmentId, cmd.Title, cmd.ServiceDate, cmd.Status,
+            cmd.Cost, cmd.ServiceProvider, cmd.Notes, cmd.MeterReading, cmd.RecurringRuleId);
 
         await _repo.AddAsync(sr, ct);
         await _uow.SaveChangesAsync(ct);
 
-        if (sr.NextServiceDate.HasValue)
+        if (sr.Status == ServiceStatus.Planned)
             _ = SyncToCalendarsAsync(sr, ct);
 
         return sr;
@@ -83,12 +84,12 @@ public sealed class ServiceRecordService
         var sr = await _repo.GetByIdAsync(cmd.Id, ct)
             ?? throw new KeyNotFoundException($"ServiceRecord {cmd.Id} not found.");
 
-        sr.Update(cmd.Title, cmd.ServiceDate, cmd.NextServiceDate,
-            cmd.Cost, cmd.ServiceProvider, cmd.Notes, cmd.OdometerReading);
+        sr.Update(cmd.Title, cmd.ServiceDate, cmd.Status,
+            cmd.Cost, cmd.ServiceProvider, cmd.Notes, cmd.MeterReading);
 
         await _uow.SaveChangesAsync(ct);
 
-        if (sr.NextServiceDate.HasValue)
+        if (sr.Status == ServiceStatus.Planned)
             _ = SyncToCalendarsAsync(sr, ct);
 
         return sr;
@@ -126,7 +127,7 @@ public sealed class ServiceRecordService
 
     private async Task SyncToCalendarsAsync(ServiceRecord sr, CancellationToken ct)
     {
-        if (sr.NextServiceDate is null) return;
+        if (sr.Status != ServiceStatus.Planned) return;
 
         var evt = new CalendarEventDto(
             ExternalId: sr.GoogleCalendarEventId,
@@ -134,7 +135,7 @@ public sealed class ServiceRecordService
             Description: sr.ServiceProvider is not null
                 ? $"Provider: {sr.ServiceProvider}"
                 : null,
-            Date: sr.NextServiceDate.Value,
+            Date: sr.ServiceDate,
             HomeGuardTag: $"homeguard:service:{sr.Id}"
         );
 

@@ -97,14 +97,12 @@ public sealed class ICalFeedGenerator
 
         foreach (var record in due)
         {
-            if (record.NextServiceDate is null) continue;
-
             var equipment = await _equipment.GetByIdAsync(record.EquipmentId, ct);
             var summary   = equipment is not null
                 ? $"Service due: {record.Title} ({equipment.Name})"
                 : $"Service due: {record.Title}";
 
-            var nsd     = record.NextServiceDate.Value;
+            var nsd     = record.ServiceDate;
             var startDt = new CalDateTime(nsd.Year, nsd.Month, nsd.Day);
             var endDt   = new CalDateTime(nsd.Year, nsd.Month, nsd.Day);
             endDt.AddDays(1);
@@ -145,8 +143,8 @@ public sealed class ICalFeedGenerator
             parts.Add($"Provider: {sr.ServiceProvider}");
         if (sr.Cost.HasValue)
             parts.Add($"Cost: {sr.Cost:F2}");
-        if (!string.IsNullOrWhiteSpace(sr.OdometerReading))
-            parts.Add($"Odometer: {sr.OdometerReading}");
+        if (sr.MeterReading.HasValue)
+            parts.Add($"Meter reading: {sr.MeterReading}");
         if (!string.IsNullOrWhiteSpace(sr.Notes))
             parts.Add(sr.Notes);
         return string.Join("\n", parts);

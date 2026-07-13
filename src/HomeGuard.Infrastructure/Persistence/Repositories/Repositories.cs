@@ -123,8 +123,8 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
     {
         var all = await Set.ToListAsync(ct);
         return all
-            .Where(sr => sr.NextServiceDate.HasValue && sr.NextServiceDate.Value < asOf)
-            .OrderBy(sr => sr.NextServiceDate)
+            .Where(sr => sr.Status == ServiceStatus.Planned && sr.ServiceDate < asOf)
+            .OrderBy(sr => sr.ServiceDate)
             .ToList();
     }
 
@@ -137,10 +137,10 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
             .ToListAsync(ct);
 
         return all
-            .Where(sr => sr.NextServiceDate.HasValue
-                      && sr.NextServiceDate.Value >= asOf
-                      && sr.NextServiceDate.Value <= until)
-            .OrderBy(sr => sr.NextServiceDate)
+            .Where(sr => sr.Status == ServiceStatus.Planned
+                      && sr.ServiceDate >= asOf
+                      && sr.ServiceDate <= until)
+            .OrderBy(sr => sr.ServiceDate)
             .ToList();
     }
 
@@ -149,6 +149,26 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
         .Include(sr => sr.NotificationRules)
         .OrderBy(sr => sr.ServiceDate)
         .ToListAsync(ct);
+}
+
+// ── RecurringRule ────────────────────────────────────────────────────────────
+
+public sealed class RecurringRuleRepository : RepositoryBase<RecurringRule>, IRecurringRuleRepository
+{
+    public RecurringRuleRepository(HomeGuardDbContext db) : base(db) { }
+
+    public async Task<IReadOnlyList<RecurringRule>> GetByEquipmentAsync(
+        Guid equipmentId, CancellationToken ct = default)
+        => await Set
+            .Where(r => r.EquipmentId == equipmentId)
+            .OrderBy(r => r.Title)
+            .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<RecurringRule>> GetActiveAsync(CancellationToken ct = default)
+        => await Set
+            .Where(r => r.IsActive)
+            .OrderBy(r => r.Title)
+            .ToListAsync(ct);
 }
 
 // ── BlobEntry ─────────────────────────────────────────────────────────────────

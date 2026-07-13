@@ -24,6 +24,7 @@ public sealed class HomeGuardDbContext : DbContext
     public DbSet<Equipment>         Equipment         => Set<Equipment>();
     public DbSet<Warranty>          Warranties        => Set<Warranty>();
     public DbSet<ServiceRecord>     ServiceRecords    => Set<ServiceRecord>();
+    public DbSet<RecurringRule>     RecurringRules    => Set<RecurringRule>();
     public DbSet<BlobEntry>         BlobEntries       => Set<BlobEntry>();
     public DbSet<AppUser>           Users             => Set<AppUser>();
     public DbSet<PasskeyCredential> Credentials       => Set<PasskeyCredential>();
@@ -52,6 +53,7 @@ public sealed class HomeGuardDbContext : DbContext
             e.Property(x => x.Category).HasConversion<int>();
             e.Property(x => x.PurchaseDate).HasConversion(dateOnlyConverter);
             e.Property(x => x.PurchasePrice).HasColumnType("TEXT"); // SQLite stores as text
+            e.Property(x => x.MeterUnit).HasMaxLength(20);
             e.Property<List<string>>("_tags")
                 .HasColumnName("Tags")
                 .HasField("_tags")
@@ -107,19 +109,26 @@ public sealed class HomeGuardDbContext : DbContext
         });
 
         // ── ServiceRecord ─────────────────────────────────────────────────────
+        var nullableDateOnlyConverter = new ValueConverter<DateOnly?, string?>(
+            d => d.HasValue ? d.Value.ToString("yyyy-MM-dd", null) : null,
+            s => s != null ? DateOnly.Parse(s, null) : (DateOnly?)null);
+
         modelBuilder.Entity<ServiceRecord>(e =>
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Title).HasMaxLength(300).IsRequired();
             e.Property(x => x.ServiceProvider).HasMaxLength(200);
-            e.Property(x => x.OdometerReading).HasMaxLength(50);
             e.Property(x => x.GoogleCalendarEventId).HasMaxLength(500);
             e.Property(x => x.Cost).HasColumnType("TEXT");
+            e.Property(x => x.MeterReading).HasColumnType("TEXT");
             e.Property(x => x.ServiceDate).HasConversion(dateOnlyConverter);
-            e.Property(x => x.NextServiceDate)
-                .HasConversion(
-                    d => d.HasValue ? d.Value.ToString("yyyy-MM-dd", null) : null,
-                    s => s != null ? DateOnly.Parse(s, null) : (DateOnly?)null);
+            e.Property(x => x.OriginalPredictedDate).HasConversion(nullableDateOnlyConverter);
+            e.Property(x => x.Status).HasConversion<int>();
+
+            e.HasOne<RecurringRule>()
+                .WithMany()
+                .HasForeignKey(x => x.RecurringRuleId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             e.OwnsMany(x => x.NotificationRules, r =>
             {
@@ -128,6 +137,20 @@ public sealed class HomeGuardDbContext : DbContext
                 r.Property<int>("Id");
                 r.Property(x => x.Offset).HasConversion<int>();
             });
+        });
+
+        // ── RecurringRule ─────────────────────────────────────────────────────
+        modelBuilder.Entity<RecurringRule>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Title).HasMaxLength(300).IsRequired();
+            e.Property(x => x.IntervalMeter).HasColumnType("TEXT");
+            e.HasIndex(x => x.EquipmentId);
+
+            e.HasOne<Equipment>()
+                .WithMany()
+                .HasForeignKey(x => x.EquipmentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── BlobEntry ─────────────────────────────────────────────────────────

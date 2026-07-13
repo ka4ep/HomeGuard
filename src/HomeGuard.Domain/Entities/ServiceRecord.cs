@@ -15,6 +15,9 @@ public sealed class ServiceRecord : Entity
     // ── FK ──────────────────────────────────────────────────────────────────
     public Guid EquipmentId { get; private set; }
 
+    /// <summary>Recurring maintenance pattern this record belongs to, if any.</summary>
+    public Guid? RecurringRuleId { get; private set; }
+
     // ── Core fields ─────────────────────────────────────────────────────────
 
     /// <summary>Short description, e.g. "Oil change + filter — 60 000 km".</summary>
@@ -23,10 +26,16 @@ public sealed class ServiceRecord : Entity
     public DateOnly ServiceDate { get; private set; }
 
     /// <summary>
-    /// When the next service of this type is due.
-    /// Null if it was a one-off event or the interval is unknown.
+    /// Completed = real past event. Planned = materialized future event, not yet confirmed.
+    /// A third state, Predicted, is computed at runtime and never stored here.
     /// </summary>
-    public DateOnly? NextServiceDate { get; private set; }
+    public ServiceStatus Status { get; private set; }
+
+    /// <summary>
+    /// What <see cref="ServiceDate"/> was originally predicted as, before any reschedule.
+    /// Set when a Planned record is materialized; kept as an audit trail after reschedules.
+    /// </summary>
+    public DateOnly? OriginalPredictedDate { get; private set; }
 
     public decimal? Cost { get; private set; }
 
@@ -36,11 +45,8 @@ public sealed class ServiceRecord : Entity
     /// <summary>Freeform notes in Markdown: what was found, what was replaced, part numbers.</summary>
     public string? Notes { get; private set; }
 
-    /// <summary>
-    /// Odometer reading at time of service.
-    /// Stored as string to support both km and miles without conversion.
-    /// </summary>
-    public string? OdometerReading { get; private set; }
+    /// <summary>Meter reading at time of service, in the owning Equipment's MeterUnit.</summary>
+    public decimal? MeterReading { get; private set; }
 
     // ── Calendar sync ────────────────────────────────────────────────────────
     public string? GoogleCalendarEventId { get; private set; }
@@ -49,9 +55,9 @@ public sealed class ServiceRecord : Entity
     private readonly List<NotificationRule> _notificationRules = [];
 
     /// <summary>
-    /// When to send push notifications before <see cref="NextServiceDate"/>.
-    /// Empty if <see cref="NextServiceDate"/> is null.
-    /// Default: 1 month, 1 week, 1 day before next service.
+    /// When to send push notifications before <see cref="ServiceDate"/>, for Planned records.
+    /// Empty for Completed records.
+    /// Default: 1 month, 1 week, 1 day before.
     /// </summary>
     public IReadOnlyList<NotificationRule> NotificationRules => _notificationRules.AsReadOnly();
 
@@ -62,11 +68,11 @@ public sealed class ServiceRecord : Entity
 
     // ── Computed ─────────────────────────────────────────────────────────────
     public bool IsOverdue(DateOnly today) =>
-        NextServiceDate.HasValue && today > NextServiceDate.Value;
+        Status == ServiceStatus.Planned && today > ServiceDate;
 
     public int? DaysUntilNextService(DateOnly today) =>
-        NextServiceDate.HasValue
-            ? NextServiceDate.Value.DayNumber - today.DayNumber
+        Status == ServiceStatus.Planned
+            ? ServiceDate.DayNumber - today.DayNumber
             : null;
 
     // ── Factory ──────────────────────────────────────────────────────────────
@@ -75,11 +81,13 @@ public sealed class ServiceRecord : Entity
         Guid equipmentId,
         string title,
         DateOnly serviceDate,
-        DateOnly? nextServiceDate = null,
+        ServiceStatus status = ServiceStatus.Completed,
         decimal? cost = null,
         string? serviceProvider = null,
         string? notes = null,
-        string? odometerReading = null)
+        decimal? meterReading = null,
+        Guid? recurringRuleId = null,
+        DateOnly? originalPredictedDate = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
@@ -88,13 +96,15 @@ public sealed class ServiceRecord : Entity
         sr.EquipmentId = equipmentId;
         sr.Title = title.Trim();
         sr.ServiceDate = serviceDate;
-        sr.NextServiceDate = nextServiceDate;
+        sr.Status = status;
         sr.Cost = cost;
         sr.ServiceProvider = serviceProvider?.Trim();
         sr.Notes = notes;
-        sr.OdometerReading = odometerReading?.Trim();
+        sr.MeterReading = meterReading;
+        sr.RecurringRuleId = recurringRuleId;
+        sr.OriginalPredictedDate = originalPredictedDate;
 
-        if (nextServiceDate.HasValue)
+        if (status == ServiceStatus.Planned)
             sr.ApplyDefaultNotificationRules();
 
         return sr;
@@ -105,20 +115,28 @@ public sealed class ServiceRecord : Entity
     public void Update(
         string title,
         DateOnly serviceDate,
-        DateOnly? nextServiceDate = null,
+        ServiceStatus status = ServiceStatus.Completed,
         decimal? cost = null,
         string? serviceProvider = null,
         string? notes = null,
-        string? odometerReading = null)
+        decimal? meterReading = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         Title = title.Trim();
         ServiceDate = serviceDate;
-        NextServiceDate = nextServiceDate;
+        Status = status;
         Cost = cost;
         ServiceProvider = serviceProvider?.Trim();
         Notes = notes;
-        OdometerReading = odometerReading?.Trim();
+        MeterReading = meterReading;
+        Touch();
+    }
+
+    /// <summary>Moves a Planned record's date. OriginalPredictedDate is preserved as an audit trail.</summary>
+    public void Reschedule(DateOnly newServiceDate)
+    {
+        OriginalPredictedDate ??= ServiceDate;
+        ServiceDate = newServiceDate;
         Touch();
     }
 

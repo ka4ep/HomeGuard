@@ -16,7 +16,8 @@ public sealed record CreateEquipmentCommand(
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
     string? Notes = null,
-    IEnumerable<string>? Tags = null
+    IEnumerable<string>? Tags = null,
+    string? MeterUnit = null
 );
 
 public sealed record UpdateEquipmentCommand(
@@ -28,7 +29,8 @@ public sealed record UpdateEquipmentCommand(
     string? Model = null,
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
-    string? Notes = null
+    string? Notes = null,
+    string? MeterUnit = null
 );
 
 // ── Service ───────────────────────────────────────────────────────────────────
@@ -58,7 +60,7 @@ public sealed class EquipmentService
         var equipment = Equipment.Create(
             cmd.Name, cmd.Category, cmd.PurchaseDate,
             cmd.Brand, cmd.Model, cmd.SerialNumber,
-            cmd.PurchasePrice, cmd.Notes, cmd.Tags);
+            cmd.PurchasePrice, cmd.Notes, cmd.Tags, cmd.MeterUnit);
 
         await _repo.AddAsync(equipment, ct);
         await _uow.SaveChangesAsync(ct);
@@ -73,7 +75,7 @@ public sealed class EquipmentService
         equipment.Update(
             cmd.Name, cmd.Category, cmd.PurchaseDate,
             cmd.Brand, cmd.Model, cmd.SerialNumber,
-            cmd.PurchasePrice, cmd.Notes);
+            cmd.PurchasePrice, cmd.Notes, cmd.MeterUnit);
 
         await _uow.SaveChangesAsync(ct);
         return equipment;

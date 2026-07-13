@@ -12,6 +12,7 @@ public sealed class EquipmentFormModel
     public decimal? PurchasePrice { get; set; }
     public string   Tags          { get; set; } = string.Empty;
     public string?  Notes         { get; set; }
+    public string?  MeterUnit     { get; set; }
 
     // MudDatePicker binds to DateTime? — we convert on save.
     public DateTime? PurchaseDateNullable { get; set; } = DateTime.Today;
@@ -48,15 +49,12 @@ public class ServiceRecordFormModel
     public string   Title           { get; set; } = string.Empty;
     public string?  ServiceProvider { get; set; }
     public decimal? Cost            { get; set; }
-    public string?  OdometerReading { get; set; }
+    public decimal? MeterReading    { get; set; }
     public string?  Notes           { get; set; }
+    public string   Status          { get; set; } = "Completed";
 
-    public DateTime? ServiceDateNullable     { get; set; } = DateTime.Today;
-    public DateTime? NextServiceDateNullable { get; set; }
+    public DateTime? ServiceDateNullable { get; set; } = DateTime.Today;
 
     public DateOnly ServiceDate
         => ServiceDateNullable.HasValue ? DateOnly.FromDateTime(ServiceDateNullable.Value) : DateOnly.FromDateTime(DateTime.Today);
-
-    public DateOnly? NextServiceDate
-        => NextServiceDateNullable.HasValue ? DateOnly.FromDateTime(NextServiceDateNullable.Value) : null;
 }

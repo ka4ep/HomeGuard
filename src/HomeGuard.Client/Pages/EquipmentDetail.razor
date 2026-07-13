@@ -202,13 +202,6 @@ else
                     <MudDivider />
                     <MudStack Spacing="3" Class="px-4 py-3">
                         <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
-                            @if (sr.NextServiceDate.HasValue)
-                            {
-                                <MudStack Spacing="0">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Next service</MudText>
-                                    <MudText Typo="Typo.body2">@sr.NextServiceDate.Value.ToString("d MMM yyyy", null)</MudText>
-                                </MudStack>
-                            }
                             @if (sr.Cost.HasValue)
                             {
                                 <MudStack Spacing="0">
@@ -216,11 +209,11 @@ else
                                     <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
                                 </MudStack>
                             }
-                            @if (sr.OdometerReading is not null)
+                            @if (sr.MeterReading.HasValue)
                             {
                                 <MudStack Spacing="0">
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Odometer</MudText>
-                                    <MudText Typo="Typo.body2">@sr.OdometerReading</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Meter reading</MudText>
+                                    <MudText Typo="Typo.body2">@sr.MeterReading @_detail?.MeterUnit</MudText>
                                 </MudStack>
                             }
                             @if (sr.ServiceProvider is not null)
@@ -277,6 +270,9 @@ else
             <MudItem xs="12" sm="3">
                 <MudDatePicker @bind-Date="_editForm.PurchaseDateNullable"
                                Label="Purchase date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_editForm.MeterUnit" Label="Meter unit (e.g. km, kWh, h)" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_editForm.Tags" Label="Tags (comma-separated)" />
@@ -342,8 +338,10 @@ else
                                Label="Service date" DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_srForm.NextServiceDateNullable"
-                               Label="Next service" DateFormat="yyyy-MM-dd" Clearable="true" />
+                <MudSelect @bind-Value="_srForm.Status" Label="Status">
+                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                    <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudTextField @bind-Value="_srForm.ServiceProvider" Label="Provider" />
@@ -353,7 +351,7 @@ else
                                  Adornment="Adornment.Start" AdornmentText="€" />
             </MudItem>
             <MudItem xs="12" sm="3">
-                <MudTextField @bind-Value="_srForm.OdometerReading" Label="Odometer" />
+                <MudNumericField @bind-Value="_srForm.MeterReading" Label="@("Meter reading" + (_detail?.MeterUnit is { Length: > 0 } u ? $" ({u})" : ""))" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_srForm.Notes" Label="Notes"
@@ -428,6 +426,7 @@ else
             Notes                = _detail.Notes,
             Tags                 = string.Join(", ", _detail.Tags),
             PurchaseDateNullable = _detail.PurchaseDate.ToDateTime(TimeOnly.MinValue),
+            MeterUnit            = _detail.MeterUnit,
         };
         _showEdit = true;
     }
@@ -438,7 +437,7 @@ else
         await EquipmentApi.UpdateAsync(Id, new UpdateEquipmentDto(
             _editForm.Name, _editForm.Category, _editForm.PurchaseDate,
             _editForm.Brand, _editForm.Model, _editForm.SerialNumber,
-            _editForm.PurchasePrice, _editForm.Notes));
+            _editForm.PurchasePrice, _editForm.Notes, _editForm.MeterUnit));
         await LoadDetailAsync();
         _saving   = false;
         _showEdit = false;
@@ -521,13 +520,13 @@ else
         _editServiceId = sr.Id;
         _srForm = new ServiceRecordFormModel
         {
-            Title                   = sr.Title,
-            ServiceProvider         = sr.ServiceProvider,
-            Cost                    = sr.Cost,
-            OdometerReading         = sr.OdometerReading,
-            Notes                   = sr.Notes,
-            ServiceDateNullable     = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
-            NextServiceDateNullable = sr.NextServiceDate?.ToDateTime(TimeOnly.MinValue),
+            Title               = sr.Title,
+            ServiceProvider     = sr.ServiceProvider,
+            Cost                = sr.Cost,
+            MeterReading        = sr.MeterReading,
+            Notes               = sr.Notes,
+            Status              = sr.Status,
+            ServiceDateNullable = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
         };
         _showAddService = true;
     }
@@ -538,15 +537,15 @@ else
         if (_editServiceId.HasValue)
         {
             await ServiceApi.UpdateAsync(_editServiceId.Value, new UpdateServiceRecordDto(
-                _srForm.Title, _srForm.ServiceDate, _srForm.NextServiceDate,
-                _srForm.Cost, _srForm.ServiceProvider, _srForm.Notes, _srForm.OdometerReading));
+                _srForm.Title, _srForm.ServiceDate, _srForm.Status,
+                _srForm.Cost, _srForm.ServiceProvider, _srForm.Notes, _srForm.MeterReading));
             await LoadServiceAsync();
         }
         else
         {
             var result = await ServiceApi.CreateAsync(new CreateServiceRecordDto(
-                Id, _srForm.Title, _srForm.ServiceDate, _srForm.NextServiceDate,
-                _srForm.Cost, _srForm.ServiceProvider, _srForm.Notes, _srForm.OdometerReading));
+                Id, _srForm.Title, _srForm.ServiceDate, _srForm.Status,
+                _srForm.Cost, _srForm.ServiceProvider, _srForm.Notes, _srForm.MeterReading));
             if (result is not null) _serviceRecords.Insert(0, result);
         }
         _saving = false;

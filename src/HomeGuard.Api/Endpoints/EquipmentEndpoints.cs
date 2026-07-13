@@ -40,7 +40,7 @@ public static class EquipmentEndpoints
         var cmd = new CreateEquipmentCommand(
             req.Name, req.Category, req.PurchaseDate,
             req.Brand, req.Model, req.SerialNumber,
-            req.PurchasePrice, req.Notes, req.Tags);
+            req.PurchasePrice, req.Notes, req.Tags, req.MeterUnit);
 
         var result = await svc.CreateAsync(cmd, ct);
         return Results.Created($"/api/equipment/{result.Id}", EquipmentSummaryDto.From(result));
@@ -55,7 +55,7 @@ public static class EquipmentEndpoints
             var cmd = new UpdateEquipmentCommand(
                 id, req.Name, req.Category, req.PurchaseDate,
                 req.Brand, req.Model, req.SerialNumber,
-                req.PurchasePrice, req.Notes);
+                req.PurchasePrice, req.Notes, req.MeterUnit);
 
             var result = await svc.UpdateAsync(cmd, ct);
             return Results.Ok(EquipmentSummaryDto.From(result));
@@ -97,7 +97,8 @@ public sealed record CreateEquipmentRequest(
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
     string? Notes = null,
-    IEnumerable<string>? Tags = null
+    IEnumerable<string>? Tags = null,
+    string? MeterUnit = null
 );
 
 public sealed record UpdateEquipmentRequest(
@@ -108,7 +109,8 @@ public sealed record UpdateEquipmentRequest(
     string? Model = null,
     string? SerialNumber = null,
     decimal? PurchasePrice = null,
-    string? Notes = null
+    string? Notes = null,
+    string? MeterUnit = null
 );
 
 public sealed record SetTagsRequest(IReadOnlyList<string> Tags);
@@ -123,11 +125,12 @@ public sealed record EquipmentSummaryDto(
     string? Brand,
     string? Model,
     IReadOnlyList<string> Tags,
+    string? MeterUnit,
     DateTimeOffset UpdatedAt)
 {
     public static EquipmentSummaryDto From(Domain.Entities.Equipment e) => new(
         e.Id, e.Name, e.Category.ToString(), e.PurchaseDate,
-        e.Brand, e.Model, e.Tags, e.UpdatedAt);
+        e.Brand, e.Model, e.Tags, e.MeterUnit, e.UpdatedAt);
 }
 
 public sealed record EquipmentDetailDto(
@@ -141,6 +144,7 @@ public sealed record EquipmentDetailDto(
     decimal? PurchasePrice,
     string? Notes,
     IReadOnlyList<string> Tags,
+    string? MeterUnit,
     int WarrantyCount,
     int ServiceRecordCount,
     DateTimeOffset CreatedAt,
@@ -149,6 +153,6 @@ public sealed record EquipmentDetailDto(
     public static EquipmentDetailDto From(Domain.Entities.Equipment e) => new(
         e.Id, e.Name, e.Category.ToString(), e.PurchaseDate,
         e.Brand, e.Model, e.SerialNumber, e.PurchasePrice, e.Notes,
-        e.Tags, e.Warranties.Count, e.ServiceRecords.Count,
+        e.Tags, e.MeterUnit, e.Warranties.Count, e.ServiceRecords.Count,
         e.CreatedAt, e.UpdatedAt);
 }
