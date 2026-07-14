@@ -1,0 +1,283 @@
+/* ============================================================
+   HomeGuard Timeline — self-contained pan/zoom component.
+   Rendered entirely by wwwroot/js/homeguard-timeline.js into
+   the host element; this file only styles the generated markup.
+   ============================================================ */
+
+.hg-timeline-host {
+    font-family: var(--hg-font);
+}
+
+.hg-tl-grid {
+    background: var(--hg-card);
+    border-radius: var(--hg-radius-md);
+    border: 1px solid var(--hg-border-card);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--hg-shadow-card);
+}
+
+.hg-tl-axis-row {
+    display: flex;
+    height: 44px;
+    border-bottom: 2px solid var(--hg-border-card);
+    background: var(--hg-card-top);
+}
+
+.hg-tl-label-header {
+    flex-shrink: 0;
+    border-right: 1px solid var(--hg-border-card);
+}
+
+.hg-tl-axis-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.hg-tl-axis-tick {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.hg-tl-axis-tick span {
+    font-size: 11px;
+    color: var(--hg-text-subtle);
+    padding-top: 8px;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: .01em;
+}
+
+.hg-tl-axis-tick div {
+    flex: 1;
+    width: 1px;
+    background: var(--hg-border-card);
+    margin-top: 3px;
+}
+
+.hg-tl-rows {
+    position: relative;
+    cursor: grab;
+}
+
+.hg-tl-row {
+    display: flex;
+    height: 50px;
+    border-bottom: 1px solid var(--hg-border-card);
+}
+
+.hg-tl-row-gstart {
+    border-top: 2px solid var(--hg-border-strong);
+}
+
+.hg-tl-label-cell {
+    flex-shrink: 0;
+    border-right: 1px solid var(--hg-border-card);
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--hg-card-top);
+    overflow: hidden;
+}
+
+.hg-tl-lgroup {
+    font-size: 10px;
+    color: var(--hg-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 600;
+}
+
+.hg-tl-lname {
+    font-size: 13px;
+    color: var(--hg-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.hg-tl-tcell {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.hg-tl-tick-line {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background: var(--hg-border-card);
+    pointer-events: none;
+}
+
+.hg-tl-today-line {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: #D85A30;
+    pointer-events: none;
+}
+
+.hg-tl-today-line-row {
+    background: rgba(216, 90, 48, .15);
+}
+
+.hg-tl-iblock {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 2px;
+    transition: background .12s;
+}
+
+.hg-tl-ilabel {
+    font-size: 11px;
+    white-space: nowrap;
+    padding: 0 5px;
+    color: var(--hg-text-muted);
+    font-weight: 400;
+    transition: font-weight .1s;
+}
+
+.hg-tl-evbtn {
+    position: absolute;
+    border-radius: 4px;
+    border-width: 2px;
+    border-style: solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+    transition: transform .12s, box-shadow .12s, background .12s;
+    font-weight: 600;
+    font-size: 12px;
+    color: #fff;
+}
+
+.hg-tl-cursor-overlay {
+    position: absolute;
+    top: 44px;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.hg-tl-cursor-line {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    background: rgba(80, 80, 200, .28);
+    display: none;
+}
+
+.hg-tl-date-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(30, 28, 26, .85);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    display: none;
+    white-space: nowrap;
+}
+
+.hg-tl-card {
+    display: none;
+    margin-top: 10px;
+    background: var(--hg-card);
+    border: 1px solid var(--hg-border-card);
+    border-radius: var(--hg-radius-md);
+    padding: 16px;
+    box-shadow: var(--hg-shadow-card);
+}
+
+.hg-tl-card-hdr {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.hg-tl-card-hdr-text {
+    overflow: hidden;
+}
+
+.hg-tl-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--hg-text);
+}
+
+.hg-tl-card-sub {
+    font-size: 12px;
+    color: var(--hg-text-subtle);
+    margin-top: 3px;
+    padding-left: 8px;
+    border-left: 3px solid var(--hg-border-strong);
+}
+
+.hg-tl-card-close {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--hg-border-card);
+    border-radius: var(--hg-radius-sm);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--hg-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: inherit;
+}
+
+.hg-tl-card-close:hover {
+    background: var(--hg-border-strong);
+}
+
+.hg-tl-card-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.hg-tl-cf {
+    background: var(--hg-card-top);
+    border-radius: var(--hg-radius-sm);
+    padding: 8px 10px;
+}
+
+.hg-tl-cf-lbl {
+    font-size: 10px;
+    color: var(--hg-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 3px;
+    font-weight: 600;
+}
+
+.hg-tl-cf-val {
+    font-size: 14px;
+    color: var(--hg-text);
+    font-weight: 500;
+    word-break: break-word;
+}

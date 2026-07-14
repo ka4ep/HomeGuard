@@ -1,6 +1,4 @@
 @page "/timeline"
-@using System.Net
-@using System.Text
 @using System.Text.RegularExpressions
 @inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
@@ -31,20 +29,20 @@
     <MudProgressLinear Indeterminate="true" Class="mb-2" />
 }
 
-<div id="vis-timeline"
-     style="height: 500px; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; overflow: hidden;">
-</div>
+<div id="@ElementId" class="hg-timeline-host"></div>
 
 @code {
     private bool _loading = true;
     private bool _showWarranties = true;
     private bool _showServices = true;
-    private const string ElementId = "vis-timeline";
+    private const string ElementId = "hg-timeline";
+    private const string WarrantyColor = "#7F77DD";
+    private const string ServiceColor = "#1D9E75";
 
-    // Raw data (loaded once)
     private List<WarrantyDto> _warranties = [];
     private List<ServiceRecordDto> _services = [];
     private Dictionary<Guid, string> _equipMap = [];
+    private Dictionary<Guid, string?> _equipMeterUnit = [];
 
     // Canonical title per service record ID (computed once after load)
     private Dictionary<Guid, string> _canonicals = [];
@@ -52,12 +50,12 @@
     // ── Chip styles ───────────────────────────────────────────────────────────
 
     private string WarrantyChipStyle => _showWarranties
-        ? "background:#7F77DD;color:white;cursor:pointer"
-        : "background:transparent;color:#7F77DD;border:1px solid #7F77DD;cursor:pointer";
+        ? $"background:{WarrantyColor};color:white;cursor:pointer"
+        : $"background:transparent;color:{WarrantyColor};border:1px solid {WarrantyColor};cursor:pointer";
 
     private string ServiceChipStyle => _showServices
-        ? "background:#1D9E75;color:white;cursor:pointer"
-        : "background:transparent;color:#1D9E75;border:1px solid #1D9E75;cursor:pointer";
+        ? $"background:{ServiceColor};color:white;cursor:pointer"
+        : $"background:transparent;color:{ServiceColor};border:1px solid {ServiceColor};cursor:pointer";
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -66,14 +64,7 @@
         if (!firstRender) return;
 
         await LoadDataAsync();
-        var (items, groups) = BuildItemsAndGroups();
-        await TimelineInterop.CreateAsync(ElementId, items,
-            new TimelineOptions(
-                Min: DateOnly.FromDateTime(DateTime.Today.AddYears(-3)).ToString("yyyy-MM-dd", null),
-                Max: DateOnly.FromDateTime(DateTime.Today.AddYears(3)).ToString("yyyy-MM-dd", null)
-            // Height убрали — vis-timeline берёт высоту из CSS контейнера
-            ),
-            groups);
+        await TimelineInterop.CreateAsync(ElementId, BuildRows());
 
         _loading = false;
         StateHasChanged();
@@ -86,7 +77,9 @@
         var serviceTask = ServiceApi.GetAllAsync();
         await Task.WhenAll(equipTask, warrantyTask, serviceTask);
 
-        _equipMap = (equipTask.Result ?? []).ToDictionary(e => e.Id, e => e.Name);
+        var equipment = equipTask.Result ?? [];
+        _equipMap = equipment.ToDictionary(e => e.Id, e => e.Name);
+        _equipMeterUnit = equipment.ToDictionary(e => e.Id, e => e.MeterUnit);
         _warranties = warrantyTask.Result ?? [];
         _services = serviceTask.Result ?? [];
 
@@ -105,158 +98,98 @@
     private async Task ToggleWarrantiesAsync()
     {
         _showWarranties = !_showWarranties;
-        await RefreshAsync();
+        await TimelineInterop.UpdateAsync(BuildRows());
     }
 
     private async Task ToggleServicesAsync()
     {
         _showServices = !_showServices;
-        await RefreshAsync();
+        await TimelineInterop.UpdateAsync(BuildRows());
     }
 
-    private async Task RefreshAsync()
+    // ── Build timeline rows ──────────────────────────────────────────────────
+
+    private List<TimelineRow> BuildRows()
     {
-        var (items, groups) = BuildItemsAndGroups();
-        await TimelineInterop.UpdateItemsAndGroupsAsync(items, groups);
-    }
+        var rows = new List<TimelineRow>();
 
-    // ── Build timeline data ───────────────────────────────────────────────────
-
-    private (List<TimelineItem> items, List<TimelineGroup> groups) BuildItemsAndGroups()
-    {
-        var items = new List<TimelineItem>();
-        var groups = new List<TimelineGroup>();
-
-        // ── Warranties ────────────────────────────────────────────────────────
+        // ── Warranties — one row per warranty, group label on the first row per equipment ──
         if (_showWarranties)
         {
-            groups.Add(new TimelineGroup("warranties", "🛡 Warranties", Order: 0));
-            foreach (var w in _warranties)
+            Guid? lastEquip = null;
+            foreach (var w in _warranties.OrderBy(w => _equipMap.GetValueOrDefault(w.EquipmentId, "")).ThenBy(w => w.EndDate))
             {
-                var equip = _equipMap.TryGetValue(w.EquipmentId, out var n) ? n : "";
-                var tip = $"<b>{Enc(w.Name)}</b>{(equip.Length > 0 ? $"<br>{Enc(equip)}" : "")}" +
-                            $"<br>{w.StartDate:yyyy-MM-dd} → {w.EndDate:yyyy-MM-dd}" +
-                            $"<br>{w.DaysRemaining} days remaining";
-                items.Add(new TimelineItem(
+                var equipName = _equipMap.GetValueOrDefault(w.EquipmentId, "");
+                var groupLabel = w.EquipmentId == lastEquip ? null : equipName;
+                lastEquip = w.EquipmentId;
+
+                rows.Add(new TimelineRow(
                     Id: $"w-{w.Id}",
-                    Content: Enc(w.Name),
-                    Start: w.StartDate,
-                    End: w.EndDate,
-                    Group: "warranties",
-                    ClassName: "hg-warranty",
-                    Tooltip: tip
+                    Label: w.Name,
+                    Group: groupLabel,
+                    Color: WarrantyColor,
+                    Events:
+                    [
+                        new TimelineEvent(
+                            Id: $"{w.Id}-start", DateIso: w.StartDate.ToString("yyyy-MM-dd", null),
+                            Title: w.Name, EquipmentName: equipName, IsStart: true),
+                        new TimelineEvent(
+                            Id: $"{w.Id}-end", DateIso: w.EndDate.ToString("yyyy-MM-dd", null),
+                            Title: w.Name, EquipmentName: equipName, IsExpiry: true),
+                    ]
                 ));
             }
         }
 
-        // ── Service records ───────────────────────────────────────────────────
+        // ── Service records — one row per (equipment, canonical title) cluster ─────
         if (_showServices)
         {
-            int order = 1;
             var byEquip = _services
                 .GroupBy(s => s.EquipmentId)
-                .OrderBy(g => _equipMap.TryGetValue(g.Key, out var n) ? n : "");
+                .OrderBy(g => _equipMap.GetValueOrDefault(g.Key, ""));
 
             foreach (var grp in byEquip)
             {
-                var equipName = _equipMap.TryGetValue(grp.Key, out var en) ? en : grp.Key.ToString();
-                var equipGrpId = $"equip-{grp.Key}";
+                var equipName = _equipMap.GetValueOrDefault(grp.Key, grp.Key.ToString());
+                var meterUnit = _equipMeterUnit.GetValueOrDefault(grp.Key);
                 var sorted = grp.OrderBy(s => s.ServiceDate).ToList();
 
-                // Уникальные canonical-кластеры для этого оборудования (в порядке первого появления)
                 var canonicalsForEquip = sorted
                     .Select(s => _canonicals.GetValueOrDefault(s.Id, s.Title))
                     .Distinct()
                     .ToList();
 
-                // Toplevel-группа = оборудование
-                groups.Add(new TimelineGroup(equipGrpId, Enc(equipName), Order: order++));
+                var firstCanonical = canonicalsForEquip.FirstOrDefault();
 
-                // Дочерние группы = canonical title-ы (nestedInGroup вместо item.subgroup)
-                var subGroupIds = new Dictionary<string, string>();
-                int subOrder = 0;
                 foreach (var canonical in canonicalsForEquip)
                 {
-                    var subId = $"{equipGrpId}-{Math.Abs(canonical.GetHashCode()):x8}";
-                    subGroupIds[canonical] = subId;
-                    groups.Add(new TimelineGroup(
-                        Id: subId,
-                        Content: Enc(canonical),
-                        Order: subOrder++,
-                        NestedInGroup: equipGrpId
+                    var events = sorted
+                        .Where(s => _canonicals.GetValueOrDefault(s.Id, s.Title) == canonical)
+                        .Select(s => new TimelineEvent(
+                            Id: $"s-{s.Id}",
+                            DateIso: s.ServiceDate.ToString("yyyy-MM-dd", null),
+                            Title: s.Title,
+                            EquipmentName: equipName,
+                            MeterReading: s.MeterReading,
+                            MeterUnit: meterUnit,
+                            Cost: s.Cost,
+                            ServiceProvider: s.ServiceProvider,
+                            Notes: s.Notes,
+                            Status: s.Status))
+                        .ToList();
+
+                    rows.Add(new TimelineRow(
+                        Id: $"equip-{grp.Key}-{Math.Abs(canonical.GetHashCode()):x8}",
+                        Label: canonical,
+                        Group: canonical == firstCanonical ? equipName : null,
+                        Color: ServiceColor,
+                        Events: events
                     ));
-                }
-
-                var prevByCanonical = new Dictionary<string, ServiceRecordDto>();
-
-                foreach (var sr in sorted)
-                {
-                    var canonical = _canonicals.GetValueOrDefault(sr.Id, sr.Title);
-                    var targetGrp = subGroupIds.GetValueOrDefault(canonical, equipGrpId);
-                    prevByCanonical.TryGetValue(canonical, out var prev);
-
-                    // Item идёт в дочернюю группу — subgroup не нужен
-                    items.Add(new TimelineItem(
-                        Id: $"s-{sr.Id}",
-                        Content: BuildContent(sr, prev),
-                        Start: sr.ServiceDate,
-                        Group: targetGrp,
-                        ClassName: "hg-service",
-                        Tooltip: BuildTooltip(sr, prev, equipName)
-                    ));
-
-                    prevByCanonical[canonical] = sr;
                 }
             }
         }
 
-        return (items, groups);
-    }
-
-    // ── Item content & tooltip ────────────────────────────────────────────────
-
-    private static string BuildContent(ServiceRecordDto sr, ServiceRecordDto? prev)
-    {
-        var title = Enc(sr.Title);
-        if (prev is null) return title;
-
-        var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
-        var parts = new List<string> { FormatSpan(days) };
-
-        if (prev.MeterReading.HasValue && sr.MeterReading.HasValue && sr.MeterReading > prev.MeterReading)
-        {
-            parts.Add($"+{sr.MeterReading - prev.MeterReading:N0}");
-        }
-
-        var diff = $"<div style='font-size:10px;opacity:.5;white-space:nowrap'>↔ {string.Join(" · ", parts)}</div>";
-        return $"{title}{diff}";
-    }
-
-    private static string BuildTooltip(ServiceRecordDto sr, ServiceRecordDto? prev, string equipName)
-    {
-        var sb = new StringBuilder();
-        sb.Append($"<b>{Enc(sr.Title)}</b><br>{Enc(equipName)}<br>");
-        sb.Append($"{sr.ServiceDate:yyyy-MM-dd}");
-        if (sr.ServiceProvider is { Length: > 0 })
-            sb.Append($" · {Enc(sr.ServiceProvider)}");
-        if (sr.MeterReading.HasValue)
-            sb.Append($"<br>🔢 {sr.MeterReading}");
-        if (sr.Cost.HasValue)
-            sb.Append($"<br>💰 {sr.Cost:F2} €");
-
-        if (prev is not null)
-        {
-            var days = sr.ServiceDate.DayNumber - prev.ServiceDate.DayNumber;
-            sb.Append($"<br><span style='opacity:.65'>↔ {FormatSpan(days)}");
-            if (prev.MeterReading.HasValue && sr.MeterReading.HasValue && sr.MeterReading > prev.MeterReading)
-                sb.Append($" · +{sr.MeterReading - prev.MeterReading:N0}");
-            sb.Append("</span>");
-        }
-
-        if (sr.Status == "Planned")
-            sb.Append($"<br>⏰ Due: {sr.ServiceDate:yyyy-MM-dd}");
-
-        return sb.ToString();
+        return rows;
     }
 
     // ── Fuzzy title clustering (Levenshtein, threshold 25%) ──────────────────
@@ -291,19 +224,6 @@
                     : 1 + Math.Min(Math.Min(d[i - 1, j], d[i, j - 1]), d[i - 1, j - 1]);
         return d[m, n];
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static string Enc(string s) => WebUtility.HtmlEncode(s);
-
-    private static string FormatSpan(int days) => days switch
-    {
-        <= 0 => "—",
-        < 7 => $"{days}d",
-        < 31 => $"{days / 7}w",
-        < 365 => $"{days / 30}mo",
-        _ => $"{days / 365}y {days % 365 / 30}mo"
-    };
 
     public async ValueTask DisposeAsync() => await TimelineInterop.DisposeAsync();
 }
