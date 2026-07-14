@@ -1,6 +1,7 @@
 @page "/service"
 @inject ServiceRecordApiClient Api
 @inject EquipmentApiClient EquipmentApi
+@inject RecurringRuleApiClient RuleApi
 
 <PageTitle>Service records</PageTitle>
 
@@ -144,7 +145,9 @@ else
                 </MudSelect>
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Title" Label="Title" Required="true" />
+                <MudAutocomplete T="string" @bind-Value="_form.Title" Label="Title" Required="true"
+                                 SearchFunc="SearchTitles" Strict="false" CoerceText="true"
+                                 ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="_form.ServiceDateNullable" Label="Service date"
@@ -255,6 +258,25 @@ else
     {
         await Api.DeleteAsync(id);
         _items?.RemoveAll(sr => sr.Id == id);
+    }
+
+    private async Task<IEnumerable<string>> SearchTitles(string? search, CancellationToken ct)
+    {
+        if (_form.EquipmentId == Guid.Empty) return [];
+
+        var rulesTask   = RuleApi.GetByEquipmentAsync(_form.EquipmentId, ct);
+        var recordsTask = Api.GetByEquipmentAsync(_form.EquipmentId, ct);
+        await Task.WhenAll(rulesTask, recordsTask);
+
+        var titles = (rulesTask.Result ?? []).Select(r => r.Title)
+            .Concat((recordsTask.Result ?? []).Select(s => s.Title))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(t => t);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            titles = titles.Where(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)).OrderBy(t => t);
+
+        return titles;
     }
 
     private static string DaysLabel(int? days) => days switch

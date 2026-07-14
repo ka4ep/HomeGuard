@@ -3,7 +3,9 @@
 @inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
+@inject RecurringRuleApiClient RuleApi
 @inject TimelineInterop TimelineInterop
+@inject ISnackbar Snackbar
 @implements IAsyncDisposable
 
 <PageTitle>Timeline</PageTitle>
@@ -41,6 +43,7 @@
 
     private List<WarrantyDto> _warranties = [];
     private List<ServiceRecordDto> _services = [];
+    private List<RecurringRuleWithPredictionsDto> _rules = [];
     private Dictionary<Guid, string> _equipMap = [];
     private Dictionary<Guid, string?> _equipMeterUnit = [];
 
@@ -63,6 +66,8 @@
     {
         if (!firstRender) return;
 
+        TimelineInterop.MaterializeRequested += OnMaterializeRequestedAsync;
+
         await LoadDataAsync();
         await TimelineInterop.CreateAsync(ElementId, BuildRows());
 
@@ -75,13 +80,15 @@
         var equipTask = EquipmentApi.GetAllAsync();
         var warrantyTask = WarrantyApi.GetActiveAsync();
         var serviceTask = ServiceApi.GetAllAsync();
-        await Task.WhenAll(equipTask, warrantyTask, serviceTask);
+        var rulesTask = RuleApi.GetAllWithPredictionsAsync();
+        await Task.WhenAll(equipTask, warrantyTask, serviceTask, rulesTask);
 
         var equipment = equipTask.Result ?? [];
         _equipMap = equipment.ToDictionary(e => e.Id, e => e.Name);
         _equipMeterUnit = equipment.ToDictionary(e => e.Id, e => e.MeterUnit);
         _warranties = warrantyTask.Result ?? [];
         _services = serviceTask.Result ?? [];
+        _rules = rulesTask.Result ?? [];
 
         // Build canonical title clusters per equipment (fuzzy-matched, stable order)
         var clustersByEquip = new Dictionary<Guid, List<string>>();
@@ -132,10 +139,10 @@
                     [
                         new TimelineEvent(
                             Id: $"{w.Id}-start", DateIso: w.StartDate.ToString("yyyy-MM-dd", null),
-                            Title: w.Name, EquipmentName: equipName, IsStart: true),
+                            Title: w.Name, EquipmentName: equipName, EquipmentId: w.EquipmentId, IsStart: true),
                         new TimelineEvent(
                             Id: $"{w.Id}-end", DateIso: w.EndDate.ToString("yyyy-MM-dd", null),
-                            Title: w.Name, EquipmentName: equipName, IsExpiry: true),
+                            Title: w.Name, EquipmentName: equipName, EquipmentId: w.EquipmentId, IsExpiry: true),
                     ]
                 ));
             }
@@ -170,13 +177,33 @@
                             DateIso: s.ServiceDate.ToString("yyyy-MM-dd", null),
                             Title: s.Title,
                             EquipmentName: equipName,
+                            EquipmentId: grp.Key,
                             MeterReading: s.MeterReading,
                             MeterUnit: meterUnit,
                             Cost: s.Cost,
                             ServiceProvider: s.ServiceProvider,
                             Notes: s.Notes,
-                            Status: s.Status))
+                            Status: s.Status,
+                            RecordId: s.Id))
                         .ToList();
+
+                    // Predicted (dashed) points — computed ahead, not stored records.
+                    var rule = _rules.FirstOrDefault(x =>
+                        x.Rule.EquipmentId == grp.Key &&
+                        string.Equals(x.Rule.Title.Trim(), canonical.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (rule is not null)
+                    {
+                        events.AddRange(rule.Predictions.Select(p => new TimelineEvent(
+                            Id: $"pred-{rule.Rule.Id}-{p.Date:yyyyMMdd}",
+                            DateIso: p.Date.ToString("yyyy-MM-dd", null),
+                            Title: canonical,
+                            EquipmentName: equipName,
+                            EquipmentId: grp.Key,
+                            MeterReading: p.MeterReading,
+                            MeterUnit: meterUnit,
+                            IsPredicted: true,
+                            RuleId: rule.Rule.Id)));
+                    }
 
                     rows.Add(new TimelineRow(
                         Id: $"equip-{grp.Key}-{Math.Abs(canonical.GetHashCode()):x8}",
@@ -225,5 +252,26 @@
         return d[m, n];
     }
 
-    public async ValueTask DisposeAsync() => await TimelineInterop.DisposeAsync();
+    // ── Materialize ("Materialize now" on a Predicted event's card) ───────────
+
+    private async Task OnMaterializeRequestedAsync(Guid ruleId)
+    {
+        var result = await RuleApi.MaterializeNowAsync(ruleId);
+        if (result is null)
+        {
+            Snackbar.Add("Couldn't materialize yet — not enough history to predict a date.", Severity.Warning);
+            return;
+        }
+
+        Snackbar.Add("Planned record created.", Severity.Success);
+        await LoadDataAsync();
+        await TimelineInterop.UpdateAsync(BuildRows());
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        TimelineInterop.MaterializeRequested -= OnMaterializeRequestedAsync;
+        await TimelineInterop.DisposeAsync();
+    }
 }

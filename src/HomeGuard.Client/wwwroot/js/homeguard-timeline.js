@@ -13,11 +13,12 @@ window.homeGuardTimeline = {
     MAX_MPP: 400 * 86400000,
     ZOOM_FACTOR: 1.2,
 
-    create(elementId, rowsJson) {
+    create(elementId, rowsJson, dotNetRef) {
         const host = document.getElementById(elementId);
         if (!host) return;
 
         const inst = this._buildInstance(host);
+        inst.dotNetRef = dotNetRef;
         inst.rows = this._parseRows(rowsJson);
         this._instances[elementId] = inst;
         this._fitToData(inst);
@@ -134,7 +135,10 @@ window.homeGuardTimeline = {
                     </div>
                     <button type="button" class="hg-tl-card-close">✕</button>
                 </div>
-                <div class="hg-tl-card-fields"></div>
+                <div class="hg-tl-card-body">
+                    <div class="hg-tl-card-fields"></div>
+                    <div class="hg-tl-card-actions"></div>
+                </div>
             </div>`;
 
         const inst = {
@@ -150,6 +154,7 @@ window.homeGuardTimeline = {
             cardTitle: host.querySelector('.hg-tl-card-title'),
             cardSub: host.querySelector('.hg-tl-card-sub'),
             cardFields: host.querySelector('.hg-tl-card-fields'),
+            cardActions: host.querySelector('.hg-tl-card-actions'),
             cardClose: host.querySelector('.hg-tl-card-close'),
             rows: [],
             vs: 0, mpp: 1, tw: 900,
@@ -350,11 +355,12 @@ window.homeGuardTimeline = {
                     ? `+${this._fmtNum(nev.meterReading - ev.meterReading)}${nev.meterUnit ? ' ' + this._esc(nev.meterUnit) : ''}`
                     : null;
                 const label = [ts, delta].filter(Boolean).join(' · ');
+                const pred = nev.isPredicted;
 
                 const ib = document.createElement('div');
                 ib.className = 'hg-tl-iblock';
                 ib.style.cssText = `left:${cx}px;width:${cw}px;top:${(RH - BTN) / 2}px;height:${BTN}px;`;
-                const getBg = h => h ? row.color + '88' : row.color + '28';
+                const getBg = h => pred ? (h ? '#bbb' : '#e0e0e0') : (h ? row.color + '88' : row.color + '28');
                 ib.style.background = getBg(false);
 
                 if (cw > 44) {
@@ -384,13 +390,14 @@ window.homeGuardTimeline = {
 
                 const isExpiry = ev.isExpiry;
                 const isPlanned = ev.status === 'Planned';
+                const isPredicted = ev.isPredicted;
                 const isSel = inst.selEv && inst.selEv.ev.id === ev.id;
-                const base = isExpiry ? '#ef4444' : row.color;
+                const base = isPredicted ? '#aaa' : isExpiry ? '#ef4444' : row.color;
 
                 const btn = document.createElement('div');
-                btn.className = 'hg-tl-evbtn';
+                btn.className = 'hg-tl-evbtn' + (isPredicted ? ' hg-tl-evbtn-pred' : '');
                 btn.style.cssText = `left:${x}px;top:${(RH - BTN) / 2}px;width:${BTN}px;height:${BTN}px;border-color:${base};`;
-                const fillAlpha = isSel ? '' : (isPlanned ? '88' : 'cc');
+                const fillAlpha = isSel ? '' : (isPredicted || isPlanned ? '88' : 'cc');
                 btn.style.background = base + fillAlpha;
                 if (isSel) {
                     btn.style.outline = '2px solid white';
@@ -470,7 +477,8 @@ window.homeGuardTimeline = {
         const items = [
             ['Date', this._fmtDate(ev.dateObj)],
         ];
-        if (ev.status) items.push(['Status', ev.status]);
+        if (ev.isPredicted) items.push(['Status', 'Predicted']);
+        else if (ev.status) items.push(['Status', ev.status]);
         if (ev.meterReading != null) items.push(['Meter reading', this._fmtNum(ev.meterReading) + (ev.meterUnit ? ' ' + ev.meterUnit : '')]);
         if (ev.cost != null) items.push(['Cost', this._fmtNum(ev.cost, 2) + ' €']);
         if (ev.serviceProvider) items.push(['Provider', ev.serviceProvider]);
@@ -481,5 +489,31 @@ window.homeGuardTimeline = {
         inst.cardFields.innerHTML = items.map(([k, v]) =>
             `<div class="hg-tl-cf"><div class="hg-tl-cf-lbl">${this._esc(k)}</div><div class="hg-tl-cf-val">${this._esc(v)}</div></div>`
         ).join('');
+
+        inst.cardActions.innerHTML = '';
+
+        if (ev.isPredicted && ev.ruleId) {
+            this._addCardAction(inst, '⚡', 'Materialize now', () => {
+                if (inst.dotNetRef) inst.dotNetRef.invokeMethodAsync('NotifyMaterializeRequested', ev.ruleId);
+            });
+            if (ev.equipmentId) {
+                this._addCardAction(inst, '↻', 'Open recurring rule', `/equipment/${ev.equipmentId}?editRule=${ev.ruleId}`);
+            }
+        } else if (ev.recordId && ev.equipmentId) {
+            this._addCardAction(inst, '✎', 'Edit record', `/equipment/${ev.equipmentId}?editService=${ev.recordId}`);
+        }
+    },
+
+    // hrefOrClick: a URL string (renders an <a>) or a click handler function (renders a <button>).
+    _addCardAction(inst, glyph, tooltip, hrefOrClick) {
+        const isLink = typeof hrefOrClick === 'string';
+        const el = document.createElement(isLink ? 'a' : 'button');
+        if (isLink) el.href = hrefOrClick;
+        else { el.type = 'button'; el.addEventListener('click', hrefOrClick); }
+        el.className = 'hg-tl-card-action';
+        el.title = tooltip;
+        el.setAttribute('aria-label', tooltip);
+        el.textContent = glyph;
+        inst.cardActions.appendChild(el);
     },
 };

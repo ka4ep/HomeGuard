@@ -117,6 +117,53 @@ public sealed class ServiceRecordApiClient
         => _http.DeleteAsync($"api/service-records/{id}", ct);
 }
 
+// ── Recurring rules ───────────────────────────────────────────────────────────
+
+public sealed class RecurringRuleApiClient
+{
+    private readonly HttpClient _http;
+    public RecurringRuleApiClient(HttpClient http) => _http = http;
+
+    public Task<List<RecurringRuleWithPredictionsDto>?> GetAllWithPredictionsAsync(CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<RecurringRuleWithPredictionsDto>>("api/recurring-rules", ct);
+
+    public Task<List<RecurringRuleDto>?> GetByEquipmentAsync(Guid equipmentId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<RecurringRuleDto>>($"api/recurring-rules/by-equipment/{equipmentId}", ct);
+
+    public async Task<RecurringRuleDto?> FindByTitleAsync(Guid equipmentId, string title, CancellationToken ct = default)
+    {
+        var resp = await _http.GetAsync(
+            $"api/recurring-rules/by-equipment/{equipmentId}/by-title?title={Uri.EscapeDataString(title)}", ct);
+        if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<RecurringRuleDto>(ct);
+    }
+
+    public async Task<RecurringRuleDto?> CreateAsync(CreateRecurringRuleDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync("api/recurring-rules", dto, ct);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<RecurringRuleDto>(ct);
+    }
+
+    public async Task<RecurringRuleDto?> UpdateAsync(Guid id, UpdateRecurringRuleDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PutAsJsonAsync($"api/recurring-rules/{id}", dto, ct);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<RecurringRuleDto>(ct);
+    }
+
+    public async Task<ServiceRecordDto?> MaterializeNowAsync(Guid id, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsync($"api/recurring-rules/{id}/materialize", null, ct);
+        if (!resp.IsSuccessStatusCode) return null;
+        return await resp.Content.ReadFromJsonAsync<ServiceRecordDto>(ct);
+    }
+
+    public Task DeleteAsync(Guid id, CancellationToken ct = default)
+        => _http.DeleteAsync($"api/recurring-rules/{id}", ct);
+}
+
 // ── Sync ──────────────────────────────────────────────────────────────────────
 
 public sealed class SyncApiClient

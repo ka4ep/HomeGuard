@@ -32,6 +32,14 @@ public sealed class RecurringRule : Entity
     /// <summary>How many future predictions to show on the timeline.</summary>
     public int PredictionsAhead { get; private set; } = 2;
 
+    /// <summary>
+    /// When true (default), the item is assumed to have existed since <c>Equipment.PurchaseDate</c> —
+    /// that date is used as a virtual first data point when averaging the interval, so a single
+    /// completed record is already enough to predict the next one. Turn off for parts/items that
+    /// were only added to the equipment later (their history should start at first mention, not purchase).
+    /// </summary>
+    public bool AnchorToPurchaseDate { get; private set; } = true;
+
     public bool IsActive { get; private set; } = true;
 
     // ── Factory ──────────────────────────────────────────────────────────────
@@ -42,7 +50,8 @@ public sealed class RecurringRule : Entity
         int? intervalDays = null,
         decimal? intervalMeter = null,
         int materializeDaysAhead = 30,
-        int predictionsAhead = 2)
+        int predictionsAhead = 2,
+        bool anchorToPurchaseDate = true)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
@@ -54,6 +63,7 @@ public sealed class RecurringRule : Entity
         rule.IntervalMeter = intervalMeter;
         rule.MaterializeDaysAhead = materializeDaysAhead;
         rule.PredictionsAhead = predictionsAhead;
+        rule.AnchorToPurchaseDate = anchorToPurchaseDate;
         rule.IsActive = true;
         return rule;
     }
@@ -65,7 +75,8 @@ public sealed class RecurringRule : Entity
         int? intervalDays,
         decimal? intervalMeter,
         int materializeDaysAhead,
-        int predictionsAhead)
+        int predictionsAhead,
+        bool anchorToPurchaseDate)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         Title = title.Trim();
@@ -73,6 +84,7 @@ public sealed class RecurringRule : Entity
         IntervalMeter = intervalMeter;
         MaterializeDaysAhead = materializeDaysAhead;
         PredictionsAhead = predictionsAhead;
+        AnchorToPurchaseDate = anchorToPurchaseDate;
         Touch();
     }
 

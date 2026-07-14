@@ -2196,7 +2196,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_iappuserrepository_getallasync",
-      "community": 77,
+      "community": 2,
       "norm_label": ".getallasync()"
     },
     {
@@ -2206,7 +2206,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_cs_cancellationtoken",
-      "community": 77,
+      "community": 2,
       "norm_label": "cancellationtoken"
     },
     {
@@ -2216,7 +2216,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_cs_task",
-      "community": 77,
+      "community": 2,
       "norm_label": "task"
     },
     {
@@ -2226,7 +2226,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_cs_ireadonlylist",
-      "community": 77,
+      "community": 2,
       "norm_label": "ireadonlylist"
     },
     {
@@ -2236,7 +2236,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_iappuserrepository_getwithcredentialsasync",
-      "community": 77,
+      "community": 2,
       "norm_label": ".getwithcredentialsasync()"
     },
     {
@@ -2246,7 +2246,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_iappuserrepository_findbycredentialidasync",
-      "community": 77,
+      "community": 2,
       "norm_label": ".findbycredentialidasync()"
     },
     {
@@ -2256,7 +2256,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_cs_user",
-      "community": 77,
+      "community": 2,
       "norm_label": "user"
     },
     {
@@ -2266,7 +2266,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iappuserrepository_cs_credential",
-      "community": 77,
+      "community": 2,
       "norm_label": "credential"
     },
     {
@@ -2366,7 +2366,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories",
-      "community": 74,
+      "community": 1,
       "norm_label": "ijobandblobrepositories.cs"
     },
     {
@@ -2376,7 +2376,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_iblobentryrepository",
-      "community": 74,
+      "community": 1,
       "norm_label": "iblobentryrepository"
     },
     {
@@ -2386,7 +2386,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_iblobentryrepository_getbyownerasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".getbyownerasync()"
     },
     {
@@ -2396,7 +2396,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_cs_cancellationtoken",
-      "community": 74,
+      "community": 1,
       "norm_label": "cancellationtoken"
     },
     {
@@ -2406,7 +2406,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_cs_task",
-      "community": 74,
+      "community": 1,
       "norm_label": "task"
     },
     {
@@ -2416,7 +2416,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_cs_ireadonlylist",
-      "community": 74,
+      "community": 1,
       "norm_label": "ireadonlylist"
     },
     {
@@ -2426,7 +2426,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_iblobentryrepository_getpendingsyncasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".getpendingsyncasync()"
     },
     {
@@ -2436,7 +2436,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_irecurringrulerepository",
-      "community": 74,
+      "community": 1,
       "norm_label": "irecurringrulerepository"
     },
     {
@@ -2446,7 +2446,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_irecurringrulerepository_getbyequipmentasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".getbyequipmentasync()"
     },
     {
@@ -2456,7 +2456,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_irecurringrulerepository_getactiveasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".getactiveasync()"
     },
     {
@@ -2466,7 +2466,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_ischeduledjobrepository",
-      "community": 74,
+      "community": 1,
       "norm_label": "ischeduledjobrepository"
     },
     {
@@ -2476,7 +2476,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_ischeduledjobrepository_getreadyjobsasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".getreadyjobsasync()"
     },
     {
@@ -2486,7 +2486,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_cs_datetimeoffset",
-      "community": 74,
+      "community": 1,
       "norm_label": "datetimeoffset"
     },
     {
@@ -2496,7 +2496,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_ijobandblobrepositories_ischeduledjobrepository_existspendingasync",
-      "community": 74,
+      "community": 1,
       "norm_label": ".existspendingasync()"
     },
     {
@@ -2506,7 +2506,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository",
-      "community": 86,
+      "community": 1,
       "norm_label": "irepository.cs"
     },
     {
@@ -2516,7 +2516,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_irepository",
-      "community": 86,
+      "community": 1,
       "norm_label": "irepository"
     },
     {
@@ -2526,7 +2526,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_irepository_getbyidasync",
-      "community": 86,
+      "community": 1,
       "norm_label": ".getbyidasync()"
     },
     {
@@ -2536,7 +2536,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_cs_cancellationtoken",
-      "community": 86,
+      "community": 1,
       "norm_label": "cancellationtoken"
     },
     {
@@ -2546,7 +2546,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_cs_task",
-      "community": 86,
+      "community": 1,
       "norm_label": "task"
     },
     {
@@ -2556,7 +2556,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_cs_t",
-      "community": 86,
+      "community": 1,
       "norm_label": "t"
     },
     {
@@ -2566,7 +2566,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_irepository_addasync",
-      "community": 86,
+      "community": 1,
       "norm_label": ".addasync()"
     },
     {
@@ -2576,7 +2576,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_irepository_irepository_remove",
-      "community": 86,
+      "community": 1,
       "norm_label": ".remove()"
     },
     {
@@ -2696,7 +2696,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository",
-      "community": 0,
+      "community": 7,
       "norm_label": "iwarrantyrepository.cs"
     },
     {
@@ -2706,7 +2706,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_iwarrantyrepository",
-      "community": 0,
+      "community": 7,
       "norm_label": "iwarrantyrepository"
     },
     {
@@ -2716,7 +2716,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_iwarrantyrepository_getbyequipmentasync",
-      "community": 0,
+      "community": 7,
       "norm_label": ".getbyequipmentasync()"
     },
     {
@@ -2726,7 +2726,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_cs_cancellationtoken",
-      "community": 0,
+      "community": 7,
       "norm_label": "cancellationtoken"
     },
     {
@@ -2736,7 +2736,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_cs_task",
-      "community": 0,
+      "community": 7,
       "norm_label": "task"
     },
     {
@@ -2746,7 +2746,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_cs_ireadonlylist",
-      "community": 0,
+      "community": 7,
       "norm_label": "ireadonlylist"
     },
     {
@@ -2756,7 +2756,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_iwarrantyrepository_getexpiringasync",
-      "community": 0,
+      "community": 7,
       "norm_label": ".getexpiringasync()"
     },
     {
@@ -2766,7 +2766,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_cs_dateonly",
-      "community": 0,
+      "community": 7,
       "norm_label": "dateonly"
     },
     {
@@ -2776,7 +2776,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_iwarrantyrepository_getactiveasync",
-      "community": 0,
+      "community": 7,
       "norm_label": ".getactiveasync()"
     },
     {
@@ -2786,7 +2786,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_repositories_iwarrantyrepository_iwarrantyrepository_getwithdetailsasync",
-      "community": 0,
+      "community": 7,
       "norm_label": ".getwithdetailsasync()"
     },
     {
@@ -2946,7 +2946,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "src_homeguard_application_interfaces_serviceinterfaces_pushnotification",
-      "community": 73,
+      "community": 71,
       "norm_label": "pushnotification"
     },
     {
@@ -3316,7 +3316,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_application_services_recurringrulematerializationservice",
-      "community": 12,
+      "community": 1,
       "norm_label": "recurringrulematerializationservice.cs"
     },
     {
@@ -3326,7 +3326,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_homeguard_application_services_recurringrulematerializationservice_recurringrulematerializationservice",
-      "community": 12,
+      "community": 1,
       "norm_label": "recurringrulematerializationservice"
     },
     {
@@ -3336,7 +3336,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_homeguard_application_services_recurringrulematerializationservice_recurringrulematerializationservice_runasync",
-      "community": 12,
+      "community": 1,
       "norm_label": ".runasync()"
     },
     {
@@ -3346,7 +3346,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_recurringrulematerializationservice_cs_cancellationtoken",
-      "community": 12,
+      "community": 1,
       "norm_label": "cancellationtoken"
     },
     {
@@ -3356,7 +3356,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_recurringrulematerializationservice_cs_task",
-      "community": 12,
+      "community": 1,
       "norm_label": "task"
     },
     {
@@ -3726,7 +3726,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncprocessorservice.cs"
     },
     {
@@ -3736,7 +3736,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_syncprocessorservice",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncprocessorservice"
     },
     {
@@ -3746,7 +3746,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_syncprocessorservice_processbatchasync",
-      "community": 35,
+      "community": 71,
       "norm_label": ".processbatchasync()"
     },
     {
@@ -3756,7 +3756,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_cs_cancellationtoken",
-      "community": 35,
+      "community": 71,
       "norm_label": "cancellationtoken"
     },
     {
@@ -3766,7 +3766,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_cs_task",
-      "community": 35,
+      "community": 71,
       "norm_label": "task"
     },
     {
@@ -3776,7 +3776,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_syncprocessorservice_dispatchasync",
-      "community": 35,
+      "community": 71,
       "norm_label": ".dispatchasync()"
     },
     {
@@ -3786,7 +3786,7 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_syncprocessorservice_deserialize",
-      "community": 35,
+      "community": 71,
       "norm_label": ".deserialize()"
     },
     {
@@ -3796,7 +3796,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_cs_t",
-      "community": 35,
+      "community": 71,
       "norm_label": "t"
     },
     {
@@ -3806,7 +3806,7 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_deletepayload",
-      "community": 35,
+      "community": 71,
       "norm_label": "deletepayload"
     },
     {
@@ -3816,7 +3816,7 @@
       "source_location": "L134",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_syncoperationtypes",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncoperationtypes"
     },
     {
@@ -3826,7 +3826,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_application_services_syncprocessorservice_cs_string",
-      "community": 35,
+      "community": 71,
       "norm_label": "string"
     },
     {
@@ -5050,20 +5050,10 @@
       "norm_label": "homeguard.client.common"
     },
     {
-      "label": "Microsoft.AspNetCore.Components",
-      "file_type": "code",
-      "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L3",
-      "_origin": "ast",
-      "id": "microsoft_aspnetcore_components",
-      "community": 6,
-      "norm_label": "microsoft.aspnetcore.components"
-    },
-    {
       "label": "EquipmentApiClient",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L4",
+      "source_location": "L3",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_equipmentapiclient",
       "community": 6,
@@ -5073,7 +5063,7 @@
       "label": "WarrantyApiClient",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L5",
+      "source_location": "L4",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_warrantyapiclient",
       "community": 6,
@@ -5083,7 +5073,7 @@
       "label": "ServiceRecordApiClient",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L6",
+      "source_location": "L5",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_servicerecordapiclient",
       "community": 6,
@@ -5093,7 +5083,7 @@
       "label": "RecurringRuleApiClient",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L7",
+      "source_location": "L6",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_recurringruleapiclient",
       "community": 6,
@@ -5103,7 +5093,7 @@
       "label": "BlobApiClient",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L8",
+      "source_location": "L7",
       "_origin": "ast",
       "id": "blobapiclient",
       "community": 6,
@@ -5113,7 +5103,7 @@
       "label": "NavigationManager",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L9",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_navigationmanager",
       "community": 6,
@@ -5123,7 +5113,7 @@
       "label": "ISnackbar",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L10",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_isnackbar",
       "community": 6,
@@ -5133,7 +5123,7 @@
       "label": "PageTitle",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L12",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_pagetitle",
       "community": 6,
@@ -5143,7 +5133,7 @@
       "label": "MudProgressLinear",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L16",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudprogresslinear",
       "community": 6,
@@ -5153,7 +5143,7 @@
       "label": "MudStack",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L21",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudstack",
       "community": 6,
@@ -5163,7 +5153,7 @@
       "label": "MudIconButton",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L22",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudiconbutton",
       "community": 6,
@@ -5173,7 +5163,7 @@
       "label": "MudText",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L24",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudtext",
       "community": 6,
@@ -5183,7 +5173,7 @@
       "label": "MudSpacer",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L25",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudspacer",
       "community": 6,
@@ -5193,7 +5183,7 @@
       "label": "MudCard",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L32",
+      "source_location": "L31",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudcard",
       "community": 6,
@@ -5203,7 +5193,7 @@
       "label": "MudCardContent",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L33",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudcardcontent",
       "community": 6,
@@ -5213,7 +5203,7 @@
       "label": "MudGrid",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L34",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudgrid",
       "community": 6,
@@ -5223,7 +5213,7 @@
       "label": "MudItem",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L35",
+      "source_location": "L34",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_muditem",
       "community": 6,
@@ -5233,7 +5223,7 @@
       "label": "MudChip",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L65",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudchip",
       "community": 6,
@@ -5243,7 +5233,7 @@
       "label": "MudDivider",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L72",
+      "source_location": "L71",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_muddivider",
       "community": 6,
@@ -5253,7 +5243,7 @@
       "label": "MudIcon",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L80",
+      "source_location": "L79",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudicon",
       "community": 6,
@@ -5263,7 +5253,7 @@
       "label": "MudButton",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L83",
+      "source_location": "L82",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudbutton",
       "community": 6,
@@ -5273,7 +5263,7 @@
       "label": "MudPaper",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L96",
+      "source_location": "L95",
       "_origin": "ast",
       "id": "mudpaper",
       "community": 6,
@@ -5283,7 +5273,7 @@
       "label": "MudCollapse",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L115",
+      "source_location": "L114",
       "_origin": "ast",
       "id": "mudcollapse",
       "community": 6,
@@ -5293,7 +5283,7 @@
       "label": "MudAlert",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L241",
+      "source_location": "L240",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudalert",
       "community": 6,
@@ -5303,7 +5293,7 @@
       "label": "MudDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L307",
+      "source_location": "L306",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_muddialog",
       "community": 6,
@@ -5313,7 +5303,7 @@
       "label": "TitleContent",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L308",
+      "source_location": "L307",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_titlecontent",
       "community": 6,
@@ -5323,7 +5313,7 @@
       "label": "DialogContent",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L309",
+      "source_location": "L308",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_dialogcontent",
       "community": 6,
@@ -5333,7 +5323,7 @@
       "label": "MudTextField",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L312",
+      "source_location": "L311",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudtextfield",
       "community": 6,
@@ -5343,7 +5333,7 @@
       "label": "MudNumericField",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L324",
+      "source_location": "L323",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudnumericfield",
       "community": 6,
@@ -5353,7 +5343,7 @@
       "label": "MudDatePicker",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L328",
+      "source_location": "L327",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_muddatepicker",
       "community": 6,
@@ -5363,7 +5353,7 @@
       "label": "DialogActions",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L343",
+      "source_location": "L342",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_dialogactions",
       "community": 6,
@@ -5373,7 +5363,7 @@
       "label": "MudAutocomplete",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L391",
+      "source_location": "L390",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudautocomplete",
       "community": 6,
@@ -5383,7 +5373,7 @@
       "label": "MudSelect",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L400",
+      "source_location": "L399",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudselect",
       "community": 6,
@@ -5393,7 +5383,7 @@
       "label": "MudSelectItem",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L401",
+      "source_location": "L400",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_mudselectitem",
       "community": 6,
@@ -5403,7 +5393,7 @@
       "label": "MudSwitch",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L452",
+      "source_location": "L451",
       "_origin": "ast",
       "id": "mudswitch",
       "community": 6,
@@ -5413,7 +5403,7 @@
       "label": "WarrantyDto",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L482",
+      "source_location": "L477",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_warrantydto",
       "community": 6,
@@ -5423,7 +5413,7 @@
       "label": "ServiceRecordDto",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L483",
+      "source_location": "L478",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_servicerecorddto",
       "community": 6,
@@ -5433,7 +5423,7 @@
       "label": "RecurringRuleDto",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L484",
+      "source_location": "L479",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_recurringruledto",
       "community": 6,
@@ -5443,7 +5433,7 @@
       "label": "Guid",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L506",
+      "source_location": "L501",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_razor_guid",
       "community": 5,
@@ -5453,7 +5443,7 @@
       "label": "Toggle",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L509",
+      "source_location": "L504",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_toggle",
       "community": 6,
@@ -5463,7 +5453,7 @@
       "label": "OnInitializedAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L514",
+      "source_location": "L509",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_oninitializedasync",
       "community": 6,
@@ -5473,7 +5463,7 @@
       "label": "LoadDetailAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L531",
+      "source_location": "L512",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_loaddetailasync",
       "community": 6,
@@ -5483,7 +5473,7 @@
       "label": "LoadWarrantiesAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L534",
+      "source_location": "L515",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_loadwarrantiesasync",
       "community": 6,
@@ -5493,7 +5483,7 @@
       "label": "LoadServiceAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L537",
+      "source_location": "L518",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_loadserviceasync",
       "community": 6,
@@ -5503,7 +5493,7 @@
       "label": "LoadRulesAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L540",
+      "source_location": "L521",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_loadrulesasync",
       "community": 6,
@@ -5513,7 +5503,7 @@
       "label": "OpenEditDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L545",
+      "source_location": "L526",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openeditdialog",
       "community": 6,
@@ -5523,7 +5513,7 @@
       "label": "SaveEditAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L564",
+      "source_location": "L545",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_saveeditasync",
       "community": 6,
@@ -5533,7 +5523,7 @@
       "label": "DeleteEquipmentAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L576",
+      "source_location": "L557",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_deleteequipmentasync",
       "community": 6,
@@ -5543,7 +5533,7 @@
       "label": "OpenAddWarrantyDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L584",
+      "source_location": "L565",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openaddwarrantydialog",
       "community": 6,
@@ -5553,7 +5543,7 @@
       "label": "OpenEditWarrantyDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L591",
+      "source_location": "L572",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openeditwarrantydialog",
       "community": 6,
@@ -5563,7 +5553,7 @@
       "label": "SaveWarrantyAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L606",
+      "source_location": "L587",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_savewarrantyasync",
       "community": 6,
@@ -5573,7 +5563,7 @@
       "label": "DeleteWarrantyAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L627",
+      "source_location": "L608",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_deletewarrantyasync",
       "community": 6,
@@ -5583,7 +5573,7 @@
       "label": "CloseWarrantyDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L633",
+      "source_location": "L614",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_closewarrantydialog",
       "community": 6,
@@ -5593,7 +5583,7 @@
       "label": "OpenAddServiceDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L641",
+      "source_location": "L622",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openaddservicedialog",
       "community": 6,
@@ -5603,7 +5593,7 @@
       "label": "OpenEditServiceDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L648",
+      "source_location": "L629",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openeditservicedialog",
       "community": 6,
@@ -5613,7 +5603,7 @@
       "label": "SaveServiceAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L664",
+      "source_location": "L645",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_saveserviceasync",
       "community": 6,
@@ -5623,7 +5613,7 @@
       "label": "DeleteServiceAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L685",
+      "source_location": "L666",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_deleteserviceasync",
       "community": 6,
@@ -5633,7 +5623,7 @@
       "label": "CloseServiceDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L691",
+      "source_location": "L672",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_closeservicedialog",
       "community": 6,
@@ -5643,7 +5633,7 @@
       "label": "OpenAddRuleDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L702",
+      "source_location": "L683",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openaddruledialog",
       "community": 6,
@@ -5653,7 +5643,7 @@
       "label": "OpenRuleDialogForTitle",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L710",
+      "source_location": "L691",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openruledialogfortitle",
       "community": 6,
@@ -5663,7 +5653,7 @@
       "label": "OpenEditRuleDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L724",
+      "source_location": "L705",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_openeditruledialog",
       "community": 6,
@@ -5673,7 +5663,7 @@
       "label": "SaveRuleAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L740",
+      "source_location": "L721",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_saveruleasync",
       "community": 6,
@@ -5683,7 +5673,7 @@
       "label": "DeleteRuleAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L761",
+      "source_location": "L742",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_deleteruleasync",
       "community": 6,
@@ -5693,7 +5683,7 @@
       "label": "CloseRuleDialog",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L767",
+      "source_location": "L748",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_closeruledialog",
       "community": 6,
@@ -5703,7 +5693,7 @@
       "label": "IntervalLabel",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L773",
+      "source_location": "L754",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_intervallabel",
       "community": 6,
@@ -5713,7 +5703,7 @@
       "label": "SearchTitles",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L782",
+      "source_location": "L763",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_searchtitles",
       "community": 6,
@@ -5723,7 +5713,7 @@
       "label": "WarrantyColor",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L797",
+      "source_location": "L778",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_warrantycolor",
       "community": 6,
@@ -5733,7 +5723,7 @@
       "label": "WarrantyLabel",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L805",
+      "source_location": "L786",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_warrantylabel",
       "community": 6,
@@ -5743,7 +5733,7 @@
       "label": "ServiceDaysLabel",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L814",
+      "source_location": "L795",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_equipmentdetail_servicedayslabel",
       "community": 6,
@@ -7353,7 +7343,7 @@
       "label": "FuzzyGetOrAdd",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/Timeline.razor",
-      "source_location": "L224",
+      "source_location": "L221",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_timeline_fuzzygetoradd",
       "community": 24,
@@ -7363,7 +7353,7 @@
       "label": "Norm",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/Timeline.razor",
-      "source_location": "L238",
+      "source_location": "L235",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_timeline_norm",
       "community": 24,
@@ -7373,7 +7363,7 @@
       "label": "Lev",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/Timeline.razor",
-      "source_location": "L241",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_timeline_lev",
       "community": 24,
@@ -7383,7 +7373,7 @@
       "label": "OnMaterializeRequestedAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/Timeline.razor",
-      "source_location": "L257",
+      "source_location": "L254",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_timeline_onmaterializerequestedasync",
       "community": 24,
@@ -7393,7 +7383,7 @@
       "label": "DisposeAsync",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Pages/Timeline.razor",
-      "source_location": "L272",
+      "source_location": "L269",
       "_origin": "ast",
       "id": "src_homeguard_client_pages_timeline_disposeasync",
       "community": 24,
@@ -9253,7 +9243,7 @@
       "label": "Json",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/Services/TimelineInterop.cs",
-      "source_location": "L93",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "src_homeguard_client_services_timelineinterop_json",
       "community": 23,
@@ -9983,7 +9973,7 @@
       "label": "_toX()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L238",
+      "source_location": "L234",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_tox",
       "community": 51,
@@ -9993,7 +9983,7 @@
       "label": "_adjPos()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L242",
+      "source_location": "L238",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_adjpos",
       "community": 51,
@@ -10003,7 +9993,7 @@
       "label": "_getTicks()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L249",
+      "source_location": "L245",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_getticks",
       "community": 51,
@@ -10013,7 +10003,7 @@
       "label": "_fmtTick()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L269",
+      "source_location": "L265",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmttick",
       "community": 51,
@@ -10023,7 +10013,7 @@
       "label": "_render()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L277",
+      "source_location": "L273",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_render",
       "community": 51,
@@ -10033,7 +10023,7 @@
       "label": "_updateOverlay()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L443",
+      "source_location": "L439",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_updateoverlay",
       "community": 51,
@@ -10043,7 +10033,7 @@
       "label": "_updateBadge()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L456",
+      "source_location": "L452",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatebadge",
       "community": 51,
@@ -10053,21 +10043,11 @@
       "label": "_updateCard()",
       "file_type": "code",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L466",
+      "source_location": "L462",
       "_origin": "ast",
       "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
       "community": 51,
       "norm_label": "_updatecard()"
-    },
-    {
-      "label": "_addCardAction()",
-      "file_type": "code",
-      "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L508",
-      "_origin": "ast",
-      "id": "src_homeguard_client_wwwroot_js_homeguard_timeline_addcardaction",
-      "community": 51,
-      "norm_label": "_addcardaction()"
     },
     {
       "label": "manifest.json",
@@ -10276,7 +10256,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncmodels.cs"
     },
     {
@@ -10286,7 +10266,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels_outboxentry",
-      "community": 35,
+      "community": 71,
       "norm_label": "outboxentry"
     },
     {
@@ -10296,7 +10276,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels_syncack",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncack"
     },
     {
@@ -10306,7 +10286,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels_syncackstatus",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncackstatus"
     },
     {
@@ -10316,7 +10296,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels_syncbatchrequest",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncbatchrequest"
     },
     {
@@ -10326,7 +10306,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_homeguard_common_sync_syncmodels_syncbatchresponse",
-      "community": 35,
+      "community": 71,
       "norm_label": "syncbatchresponse"
     },
     {
@@ -11026,7 +11006,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_appuser_appuser",
-      "community": 77,
+      "community": 2,
       "norm_label": "appuser"
     },
     {
@@ -11036,7 +11016,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_appuser_cs_list",
-      "community": 77,
+      "community": 2,
       "norm_label": "list"
     },
     {
@@ -11046,7 +11026,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_appuser_appuser_create",
-      "community": 77,
+      "community": 2,
       "norm_label": ".create()"
     },
     {
@@ -11056,7 +11036,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_appuser_appuser_rename",
-      "community": 77,
+      "community": 2,
       "norm_label": ".rename()"
     },
     {
@@ -11076,7 +11056,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_appuser_appuser_removecredential",
-      "community": 77,
+      "community": 2,
       "norm_label": ".removecredential()"
     },
     {
@@ -11126,7 +11106,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_blobentry",
-      "community": 2,
+      "community": 3,
       "norm_label": "blobentry.cs"
     },
     {
@@ -11336,7 +11316,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob",
-      "community": 79,
+      "community": 2,
       "norm_label": "scheduledjob.cs"
     },
     {
@@ -11346,7 +11326,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob",
-      "community": 79,
+      "community": 2,
       "norm_label": "scheduledjob"
     },
     {
@@ -11356,7 +11336,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_cs_int",
-      "community": 79,
+      "community": 2,
       "norm_label": "int"
     },
     {
@@ -11366,7 +11346,7 @@
       "source_location": "L45",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_backoffdelay",
-      "community": 79,
+      "community": 2,
       "norm_label": ".backoffdelay()"
     },
     {
@@ -11376,7 +11356,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_cs_timespan",
-      "community": 79,
+      "community": 2,
       "norm_label": "timespan"
     },
     {
@@ -11386,7 +11366,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_create",
-      "community": 79,
+      "community": 2,
       "norm_label": ".create()"
     },
     {
@@ -11396,7 +11376,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_cs_datetimeoffset",
-      "community": 79,
+      "community": 2,
       "norm_label": "datetimeoffset"
     },
     {
@@ -11406,7 +11386,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_markrunning",
-      "community": 79,
+      "community": 2,
       "norm_label": ".markrunning()"
     },
     {
@@ -11416,7 +11396,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_markcompleted",
-      "community": 79,
+      "community": 2,
       "norm_label": ".markcompleted()"
     },
     {
@@ -11426,7 +11406,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_markfailed",
-      "community": 79,
+      "community": 2,
       "norm_label": ".markfailed()"
     },
     {
@@ -11436,7 +11416,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_scheduledjob_scheduledjob_isreadytorun",
-      "community": 79,
+      "community": 2,
       "norm_label": ".isreadytorun()"
     },
     {
@@ -11606,7 +11586,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty",
-      "community": 0,
+      "community": 7,
       "norm_label": "warranty"
     },
     {
@@ -11616,7 +11596,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_cs_list",
-      "community": 0,
+      "community": 7,
       "norm_label": "list"
     },
     {
@@ -11626,7 +11606,7 @@
       "source_location": "L58",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_isactive",
-      "community": 0,
+      "community": 7,
       "norm_label": ".isactive()"
     },
     {
@@ -11636,7 +11616,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_cs_dateonly",
-      "community": 0,
+      "community": 7,
       "norm_label": "dateonly"
     },
     {
@@ -11646,7 +11626,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_isexpired",
-      "community": 0,
+      "community": 7,
       "norm_label": ".isexpired()"
     },
     {
@@ -11656,7 +11636,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_daysremaining",
-      "community": 0,
+      "community": 7,
       "norm_label": ".daysremaining()"
     },
     {
@@ -11666,7 +11646,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_create",
-      "community": 0,
+      "community": 7,
       "norm_label": ".create()"
     },
     {
@@ -11676,7 +11656,7 @@
       "source_location": "L89",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_update",
-      "community": 0,
+      "community": 7,
       "norm_label": ".update()"
     },
     {
@@ -11686,7 +11666,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_setnotificationrules",
-      "community": 0,
+      "community": 7,
       "norm_label": ".setnotificationrules()"
     },
     {
@@ -11696,7 +11676,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_cs_ienumerable",
-      "community": 0,
+      "community": 7,
       "norm_label": "ienumerable"
     },
     {
@@ -11706,7 +11686,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_cs_offset",
-      "community": 0,
+      "community": 7,
       "norm_label": "offset"
     },
     {
@@ -11716,7 +11696,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_cs_enabled",
-      "community": 0,
+      "community": 7,
       "norm_label": "enabled"
     },
     {
@@ -11736,7 +11716,7 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "src_homeguard_domain_entities_warranty_warranty_applydefaultnotificationrules",
-      "community": 0,
+      "community": 7,
       "norm_label": ".applydefaultnotificationrules()"
     },
     {
@@ -11886,7 +11866,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule",
-      "community": 3,
+      "community": 0,
       "norm_label": "notificationrule.cs"
     },
     {
@@ -11896,7 +11876,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule_notificationrule",
-      "community": 3,
+      "community": 0,
       "norm_label": "notificationrule"
     },
     {
@@ -11916,7 +11896,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule_notificationrule_setenabled",
-      "community": 3,
+      "community": 0,
       "norm_label": ".setenabled()"
     },
     {
@@ -11926,7 +11906,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule_notificationrule_firedate",
-      "community": 3,
+      "community": 0,
       "norm_label": ".firedate()"
     },
     {
@@ -11936,7 +11916,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule_cs_dateonly",
-      "community": 3,
+      "community": 0,
       "norm_label": "dateonly"
     },
     {
@@ -11946,7 +11926,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_homeguard_domain_valueobjects_notificationrule_notificationrule_tostring",
-      "community": 3,
+      "community": 0,
       "norm_label": ".tostring()"
     },
     {
@@ -11996,7 +11976,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice",
-      "community": 46,
+      "community": 2,
       "norm_label": "blobstorageservice.cs"
     },
     {
@@ -12006,7 +11986,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageoptions",
-      "community": 46,
+      "community": 2,
       "norm_label": "blobstorageoptions"
     },
     {
@@ -12016,7 +11996,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_cs_string",
-      "community": 46,
+      "community": 2,
       "norm_label": "string"
     },
     {
@@ -12026,7 +12006,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice",
-      "community": 46,
+      "community": 2,
       "norm_label": "blobstorageservice"
     },
     {
@@ -12036,7 +12016,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_cs_ilogger",
-      "community": 46,
+      "community": 2,
       "norm_label": "ilogger"
     },
     {
@@ -12046,7 +12026,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_savelocallyasync",
-      "community": 46,
+      "community": 2,
       "norm_label": ".savelocallyasync()"
     },
     {
@@ -12056,7 +12036,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_cs_stream",
-      "community": 46,
+      "community": 2,
       "norm_label": "stream"
     },
     {
@@ -12066,7 +12046,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_cs_cancellationtoken",
-      "community": 46,
+      "community": 2,
       "norm_label": "cancellationtoken"
     },
     {
@@ -12076,7 +12056,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_cs_task",
-      "community": 46,
+      "community": 2,
       "norm_label": "task"
     },
     {
@@ -12086,7 +12066,7 @@
       "source_location": "L64",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_synctoremoteasync",
-      "community": 46,
+      "community": 2,
       "norm_label": ".synctoremoteasync()"
     },
     {
@@ -12096,7 +12076,7 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_readasync",
-      "community": 46,
+      "community": 2,
       "norm_label": ".readasync()"
     },
     {
@@ -12106,7 +12086,7 @@
       "source_location": "L132",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_deleteasync",
-      "community": 46,
+      "community": 2,
       "norm_label": ".deleteasync()"
     },
     {
@@ -12116,7 +12096,7 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_buildwebdavclient",
-      "community": 46,
+      "community": 2,
       "norm_label": ".buildwebdavclient()"
     },
     {
@@ -12126,7 +12106,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "webdavclient",
-      "community": 46,
+      "community": 2,
       "norm_label": "webdavclient"
     },
     {
@@ -12136,7 +12116,7 @@
       "source_location": "L168",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_ensureremotedirectoryasync",
-      "community": 46,
+      "community": 2,
       "norm_label": ".ensureremotedirectoryasync()"
     },
     {
@@ -12146,7 +12126,7 @@
       "source_location": "L180",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_blob_blobstorageservice_blobstorageservice_sanitizefilename",
-      "community": 46,
+      "community": 2,
       "norm_label": ".sanitizefilename()"
     },
     {
@@ -12156,7 +12136,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider",
-      "community": 78,
+      "community": 71,
       "norm_label": "googlecalendarprovider.cs"
     },
     {
@@ -12166,7 +12146,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_googlecalendaroptions",
-      "community": 78,
+      "community": 71,
       "norm_label": "googlecalendaroptions"
     },
     {
@@ -12176,7 +12156,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_cs_string",
-      "community": 78,
+      "community": 71,
       "norm_label": "string"
     },
     {
@@ -12186,7 +12166,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_googlecalendarprovider",
-      "community": 78,
+      "community": 71,
       "norm_label": "googlecalendarprovider"
     },
     {
@@ -12196,7 +12176,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_cs_ilogger",
-      "community": 78,
+      "community": 71,
       "norm_label": "ilogger"
     },
     {
@@ -12206,7 +12186,7 @@
       "source_location": "L46",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_googlecalendarprovider_upserteventasync",
-      "community": 78,
+      "community": 71,
       "norm_label": ".upserteventasync()"
     },
     {
@@ -12216,7 +12196,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_cs_cancellationtoken",
-      "community": 78,
+      "community": 71,
       "norm_label": "cancellationtoken"
     },
     {
@@ -12226,7 +12206,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_cs_task",
-      "community": 78,
+      "community": 71,
       "norm_label": "task"
     },
     {
@@ -12236,7 +12216,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_googlecalendarprovider_deleteeventasync",
-      "community": 78,
+      "community": 71,
       "norm_label": ".deleteeventasync()"
     },
     {
@@ -12246,7 +12226,7 @@
       "source_location": "L92",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_googlecalendarprovider_googlecalendarprovider_buildserviceasync",
-      "community": 78,
+      "community": 71,
       "norm_label": ".buildserviceasync()"
     },
     {
@@ -12256,7 +12236,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "calendarservice",
-      "community": 78,
+      "community": 71,
       "norm_label": "calendarservice"
     },
     {
@@ -12266,7 +12246,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator",
-      "community": 0,
+      "community": 74,
       "norm_label": "icalfeedgenerator.cs"
     },
     {
@@ -12276,7 +12256,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator",
-      "community": 0,
+      "community": 74,
       "norm_label": "icalfeedgenerator"
     },
     {
@@ -12286,7 +12266,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_cs_int",
-      "community": 0,
+      "community": 74,
       "norm_label": "int"
     },
     {
@@ -12296,7 +12276,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator_generateasync",
-      "community": 0,
+      "community": 74,
       "norm_label": ".generateasync()"
     },
     {
@@ -12306,7 +12286,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_cs_cancellationtoken",
-      "community": 0,
+      "community": 74,
       "norm_label": "cancellationtoken"
     },
     {
@@ -12316,7 +12296,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_cs_task",
-      "community": 0,
+      "community": 74,
       "norm_label": "task"
     },
     {
@@ -12326,7 +12306,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator_addwarrantyeventsasync",
-      "community": 0,
+      "community": 74,
       "norm_label": ".addwarrantyeventsasync()"
     },
     {
@@ -12336,7 +12316,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "icalcalendar",
-      "community": 0,
+      "community": 74,
       "norm_label": "icalcalendar"
     },
     {
@@ -12346,7 +12326,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_cs_dateonly",
-      "community": 0,
+      "community": 74,
       "norm_label": "dateonly"
     },
     {
@@ -12356,7 +12336,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator_addservicerecordeventsasync",
-      "community": 0,
+      "community": 74,
       "norm_label": ".addservicerecordeventsasync()"
     },
     {
@@ -12366,7 +12346,7 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator_buildwarrantydescription",
-      "community": 0,
+      "community": 74,
       "norm_label": ".buildwarrantydescription()"
     },
     {
@@ -12376,7 +12356,7 @@
       "source_location": "L139",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_calendar_icalfeedgenerator_icalfeedgenerator_buildservicedescription",
-      "community": 0,
+      "community": 74,
       "norm_label": ".buildservicedescription()"
     },
     {
@@ -13156,7 +13136,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender",
-      "community": 73,
+      "community": 71,
       "norm_label": "webpushnotificationsender.cs"
     },
     {
@@ -13166,7 +13146,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushoptions",
-      "community": 73,
+      "community": 71,
       "norm_label": "webpushoptions"
     },
     {
@@ -13176,7 +13156,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_cs_string",
-      "community": 73,
+      "community": 71,
       "norm_label": "string"
     },
     {
@@ -13186,7 +13166,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender",
-      "community": 73,
+      "community": 71,
       "norm_label": "webpushnotificationsender"
     },
     {
@@ -13196,7 +13176,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_cs_ilogger",
-      "community": 73,
+      "community": 71,
       "norm_label": "ilogger"
     },
     {
@@ -13206,7 +13186,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender_sendasync",
-      "community": 73,
+      "community": 71,
       "norm_label": ".sendasync()"
     },
     {
@@ -13216,7 +13196,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_cs_cancellationtoken",
-      "community": 73,
+      "community": 71,
       "norm_label": "cancellationtoken"
     },
     {
@@ -13226,7 +13206,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_cs_task",
-      "community": 73,
+      "community": 71,
       "norm_label": "task"
     },
     {
@@ -13236,7 +13216,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender_sendtoallasync",
-      "community": 73,
+      "community": 71,
       "norm_label": ".sendtoallasync()"
     },
     {
@@ -13246,7 +13226,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender_registersubscriptionasync",
-      "community": 73,
+      "community": 71,
       "norm_label": ".registersubscriptionasync()"
     },
     {
@@ -13256,7 +13236,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender_removesubscriptionasync",
-      "community": 73,
+      "community": 71,
       "norm_label": ".removesubscriptionasync()"
     },
     {
@@ -13266,7 +13246,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_webpushnotificationsender_sendtosubscriptionsasync",
-      "community": 73,
+      "community": 71,
       "norm_label": ".sendtosubscriptionsasync()"
     },
     {
@@ -13276,7 +13256,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_cs_ienumerable",
-      "community": 73,
+      "community": 71,
       "norm_label": "ienumerable"
     },
     {
@@ -13286,7 +13266,7 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_notifications_webpushnotificationsender_pushsubscriptionentity",
-      "community": 73,
+      "community": 71,
       "norm_label": "pushsubscriptionentity"
     },
     {
@@ -13466,7 +13446,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore",
-      "community": 19,
+      "community": 71,
       "norm_label": "processedoperationstore.cs"
     },
     {
@@ -13476,7 +13456,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore_processedoperationstore",
-      "community": 19,
+      "community": 71,
       "norm_label": "processedoperationstore"
     },
     {
@@ -13486,7 +13466,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore_processedoperationstore_getcachedackasync",
-      "community": 19,
+      "community": 71,
       "norm_label": ".getcachedackasync()"
     },
     {
@@ -13496,7 +13476,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore_cs_cancellationtoken",
-      "community": 19,
+      "community": 71,
       "norm_label": "cancellationtoken"
     },
     {
@@ -13506,7 +13486,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore_cs_task",
-      "community": 19,
+      "community": 71,
       "norm_label": "task"
     },
     {
@@ -13516,7 +13496,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_homeguard_infrastructure_persistence_processedoperationstore_processedoperationstore_recordasync",
-      "community": 19,
+      "community": 71,
       "norm_label": ".recordasync()"
     },
     {
@@ -27337,27 +27317,17 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L8",
+      "source_location": "L7",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "blobapiclient",
       "confidence_score": 1.0
     },
     {
-      "relation": "imports",
-      "confidence": "EXTRACTED",
-      "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "src_homeguard_client_pages_equipmentdetail",
-      "target": "microsoft_aspnetcore_components",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L203",
+      "source_location": "L202",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "mudcollapse",
@@ -27367,7 +27337,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L281",
+      "source_location": "L280",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "mudpaper",
@@ -27377,7 +27347,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L462",
+      "source_location": "L461",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "mudswitch",
@@ -27585,7 +27555,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L467",
+      "source_location": "L466",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_dialogactions",
@@ -27595,7 +27565,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L431",
+      "source_location": "L430",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_dialogcontent",
@@ -27605,7 +27575,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_equipmentapiclient",
@@ -27615,7 +27585,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L509",
+      "source_location": "L504",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_guid",
@@ -27635,7 +27605,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L10",
+      "source_location": "L9",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_isnackbar",
@@ -27645,7 +27615,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L241",
+      "source_location": "L240",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudalert",
@@ -27655,7 +27625,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L391",
+      "source_location": "L390",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudautocomplete",
@@ -27665,7 +27635,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L469",
+      "source_location": "L468",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudbutton",
@@ -27675,7 +27645,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L32",
+      "source_location": "L31",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudcard",
@@ -27685,7 +27655,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L33",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudcardcontent",
@@ -27695,7 +27665,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L294",
+      "source_location": "L293",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudchip",
@@ -27705,7 +27675,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L396",
+      "source_location": "L395",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_muddatepicker",
@@ -27715,7 +27685,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L429",
+      "source_location": "L428",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_muddialog",
@@ -27725,7 +27695,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L204",
+      "source_location": "L203",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_muddivider",
@@ -27735,7 +27705,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L432",
+      "source_location": "L431",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudgrid",
@@ -27745,7 +27715,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L265",
+      "source_location": "L264",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudicon",
@@ -27755,7 +27725,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L298",
+      "source_location": "L297",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudiconbutton",
@@ -27765,7 +27735,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L461",
+      "source_location": "L460",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_muditem",
@@ -27775,7 +27745,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L449",
+      "source_location": "L448",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudnumericfield",
@@ -27785,7 +27755,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L16",
+      "source_location": "L15",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudprogresslinear",
@@ -27795,7 +27765,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L400",
+      "source_location": "L399",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudselect",
@@ -27805,7 +27775,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L402",
+      "source_location": "L401",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudselectitem",
@@ -27815,7 +27785,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L267",
+      "source_location": "L266",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudspacer",
@@ -27825,7 +27795,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L284",
+      "source_location": "L283",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudstack",
@@ -27835,7 +27805,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L454",
+      "source_location": "L453",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudtext",
@@ -27845,7 +27815,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L434",
+      "source_location": "L433",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_mudtextfield",
@@ -27855,7 +27825,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L9",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_navigationmanager",
@@ -27865,7 +27835,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L12",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_pagetitle",
@@ -27875,7 +27845,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_recurringruleapiclient",
@@ -27885,7 +27855,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L484",
+      "source_location": "L479",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_recurringruledto",
@@ -27895,7 +27865,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_servicerecordapiclient",
@@ -27905,7 +27875,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L483",
+      "source_location": "L478",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_servicerecorddto",
@@ -27915,7 +27885,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L430",
+      "source_location": "L429",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_titlecontent",
@@ -27925,7 +27895,7 @@
       "relation": "imports",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_warrantyapiclient",
@@ -27935,7 +27905,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Pages/EquipmentDetail.razor",
-      "source_location": "L482",
+      "source_location": "L477",
       "weight": 1.0,
       "source": "src_homeguard_client_pages_equipmentdetail",
       "target": "src_homeguard_client_pages_equipmentdetail_razor_warrantydto",
@@ -33255,7 +33225,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Services/TimelineInterop.cs",
-      "source_location": "L93",
+      "source_location": "L90",
       "weight": 1.0,
       "source": "src_homeguard_client_services_timelineinterop",
       "target": "src_homeguard_client_services_timelineinterop_json",
@@ -33519,7 +33489,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/Services/TimelineInterop.cs",
-      "source_location": "L95",
+      "source_location": "L92",
       "weight": 1.0,
       "context": "field",
       "source": "src_homeguard_client_services_timelineinterop_json",
@@ -34194,17 +34164,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L508",
-      "weight": 1.0,
-      "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
-      "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_addcardaction",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L242",
+      "source_location": "L238",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_adjpos",
@@ -34304,7 +34264,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L269",
+      "source_location": "L265",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmttick",
@@ -34324,7 +34284,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L249",
+      "source_location": "L245",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_getticks",
@@ -34354,7 +34314,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L277",
+      "source_location": "L273",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_render",
@@ -34364,7 +34324,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L238",
+      "source_location": "L234",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_tox",
@@ -34384,7 +34344,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L456",
+      "source_location": "L452",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatebadge",
@@ -34394,7 +34354,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L466",
+      "source_location": "L462",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
@@ -34404,7 +34364,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L443",
+      "source_location": "L439",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_updateoverlay",
@@ -34470,9 +34430,20 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L460",
+      "source_location": "L456",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatebadge",
+      "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmtdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
+      "source_location": "L474",
+      "weight": 1.0,
+      "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmtdate",
       "confidence_score": 1.0
     },
@@ -34484,17 +34455,6 @@
       "source_location": "L478",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
-      "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmtdate",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L482",
-      "weight": 1.0,
-      "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_fmtnum",
       "confidence_score": 1.0
     },
@@ -34503,7 +34463,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L284",
+      "source_location": "L280",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_render",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_tox",
@@ -34514,7 +34474,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L282",
+      "source_location": "L278",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_render",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_getticks",
@@ -34525,7 +34485,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L440",
+      "source_location": "L436",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_render",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_updateoverlay",
@@ -34536,21 +34496,10 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L453",
+      "source_location": "L449",
       "weight": 1.0,
       "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updateoverlay",
       "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatebadge",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js",
-      "source_location": "L496",
-      "weight": 1.0,
-      "source": "src_homeguard_client_wwwroot_js_homeguard_timeline_updatecard",
-      "target": "src_homeguard_client_wwwroot_js_homeguard_timeline_addcardaction",
       "confidence_score": 1.0
     },
     {

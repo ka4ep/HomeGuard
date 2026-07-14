@@ -133,6 +133,48 @@ public sealed record UpdateServiceRecordDto(
     decimal? MeterReading = null
 );
 
+// ── Recurring rules ───────────────────────────────────────────────────────────
+
+public sealed record RecurringRuleDto(
+    Guid Id,
+    Guid EquipmentId,
+    string Title,
+    int? IntervalDays,
+    decimal? IntervalMeter,
+    int MaterializeDaysAhead,
+    int PredictionsAhead,
+    bool AnchorToPurchaseDate,
+    bool IsActive,
+    DateTimeOffset UpdatedAt
+);
+
+public sealed record CreateRecurringRuleDto(
+    Guid EquipmentId,
+    string Title,
+    int? IntervalDays = null,
+    decimal? IntervalMeter = null,
+    int MaterializeDaysAhead = 30,
+    int PredictionsAhead = 2,
+    bool AnchorToPurchaseDate = true
+);
+
+public sealed record UpdateRecurringRuleDto(
+    string Title,
+    int? IntervalDays = null,
+    decimal? IntervalMeter = null,
+    int MaterializeDaysAhead = 30,
+    int PredictionsAhead = 2,
+    bool AnchorToPurchaseDate = true,
+    bool IsActive = true
+);
+
+public sealed record PredictedEventDto(DateOnly Date, decimal? MeterReading);
+
+public sealed record RecurringRuleWithPredictionsDto(
+    RecurringRuleDto Rule,
+    IReadOnlyList<PredictedEventDto> Predictions
+);
+
 // ── Shared ────────────────────────────────────────────────────────────────────
 
 public sealed record NotificationRuleDto(

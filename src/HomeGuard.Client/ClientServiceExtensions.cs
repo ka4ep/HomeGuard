@@ -13,6 +13,7 @@ public static class ClientServiceExtensions
         services.AddHttpClient<EquipmentApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<WarrantyApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<ServiceRecordApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<RecurringRuleApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();

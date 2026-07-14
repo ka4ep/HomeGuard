@@ -168,6 +168,10 @@
     color: #fff;
 }
 
+.hg-tl-evbtn-pred {
+    border-style: dashed;
+}
+
 .hg-tl-cursor-overlay {
     position: absolute;
     top: 44px;
@@ -254,10 +258,46 @@
     background: var(--hg-border-strong);
 }
 
+.hg-tl-card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
 .hg-tl-card-fields {
+    flex: 1;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 8px;
+}
+
+.hg-tl-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.hg-tl-card-action {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--hg-radius-sm);
+    background: var(--hg-accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.hg-tl-card-action:hover {
+    background: var(--hg-accent-dark);
 }
 
 .hg-tl-cf {
@@ -281,3 +321,4 @@
     font-weight: 500;
     word-break: break-word;
 }
+

@@ -54,6 +54,7 @@ try
 
     // ── Background services ───────────────────────────────────────────────
     builder.Services.AddHostedService<JobRunnerService>();
+    builder.Services.AddHostedService<RecurringRuleMaterializationHostedService>();
     builder.Services.AddHostedService<NotificationSchedulerHostedService>();
     builder.Services.AddHostedService<BlobSyncHostedService>();
 
@@ -136,6 +137,7 @@ try
     app.MapEquipmentEndpoints();
     app.MapWarrantyEndpoints();
     app.MapServiceRecordEndpoints();
+    app.MapRecurringRuleEndpoints();
     app.MapSyncEndpoints();
     app.MapBlobEndpoints();
     app.MapCalendarFeedEndpoint();

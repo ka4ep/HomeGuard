@@ -1,8 +1,10 @@
 @page "/equipment/{Id:guid}"
 @using HomeGuard.Client.Common
+@using Microsoft.AspNetCore.Components
 @inject EquipmentApiClient EquipmentApi
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
+@inject RecurringRuleApiClient RuleApi
 @inject BlobApiClient BlobApi
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
@@ -231,6 +233,15 @@ else
                                 <MudText Typo="Typo.body2" Style="white-space:pre-line">@sr.Notes</MudText>
                             </MudStack>
                         }
+                        @{
+                            var linkedRule = FindRuleForTitle(sr.Title);
+                        }
+                        @if (linkedRule is not null)
+                        {
+                            <MudAlert Severity="Severity.Info" Dense="true" Icon="@Icons.Material.Filled.Repeat">
+                                Repeats @IntervalLabel(linkedRule)
+                            </MudAlert>
+                        }
                         <MudStack Row="true" Spacing="1">
                             <MudIconButton Icon="@Icons.Material.Outlined.Edit"
                                            Size="Size.Small"
@@ -238,9 +249,55 @@ else
                             <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
                                            Size="Size.Small" Color="Color.Error"
                                            OnClick="() => DeleteServiceAsync(sr.Id)" />
+                            <MudIconButton Icon="@Icons.Material.Outlined.Repeat"
+                                           Size="Size.Small"
+                                           title="@(linkedRule is null ? "Set up recurring" : "Edit recurring rule")"
+                                           OnClick="() => OpenRuleDialogForTitle(sr.Title)" />
                         </MudStack>
                     </MudStack>
                 </MudCollapse>
+            </MudPaper>
+        }
+    }
+
+    @* ── Recurring rules ─────────────────────────────────────────────────────── *@
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Repeat" />
+        <MudText Typo="Typo.h6">Recurring rules</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddRuleDialog">Add</MudButton>
+    </MudStack>
+
+    @if (_rules.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="mb-4">No recurring rules yet — attach one from a service record, or add one here.</MudText>
+    }
+    else
+    {
+        @foreach (var r in _rules)
+        {
+            <MudPaper @key="@r.Id" Elevation="1" Class="mb-1 px-4 py-2"
+                      Style="border-radius:var(--hg-radius-md)">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                    <MudStack Spacing="0" Style="flex:1">
+                        <MudText Typo="Typo.body1" Style="font-weight:600">@r.Title</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">Repeats @IntervalLabel(r)</MudText>
+                    </MudStack>
+                    @if (!r.IsActive)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">Inactive</MudChip>
+                    }
+                    else if (r.AnchorToPurchaseDate)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">Since purchase</MudChip>
+                    }
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small"
+                                   OnClick="() => OpenEditRuleDialog(r)" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                   Color="Color.Error" OnClick="() => DeleteRuleAsync(r.Id)" />
+                </MudStack>
             </MudPaper>
         }
     }
@@ -331,7 +388,9 @@ else
     <DialogContent>
         <MudGrid>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_srForm.Title" Label="Title" Required="true" />
+                <MudAutocomplete T="string" @bind-Value="_srForm.Title" Label="Title" Required="true"
+                                 SearchFunc="SearchTitles" Strict="false" CoerceText="true"
+                                 ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="_srForm.ServiceDateNullable"
@@ -366,27 +425,81 @@ else
     </DialogActions>
 </MudDialog>
 
+@* ── Recurring rule add/edit dialog ───────────────────────────────────────────── *@
+<MudDialog @bind-Visible="_showAddRule">
+    <TitleContent>@(_editRuleId.HasValue ? "Edit recurring rule" : "Set up recurring")</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_ruleForm.Title" Label="Title" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_ruleForm.IntervalDays" Label="Interval (days)"
+                                 HelperText="Leave blank to auto-compute from history" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_ruleForm.IntervalMeter"
+                                 Label="@("Interval" + (_detail?.MeterUnit is { Length: > 0 } u ? $" ({u})" : " (meter)"))"
+                                 HelperText="Leave blank to auto-compute from history" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_ruleForm.MaterializeDaysAhead" Label="Materialize (days ahead)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_ruleForm.PredictionsAhead" Label="Predictions to show" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_ruleForm.AnchorToPurchaseDate" Color="Color.Primary" Label="Existed since purchase"
+                           />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    On: the average interval counts from the equipment's purchase date, so one record is enough
+                    to predict the next. Off: only counts from this item's own first recorded service.
+                </MudText>
+            </MudItem>
+            @if (_editRuleId.HasValue)
+            {
+                <MudItem xs="12">
+                    <MudSwitch @bind-Value="_ruleForm.IsActive" Color="Color.Primary" Label="Active" />
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseRuleDialog">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveRuleAsync" Disabled="_saving">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
 @code {
     [Parameter] public Guid Id { get; set; }
 
-    private EquipmentDetailDto?    _detail;
-    private List<WarrantyDto>      _warranties     = [];
-    private List<ServiceRecordDto> _serviceRecords = [];
+    // Deep-link from the Timeline card: ?editService={id} / ?editRule={id} auto-opens the dialog.
+    [Parameter, SupplyParameterFromQuery(Name = "editService")] public Guid? EditServiceId { get; set; }
+    [Parameter, SupplyParameterFromQuery(Name = "editRule")] public Guid? EditRuleId { get; set; }
+
+    private EquipmentDetailDto?      _detail;
+    private List<WarrantyDto>        _warranties     = [];
+    private List<ServiceRecordDto>   _serviceRecords = [];
+    private List<RecurringRuleDto>   _rules          = [];
     private bool _saving;
 
     // Dialog visibility
     private bool _showEdit;
     private bool _showAddWarranty;
     private bool _showAddService;
+    private bool _showAddRule;
 
     // Edit IDs — null means "add new"
     private Guid? _editWarrantyId;
     private Guid? _editServiceId;
+    private Guid? _editRuleId;
 
     // Form models
     private EquipmentFormModel     _editForm = new();
     private WarrantyFormModel      _wForm    = new();
     private ServiceRecordFormModel _srForm   = new();
+    private RecurringRuleFormModel _ruleForm = new();
 
     // Развёрнутые строки — вместо MudExpansionPanel (каскадный параметр
     // ненадёжен в сложном дереве компонентов; MudCollapse + HashSet надёжнее)
@@ -399,7 +512,21 @@ else
     }
 
     protected override async Task OnInitializedAsync()
-        => await Task.WhenAll(LoadDetailAsync(), LoadWarrantiesAsync(), LoadServiceAsync());
+    {
+        await Task.WhenAll(LoadDetailAsync(), LoadWarrantiesAsync(), LoadServiceAsync(), LoadRulesAsync());
+
+        // Deep-link from the Timeline card's "Edit record" / "Open recurring rule" buttons.
+        if (EditServiceId.HasValue)
+        {
+            var sr = _serviceRecords.FirstOrDefault(s => s.Id == EditServiceId.Value);
+            if (sr is not null) OpenEditServiceDialog(sr);
+        }
+        else if (EditRuleId.HasValue)
+        {
+            var rule = _rules.FirstOrDefault(r => r.Id == EditRuleId.Value);
+            if (rule is not null) OpenEditRuleDialog(rule);
+        }
+    }
 
     private async Task LoadDetailAsync()
         => _detail = await EquipmentApi.GetAsync(Id);
@@ -409,6 +536,9 @@ else
 
     private async Task LoadServiceAsync()
         => _serviceRecords = await ServiceApi.GetByEquipmentAsync(Id) ?? [];
+
+    private async Task LoadRulesAsync()
+        => _rules = await RuleApi.GetByEquipmentAsync(Id) ?? [];
 
     // ── Equipment ─────────────────────────────────────────────────────────────
 
@@ -562,6 +692,104 @@ else
     {
         _showAddService = false;
         _editServiceId  = null;
+    }
+
+    // ── Recurring rules ───────────────────────────────────────────────────────
+
+    private RecurringRuleDto? FindRuleForTitle(string title)
+        => _rules.FirstOrDefault(r => string.Equals(r.Title.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private void OpenAddRuleDialog()
+    {
+        _editRuleId = null;
+        _ruleForm   = new RecurringRuleFormModel();
+        _showAddRule = true;
+    }
+
+    /// <summary>Opens the rule dialog prefilled for this title — edit if a rule already exists, else create.</summary>
+    private void OpenRuleDialogForTitle(string title)
+    {
+        var existing = FindRuleForTitle(title);
+        if (existing is not null)
+        {
+            OpenEditRuleDialog(existing);
+            return;
+        }
+
+        _editRuleId = null;
+        _ruleForm   = new RecurringRuleFormModel { Title = title };
+        _showAddRule = true;
+    }
+
+    private void OpenEditRuleDialog(RecurringRuleDto r)
+    {
+        _editRuleId = r.Id;
+        _ruleForm = new RecurringRuleFormModel
+        {
+            Title                = r.Title,
+            IntervalDays         = r.IntervalDays,
+            IntervalMeter        = r.IntervalMeter,
+            MaterializeDaysAhead = r.MaterializeDaysAhead,
+            PredictionsAhead     = r.PredictionsAhead,
+            AnchorToPurchaseDate = r.AnchorToPurchaseDate,
+            IsActive             = r.IsActive,
+        };
+        _showAddRule = true;
+    }
+
+    private async Task SaveRuleAsync()
+    {
+        _saving = true;
+        if (_editRuleId.HasValue)
+        {
+            await RuleApi.UpdateAsync(_editRuleId.Value, new UpdateRecurringRuleDto(
+                _ruleForm.Title, _ruleForm.IntervalDays, _ruleForm.IntervalMeter,
+                _ruleForm.MaterializeDaysAhead, _ruleForm.PredictionsAhead,
+                _ruleForm.AnchorToPurchaseDate, _ruleForm.IsActive));
+        }
+        else
+        {
+            await RuleApi.CreateAsync(new CreateRecurringRuleDto(
+                Id, _ruleForm.Title, _ruleForm.IntervalDays, _ruleForm.IntervalMeter,
+                _ruleForm.MaterializeDaysAhead, _ruleForm.PredictionsAhead, _ruleForm.AnchorToPurchaseDate));
+        }
+        await LoadRulesAsync();
+        _saving = false;
+        CloseRuleDialog();
+    }
+
+    private async Task DeleteRuleAsync(Guid id)
+    {
+        await RuleApi.DeleteAsync(id);
+        _rules.RemoveAll(r => r.Id == id);
+    }
+
+    private void CloseRuleDialog()
+    {
+        _showAddRule = false;
+        _editRuleId  = null;
+    }
+
+    private string IntervalLabel(RecurringRuleDto r)
+    {
+        var parts = new List<string>();
+        if (r.IntervalDays.HasValue) parts.Add($"~{r.IntervalDays}d");
+        if (r.IntervalMeter.HasValue) parts.Add($"~{r.IntervalMeter} {_detail?.MeterUnit}".Trim());
+        if (parts.Count == 0) return "automatically (from history)";
+        return "every " + string.Join(" / ", parts);
+    }
+
+    private Task<IEnumerable<string>> SearchTitles(string? search, CancellationToken ct)
+    {
+        var titles = _rules.Select(r => r.Title)
+            .Concat(_serviceRecords.Select(s => s.Title))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(t => t);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            titles = titles.Where(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)).OrderBy(t => t);
+
+        return Task.FromResult<IEnumerable<string>>(titles);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

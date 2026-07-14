@@ -58,3 +58,16 @@ public class ServiceRecordFormModel
     public DateOnly ServiceDate
         => ServiceDateNullable.HasValue ? DateOnly.FromDateTime(ServiceDateNullable.Value) : DateOnly.FromDateTime(DateTime.Today);
 }
+
+// ── RecurringRule ────────────────────────────────────────────────────────────
+
+public class RecurringRuleFormModel
+{
+    public string   Title                { get; set; } = string.Empty;
+    public int?     IntervalDays         { get; set; }
+    public decimal? IntervalMeter        { get; set; }
+    public int      MaterializeDaysAhead { get; set; } = 30;
+    public int      PredictionsAhead     { get; set; } = 2;
+    public bool     AnchorToPurchaseDate { get; set; } = true;
+    public bool     IsActive             { get; set; } = true;
+}

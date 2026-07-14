@@ -12,6 +12,8 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ServiceRecordService>();
         services.AddScoped<NotificationSchedulerService>();
         services.AddScoped<SyncProcessorService>();
+        services.AddScoped<RecurringRuleService>();
+        services.AddScoped<RecurringRuleMaterializationService>();
         return services;
     }
 }

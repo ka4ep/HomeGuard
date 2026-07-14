@@ -169,6 +169,54 @@ public sealed class NotificationSchedulerHostedService : BackgroundService
     }
 }
 
+// ── Recurring rule materialization ──────────────────────────────────────────────
+
+/// <summary>
+/// Runs <see cref="RecurringRuleMaterializationService"/> once per day at midnight UTC,
+/// before the notification scheduler so freshly materialized Planned records get picked
+/// up by GetDueSoonAsync in the same cycle.
+/// </summary>
+public sealed class RecurringRuleMaterializationHostedService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<RecurringRuleMaterializationHostedService> _logger;
+
+    public RecurringRuleMaterializationHostedService(
+        IServiceScopeFactory scopeFactory,
+        ILogger<RecurringRuleMaterializationHostedService> logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await RunOnceAsync(ct);
+
+            var nextMidnightUtc = DateTime.UtcNow.Date.AddDays(1);
+            var delay = nextMidnightUtc - DateTime.UtcNow;
+            await Task.Delay(delay, ct);
+        }
+    }
+
+    private async Task RunOnceAsync(CancellationToken ct)
+    {
+        try
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var materializer = scope.ServiceProvider.GetRequiredService<RecurringRuleMaterializationService>();
+            await materializer.RunAsync(ct);
+            _logger.LogInformation("Recurring rule materialization completed.");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Recurring rule materialization failed.");
+        }
+    }
+}
+
 // ── Blob sync ─────────────────────────────────────────────────────────────────
 
 /// <summary>
