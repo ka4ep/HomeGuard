@@ -5,6 +5,7 @@
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
 @inject RecurringRuleApiClient RuleApi
+@inject MeterReadingApiClient ReadingApi
 @inject BlobApiClient BlobApi
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
@@ -301,6 +302,67 @@ else
             </MudPaper>
         }
     }
+
+    @* ── Meter readings (only for metered equipment) ─────────────────────────── *@
+    @if (!string.IsNullOrWhiteSpace(_detail.MeterUnit))
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2 mt-4">
+            <MudIcon Icon="@Icons.Material.Filled.Speed" />
+            <MudText Typo="Typo.h6">Meter readings</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Text" Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="() => _showAddReading = true">Add</MudButton>
+        </MudStack>
+
+        @if (_readings.Count == 0)
+        {
+            <MudText Color="Color.Secondary" Class="mb-4">No readings yet.</MudText>
+        }
+        else
+        {
+            @foreach (var r in _readings.Take(_showAllReadings ? int.MaxValue : 5))
+            {
+                <MudPaper @key="@r.Id" Elevation="1" Class="mb-1 px-4 py-2"
+                          Style="border-radius:var(--hg-radius-md)">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                        <MudText Typo="Typo.body1" Style="font-weight:600">
+                            @r.Value.ToString("0.###") @_detail.MeterUnit
+                        </MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @r.ReadingDate.ToString("d MMM yyyy", null)
+                        </MudText>
+                        <MudSpacer />
+                        @if (r.Source == "Service")
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Default">@(r.Note ?? "Service")</MudChip>
+                        }
+                        else
+                        {
+                            @if (!string.IsNullOrWhiteSpace(r.Note))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@r.Note</MudText>
+                            }
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                           Color="Color.Error" OnClick="() => DeleteReadingAsync(r.Id)" />
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+            @if (_readings.Count > 5 && !_showAllReadings)
+            {
+                <MudButton Variant="Variant.Text" Size="Size.Small" Class="mb-4"
+                           OnClick="() => _showAllReadings = true">
+                    Show all (@_readings.Count)
+                </MudButton>
+            }
+        }
+
+        <MeterReadingDialog @bind-Visible="_showAddReading"
+                            Equipment="EquipmentAsSummaryList"
+                            FixedEquipmentId="@Id"
+                            OnSaved="OnReadingSaved" />
+    }
 }
 
 @* ── Equipment edit dialog ───────────────────────────────────────────────────── *@
@@ -482,7 +544,10 @@ else
     private List<WarrantyDto>        _warranties     = [];
     private List<ServiceRecordDto>   _serviceRecords = [];
     private List<RecurringRuleDto>   _rules          = [];
+    private List<MeterReadingDto>    _readings       = [];
     private bool _saving;
+    private bool _showAddReading;
+    private bool _showAllReadings;
 
     // Dialog visibility
     private bool _showEdit;
@@ -513,7 +578,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(LoadDetailAsync(), LoadWarrantiesAsync(), LoadServiceAsync(), LoadRulesAsync());
+        await Task.WhenAll(LoadDetailAsync(), LoadWarrantiesAsync(), LoadServiceAsync(), LoadRulesAsync(), LoadReadingsAsync());
 
         // Deep-link from the Timeline card's "Edit record" / "Open recurring rule" buttons.
         if (EditServiceId.HasValue)
@@ -539,6 +604,25 @@ else
 
     private async Task LoadRulesAsync()
         => _rules = await RuleApi.GetByEquipmentAsync(Id) ?? [];
+
+    private async Task LoadReadingsAsync()
+        => _readings = await ReadingApi.GetByEquipmentAsync(Id) ?? [];
+
+    private async Task DeleteReadingAsync(Guid id)
+    {
+        await ReadingApi.DeleteAsync(id);
+        await LoadReadingsAsync();
+    }
+
+    private Task OnReadingSaved(MeterReadingDto _) => LoadReadingsAsync();
+
+    // The quick-entry dialog takes EquipmentSummary items; wrap the detail we already have.
+    private List<EquipmentSummary> EquipmentAsSummaryList => _detail is null ? [] :
+    [
+        new EquipmentSummary(
+            _detail.Id, _detail.Name, _detail.Category, _detail.PurchaseDate,
+            _detail.Brand, _detail.Model, _detail.Tags, _detail.MeterUnit, _detail.UpdatedAt)
+    ];
 
     // ── Equipment ─────────────────────────────────────────────────────────────
 

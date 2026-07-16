@@ -1,12 +1,22 @@
 @page "/"
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
+@inject EquipmentApiClient EquipmentApi
 @inject OutboxSyncService Outbox
 @implements IDisposable
 
 <PageTitle>HomeGuard — Dashboard</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-4">Dashboard</MudText>
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h5">Dashboard</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Speed"
+               OnClick="OpenReadingDialog">
+        Record reading
+    </MudButton>
+</MudStack>
+
+<MeterReadingDialog @bind-Visible="_showReadingDialog" Equipment="_equipment" />
 
 @if (_pendingSync > 0)
 {
@@ -107,8 +117,10 @@
 @code {
     private List<WarrantyDto>?      _expiring;
     private List<ServiceRecordDto>? _dueSoon;
+    private List<EquipmentSummary>  _equipment = [];
     private int  _pendingSync;
     private bool _flushing;
+    private bool _showReadingDialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,6 +145,13 @@
         await Outbox.FlushAsync();
         _pendingSync = await Outbox.PendingCountAsync();
         _flushing = false;
+    }
+
+    private async Task OpenReadingDialog()
+    {
+        if (_equipment.Count == 0)
+            _equipment = await EquipmentApi.GetAllAsync() ?? [];
+        _showReadingDialog = true;
     }
 
     private void OnOutboxChanged()

@@ -164,6 +164,35 @@ public sealed class RecurringRuleApiClient
         => _http.DeleteAsync($"api/recurring-rules/{id}", ct);
 }
 
+// ── Meter readings ────────────────────────────────────────────────────────────
+
+public sealed class MeterReadingApiClient
+{
+    private readonly HttpClient _http;
+    public MeterReadingApiClient(HttpClient http) => _http = http;
+
+    /// <summary>Merged history (standalone + service-record readings), newest first.</summary>
+    public Task<List<MeterReadingDto>?> GetByEquipmentAsync(Guid equipmentId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<MeterReadingDto>>($"api/meter-readings/by-equipment/{equipmentId}", ct);
+
+    public async Task<MeterReadingDto?> CreateAsync(CreateMeterReadingDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync("api/meter-readings", dto, ct);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<MeterReadingDto>(ct);
+    }
+
+    public async Task<MeterReadingDto?> UpdateAsync(Guid id, UpdateMeterReadingDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PutAsJsonAsync($"api/meter-readings/{id}", dto, ct);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadFromJsonAsync<MeterReadingDto>(ct);
+    }
+
+    public Task DeleteAsync(Guid id, CancellationToken ct = default)
+        => _http.DeleteAsync($"api/meter-readings/{id}", ct);
+}
+
 // ── Sync ──────────────────────────────────────────────────────────────────────
 
 public sealed class SyncApiClient

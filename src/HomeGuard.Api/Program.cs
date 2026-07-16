@@ -138,6 +138,7 @@ try
     app.MapWarrantyEndpoints();
     app.MapServiceRecordEndpoints();
     app.MapRecurringRuleEndpoints();
+    app.MapMeterReadingEndpoints();
     app.MapSyncEndpoints();
     app.MapBlobEndpoints();
     app.MapCalendarFeedEndpoint();

@@ -133,6 +133,33 @@ public sealed record UpdateServiceRecordDto(
     decimal? MeterReading = null
 );
 
+// ── Meter readings ────────────────────────────────────────────────────────────
+
+/// <summary>Source "Service" marks a reading derived from a completed service record (read-only here).</summary>
+public sealed record MeterReadingDto(
+    Guid Id,
+    Guid EquipmentId,
+    DateOnly ReadingDate,
+    decimal Value,
+    string Source,
+    string? Note,
+    DateTimeOffset UpdatedAt
+);
+
+public sealed record CreateMeterReadingDto(
+    Guid EquipmentId,
+    DateOnly ReadingDate,
+    decimal Value,
+    string Source = "Manual",
+    string? Note = null
+);
+
+public sealed record UpdateMeterReadingDto(
+    DateOnly ReadingDate,
+    decimal Value,
+    string? Note = null
+);
+
 // ── Recurring rules ───────────────────────────────────────────────────────────
 
 public sealed record RecurringRuleDto(

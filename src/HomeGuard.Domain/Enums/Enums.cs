@@ -53,3 +53,15 @@ public enum ServiceStatus
     Completed = 0,
     Planned   = 1,
 }
+
+/// <summary>
+/// Where a <see cref="Entities.MeterReading"/> came from.
+/// Service is reserved for readings derived from <see cref="Entities.ServiceRecord.MeterReading"/>
+/// when the two sources are merged into one history — never stored on a MeterReading row.
+/// </summary>
+public enum MeterReadingSource
+{
+    Manual  = 0,
+    Service = 1,
+    Auto    = 2,
+}

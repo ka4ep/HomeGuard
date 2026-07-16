@@ -171,6 +171,23 @@ public sealed class RecurringRuleRepository : RepositoryBase<RecurringRule>, IRe
             .ToListAsync(ct);
 }
 
+// ── MeterReading ─────────────────────────────────────────────────────────────
+
+public sealed class MeterReadingRepository : RepositoryBase<MeterReading>, IMeterReadingRepository
+{
+    public MeterReadingRepository(HomeGuardDbContext db) : base(db) { }
+
+    public async Task<IReadOnlyList<MeterReading>> GetByEquipmentAsync(
+        Guid equipmentId, CancellationToken ct = default)
+    {
+        var all = await Set
+            .Where(r => r.EquipmentId == equipmentId)
+            .ToListAsync(ct);
+
+        return all.OrderByDescending(r => r.ReadingDate).ToList();
+    }
+}
+
 // ── BlobEntry ─────────────────────────────────────────────────────────────────
 
 public sealed class BlobEntryRepository : RepositoryBase<BlobEntry>, IBlobEntryRepository

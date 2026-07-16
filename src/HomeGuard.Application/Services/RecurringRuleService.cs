@@ -38,17 +38,20 @@ public sealed class RecurringRuleService
     private readonly IRecurringRuleRepository _rules;
     private readonly IServiceRecordRepository _serviceRecords;
     private readonly IEquipmentRepository _equipment;
+    private readonly IMeterReadingRepository _meterReadings;
     private readonly IUnitOfWork _uow;
 
     public RecurringRuleService(
         IRecurringRuleRepository rules,
         IServiceRecordRepository serviceRecords,
         IEquipmentRepository equipment,
+        IMeterReadingRepository meterReadings,
         IUnitOfWork uow)
     {
         _rules = rules;
         _serviceRecords = serviceRecords;
         _equipment = equipment;
+        _meterReadings = meterReadings;
         _uow = uow;
     }
 
@@ -124,7 +127,14 @@ public sealed class RecurringRuleService
         var ruleRecords = equipmentRecords
             .Where(r => string.Equals(r.Title.Trim(), rule.Title, StringComparison.OrdinalIgnoreCase))
             .ToList();
-        var meterHistory = equipmentRecords.Where(r => r.MeterReading.HasValue).ToList();
+
+        // Usage history from both sources: completed records' readings + standalone readings.
+        var standalone = await _meterReadings.GetByEquipmentAsync(rule.EquipmentId, ct);
+        var meterHistory = equipmentRecords
+            .Where(r => r.Status == ServiceStatus.Completed && r.MeterReading.HasValue)
+            .Select(r => new MeterPoint(r.ServiceDate, r.MeterReading!.Value))
+            .Concat(standalone.Select(r => new MeterPoint(r.ReadingDate, r.Value)))
+            .ToList();
 
         return TimelinePredictionService.Predict(rule, equipment, ruleRecords, meterHistory);
     }

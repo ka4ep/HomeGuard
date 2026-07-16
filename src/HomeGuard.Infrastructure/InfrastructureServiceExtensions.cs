@@ -34,6 +34,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IWarrantyRepository,     WarrantyRepository>();
         services.AddScoped<IServiceRecordRepository, ServiceRecordRepository>();
         services.AddScoped<IRecurringRuleRepository, RecurringRuleRepository>();
+        services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
         services.AddScoped<IBlobEntryRepository,    BlobEntryRepository>();
         services.AddScoped<IScheduledJobRepository, ScheduledJobRepository>();
         services.AddScoped<IAppUserRepository,      AppUserRepository>();

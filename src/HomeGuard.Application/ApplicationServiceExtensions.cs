@@ -14,6 +14,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<SyncProcessorService>();
         services.AddScoped<RecurringRuleService>();
         services.AddScoped<RecurringRuleMaterializationService>();
+        services.AddScoped<MeterReadingService>();
         return services;
     }
 }

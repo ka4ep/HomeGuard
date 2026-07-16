@@ -25,6 +25,7 @@ public sealed class HomeGuardDbContext : DbContext
     public DbSet<Warranty>          Warranties        => Set<Warranty>();
     public DbSet<ServiceRecord>     ServiceRecords    => Set<ServiceRecord>();
     public DbSet<RecurringRule>     RecurringRules    => Set<RecurringRule>();
+    public DbSet<MeterReading>      MeterReadings     => Set<MeterReading>();
     public DbSet<BlobEntry>         BlobEntries       => Set<BlobEntry>();
     public DbSet<AppUser>           Users             => Set<AppUser>();
     public DbSet<PasskeyCredential> Credentials       => Set<PasskeyCredential>();
@@ -146,6 +147,22 @@ public sealed class HomeGuardDbContext : DbContext
             e.Property(x => x.Title).HasMaxLength(300).IsRequired();
             e.Property(x => x.IntervalMeter).HasColumnType("TEXT");
             e.HasIndex(x => x.EquipmentId);
+
+            e.HasOne<Equipment>()
+                .WithMany()
+                .HasForeignKey(x => x.EquipmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── MeterReading ──────────────────────────────────────────────────────
+        modelBuilder.Entity<MeterReading>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.ReadingDate).HasConversion(dateOnlyConverter);
+            e.Property(x => x.Value).HasColumnType("TEXT");
+            e.Property(x => x.Source).HasConversion<int>();
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.HasIndex(x => new { x.EquipmentId, x.ReadingDate });
 
             e.HasOne<Equipment>()
                 .WithMany()

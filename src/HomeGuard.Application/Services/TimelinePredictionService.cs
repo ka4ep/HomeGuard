@@ -6,10 +6,18 @@ namespace HomeGuard.Application.Services;
 /// <summary>One computed-ahead-of-time point: not stored, recomputed on every call.</summary>
 public sealed record PredictedEvent(DateOnly Date, decimal? MeterReading);
 
+/// <summary>A dated meter value from any source (standalone reading or a service record's reading).</summary>
+public readonly record struct MeterPoint(DateOnly Date, decimal Value);
+
 /// <summary>
 /// Computes future maintenance dates for a <see cref="RecurringRule"/> from its completed
-/// service history. Nothing here is persisted — <see cref="RecurringRuleMaterializationService"/>
-/// is what turns a near-term prediction into a real Planned <see cref="ServiceRecord"/>.
+/// service history and the equipment's meter history. Nothing here is persisted —
+/// <see cref="RecurringRuleMaterializationService"/> is what turns a near-term prediction
+/// into a real Planned <see cref="ServiceRecord"/>.
+///
+/// Semantics follow real-world service schedules — "every 12 months or 15 000 km,
+/// whichever comes first": a calendar-based date and a meter-based date are computed
+/// independently and the earlier one wins.
 /// </summary>
 public static class TimelinePredictionService
 {
@@ -22,23 +30,23 @@ public static class TimelinePredictionService
     /// <param name="rule">The recurring rule.</param>
     /// <param name="equipment">The rule's equipment (for PurchaseDate / MeterUnit).</param>
     /// <param name="ruleRecords">Completed ServiceRecords for this rule, any order.</param>
-    /// <param name="equipmentMeterHistory">
-    /// All of the equipment's completed records that have a MeterReading, any order — used as a
-    /// fallback to estimate a predicted date's meter reading when this rule's own records don't
-    /// give enough signal (e.g. usage rate is steadier across all maintenance types than within
-    /// one narrow part's history). A future exact reading from an external telemetry service, if
-    /// one is ever wired up, should simply be preferred by the caller over this estimate.
+    /// <param name="meterHistory">
+    /// The equipment's full usage history from ALL sources — standalone MeterReadings and
+    /// completed service records' readings — any order. Drives the usage-rate estimate:
+    /// a broader sample is more stable than any single rule's own history.
     /// </param>
     public static IReadOnlyList<PredictedEvent> Predict(
         RecurringRule rule,
         Equipment equipment,
         IReadOnlyList<ServiceRecord> ruleRecords,
-        IReadOnlyList<ServiceRecord> equipmentMeterHistory)
+        IReadOnlyList<MeterPoint> meterHistory)
     {
         var completed = ruleRecords
             .Where(r => r.Status == ServiceStatus.Completed)
             .OrderBy(r => r.ServiceDate)
             .ToList();
+
+        var points = meterHistory.OrderBy(p => p.Date).ToList();
 
         // ── Days step: manual override wins, otherwise average the gaps between data points ──
         var dayPoints = new List<DateOnly>();
@@ -46,7 +54,7 @@ public static class TimelinePredictionService
             dayPoints.Add(equipment.PurchaseDate);
         dayPoints.AddRange(completed.Select(r => r.ServiceDate));
 
-        int dayStep;
+        int? dayStep = null;
         if (rule.IntervalDays.HasValue)
         {
             dayStep = rule.IntervalDays.Value;
@@ -59,12 +67,7 @@ public static class TimelinePredictionService
                 .ToList();
             dayStep = (int)Math.Round(gaps.Average());
         }
-        else
-        {
-            return []; // not enough signal yet to guess a cadence
-        }
-
-        if (dayStep <= 0) return [];
+        if (dayStep <= 0) dayStep = null;
 
         // ── Meter step: manual override wins, otherwise average this rule's own deltas ──
         decimal? meterStep = rule.IntervalMeter;
@@ -81,18 +84,45 @@ public static class TimelinePredictionService
                     meterStep = deltas.Average();
             }
         }
+        if (meterStep <= 0) meterStep = null;
 
-        var lastDate = dayPoints.Max();
-        var lastMeter = completed.LastOrDefault(r => r.MeterReading.HasValue)?.MeterReading;
+        // ── Usage rate: how fast the meter runs per day, from the full history ──
+        var ratePerDay = EstimateRatePerDay(points);
+
+        var lastDate = dayPoints.Count > 0 ? dayPoints.Max() : equipment.PurchaseDate;
+
+        // Meter value at the last service of THIS rule — the anchor the "+ intervalMeter"
+        // thresholds count from. Falls back to an estimate when the record carried no reading.
+        var lastServiceMeter = completed.LastOrDefault(r => r.MeterReading.HasValue)?.MeterReading
+            ?? EstimateMeterReading(points, lastDate);
+
+        var latest = points.Count > 0 ? points[^1] : (MeterPoint?)null;
 
         var results = new List<PredictedEvent>(rule.PredictionsAhead);
         for (var i = 1; i <= rule.PredictionsAhead; i++)
         {
-            var date = lastDate.AddDays(dayStep * i);
+            DateOnly? dayDate = dayStep.HasValue ? lastDate.AddDays(dayStep.Value * i) : null;
 
-            decimal? meter = lastMeter.HasValue && meterStep.HasValue
-                ? lastMeter + meterStep * i
-                : EstimateMeterReading(equipmentMeterHistory, date);
+            // Date the meter is expected to hit the i-th threshold, extrapolated from
+            // the latest actual reading. Can land in the past — that reads as overdue.
+            DateOnly? meterDate = null;
+            decimal? target = null;
+            if (meterStep.HasValue && lastServiceMeter.HasValue && ratePerDay > 0 && latest.HasValue)
+            {
+                target = lastServiceMeter.Value + meterStep.Value * i;
+                var days = (double)((target.Value - latest.Value.Value) / ratePerDay.Value);
+                meterDate = latest.Value.Date.AddDays((int)Math.Round(days));
+            }
+
+            if (dayDate is null && meterDate is null)
+                return results; // not enough signal on either axis
+
+            var meterWins = meterDate.HasValue && (dayDate is null || meterDate.Value < dayDate.Value);
+            var date = meterWins ? meterDate!.Value : dayDate!.Value;
+
+            var meter = meterWins
+                ? target
+                : EstimateMeterReading(points, date) ?? (lastServiceMeter + meterStep * i);
 
             results.Add(new PredictedEvent(date, meter));
         }
@@ -101,32 +131,34 @@ public static class TimelinePredictionService
     }
 
     /// <summary>
-    /// Rough linear extrapolation of an equipment's meter reading at <paramref name="targetDate"/>
-    /// from its most recent readings across ALL its service records (not just one rule's) — a
-    /// broader usage-rate sample is more stable than any single part's own history. This is
-    /// intentionally approximate; an exact reading from an external service should take priority
-    /// whenever one becomes available.
+    /// Rough linear extrapolation of the meter value at <paramref name="targetDate"/> from the
+    /// most recent points of the merged history. Intentionally approximate; an exact reading
+    /// from an external telemetry service should take priority whenever one is available.
     /// </summary>
-    public static decimal? EstimateMeterReading(IReadOnlyList<ServiceRecord> equipmentMeterHistory, DateOnly targetDate)
+    public static decimal? EstimateMeterReading(IReadOnlyList<MeterPoint> meterHistory, DateOnly targetDate)
     {
-        var points = equipmentMeterHistory
-            .Where(r => r.Status == ServiceStatus.Completed && r.MeterReading.HasValue)
-            .OrderBy(r => r.ServiceDate)
-            .TakeLast(RecentGapsToAverage)
-            .ToList();
+        var points = meterHistory.OrderBy(p => p.Date).ToList();
+        var rate = EstimateRatePerDay(points);
+        if (rate is null) return null;
 
+        var last = points[^1];
+        var daysAhead = targetDate.DayNumber - last.Date.DayNumber;
+        var estimate = last.Value + rate.Value * daysAhead;
+        return estimate < 0 ? 0 : estimate;
+    }
+
+    /// <summary>Average meter units per day over the last few points; null when the history is too thin or inconsistent.</summary>
+    private static decimal? EstimateRatePerDay(IReadOnlyList<MeterPoint> orderedPoints)
+    {
+        var points = orderedPoints.TakeLast(RecentGapsToAverage).ToList();
         if (points.Count < 2) return null;
 
         var first = points[0];
         var last = points[^1];
-        var daySpan = last.ServiceDate.DayNumber - first.ServiceDate.DayNumber;
+        var daySpan = last.Date.DayNumber - first.Date.DayNumber;
         if (daySpan <= 0) return null;
 
-        var ratePerDay = (last.MeterReading!.Value - first.MeterReading!.Value) / daySpan;
-        if (ratePerDay < 0) return null;
-
-        var daysAhead = targetDate.DayNumber - last.ServiceDate.DayNumber;
-        var estimate = last.MeterReading.Value + ratePerDay * daysAhead;
-        return estimate < 0 ? 0 : estimate;
+        var ratePerDay = (last.Value - first.Value) / daySpan;
+        return ratePerDay < 0 ? null : ratePerDay;
     }
 }

@@ -1,0 +1,134 @@
+@* Quick-entry dialog for a meter/odometer reading. Reusable from Home and EquipmentDetail. *@
+@* HomeGuard.Client.Common is what _Imports.razor exposes everywhere (the folder-default
+   HomeGuard.Client.Shared namespace is NOT imported globally — it clashes with Pages/EquipmentForm). *@
+@namespace HomeGuard.Client.Common
+@inject MeterReadingApiClient Api
+@inject ISnackbar Snackbar
+
+<MudDialog Visible="Visible" VisibleChanged="OnVisibleChanged">
+    <TitleContent>Record meter reading</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudSelect T="Guid?" Value="_equipmentId" ValueChanged="OnEquipmentChanged"
+                           Label="Equipment" Required="true"
+                           Disabled="@(FixedEquipmentId is not null)">
+                    @foreach (var e in MeteredEquipment)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)e.Id)">@e.Name (@e.MeterUnit)</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal?" @bind-Value="_value" Required="true"
+                                 Label="@ValueLabel" Min="0" HideSpinButtons="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_dateNullable" Label="Date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_note" Label="Note" />
+            </MudItem>
+            @if (_lastReading is not null)
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                        Last known: @_lastReading.Value.ToString("0.###") @SelectedUnit
+                        on @_lastReading.ReadingDate.ToString("yyyy-MM-dd")
+                    </MudText>
+                    @if (_value < _lastReading.Value)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Warning">
+                            New value is lower than the last known reading.
+                        </MudText>
+                    }
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseAsync">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="@(_saving || _equipmentId is null || _value is null)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+
+    /// <summary>All equipment to choose from; entries without a MeterUnit are filtered out.</summary>
+    [Parameter] public List<EquipmentSummary> Equipment { get; set; } = [];
+
+    /// <summary>When set, the equipment is fixed (dialog opened from an equipment page).</summary>
+    [Parameter] public Guid? FixedEquipmentId { get; set; }
+
+    [Parameter] public EventCallback<MeterReadingDto> OnSaved { get; set; }
+
+    private Guid?     _equipmentId;
+    private decimal?  _value;
+    private DateTime? _dateNullable = DateTime.Today;
+    private string?   _note;
+    private bool      _saving;
+    private MeterReadingDto? _lastReading;
+
+    private List<EquipmentSummary> MeteredEquipment
+        => Equipment.Where(e => !string.IsNullOrWhiteSpace(e.MeterUnit)).ToList();
+
+    private string? SelectedUnit
+        => Equipment.FirstOrDefault(e => e.Id == _equipmentId)?.MeterUnit;
+
+    private string ValueLabel
+        => SelectedUnit is null ? "Reading" : $"Reading ({SelectedUnit})";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible && FixedEquipmentId is not null && _equipmentId != FixedEquipmentId)
+            await OnEquipmentChanged(FixedEquipmentId);
+    }
+
+    private async Task OnEquipmentChanged(Guid? id)
+    {
+        _equipmentId = id;
+        _lastReading = null;
+        if (id is null) return;
+
+        var history = await Api.GetByEquipmentAsync(id.Value);
+        _lastReading = history?.FirstOrDefault();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_equipmentId is null || _value is null) return;
+        _saving = true;
+        try
+        {
+            var date = DateOnly.FromDateTime(_dateNullable ?? DateTime.Today);
+            var dto = await Api.CreateAsync(new CreateMeterReadingDto(
+                _equipmentId.Value, date, _value.Value, "Manual",
+                string.IsNullOrWhiteSpace(_note) ? null : _note.Trim()));
+
+            Snackbar.Add("Reading saved.", Severity.Success);
+            await CloseAsync();
+            if (dto is not null) await OnSaved.InvokeAsync(dto);
+        }
+        catch (HttpRequestException)
+        {
+            Snackbar.Add("Could not save the reading.", Severity.Error);
+        }
+        finally { _saving = false; }
+    }
+
+    private Task OnVisibleChanged(bool visible)
+        => visible ? Task.CompletedTask : CloseAsync();
+
+    private async Task CloseAsync()
+    {
+        _value = null;
+        _note = null;
+        _dateNullable = DateTime.Today;
+        await VisibleChanged.InvokeAsync(false);
+    }
+}
