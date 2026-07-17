@@ -63,7 +63,18 @@ public sealed record TimelineRow(
     /// <summary>Equipment name, shown only above the first row of that equipment's cluster.</summary>
     string? Group,
     string Color,
-    List<TimelineEvent> Events
+    List<TimelineEvent> Events,
+    /// <summary>Standalone meter readings (Manual/Auto) — drawn as small ticks at the bottom of the row.</summary>
+    List<TimelineMark>? Marks = null
+);
+
+/// <summary>A small tick on a row: a standalone meter reading, not an event.</summary>
+public sealed record TimelineMark(
+    [property: JsonPropertyName("date")] string DateIso,
+    decimal Value,
+    string? Unit,
+    string Source,
+    string? Note = null
 );
 
 /// <summary>One button on a row: a service record, a warranty start/expiry point, or a computed prediction.</summary>

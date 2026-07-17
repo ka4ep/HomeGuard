@@ -152,6 +152,23 @@
     transition: font-weight .1s;
 }
 
+.hg-tl-meter-mark {
+    position: absolute;
+    bottom: 1px;
+    width: 4px;
+    height: 9px;
+    border-radius: 2px 2px 0 0;
+    background: #D89A30;
+    opacity: .65;
+    z-index: 2;
+    transition: opacity .12s, height .12s;
+}
+
+.hg-tl-meter-mark-hov {
+    opacity: 1;
+    height: 14px;
+}
+
 .hg-tl-evbtn {
     position: absolute;
     border-radius: 4px;

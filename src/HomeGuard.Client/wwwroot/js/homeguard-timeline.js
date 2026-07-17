@@ -62,6 +62,7 @@ window.homeGuardTimeline = {
         return JSON.parse(json).map(r => ({
             ...r,
             events: r.events.map(e => ({ ...e, dateObj: this._parseDate(e.date) })),
+            marks: (r.marks || []).map(m => ({ ...m, dateObj: this._parseDate(m.date) })),
         }));
     },
 
@@ -339,6 +340,30 @@ window.homeGuardTimeline = {
                 td.style.left = todayX + 'px';
                 cell.appendChild(td);
             }
+
+            // meter-reading ticks — thin marks along the bottom edge of the row
+            row.marks.forEach((mk, mi) => {
+                const x = this._toX(inst, mk.dateObj);
+                if (x < -2 || x > inst.tw + 2) return;
+
+                const mkEl = document.createElement('div');
+                mkEl.className = 'hg-tl-meter-mark';
+                mkEl.style.left = (x - 2) + 'px';
+                mkEl.addEventListener('mouseenter', () => {
+                    inst.hovId = `mk-${row.id}-${mi}`;
+                    mkEl.classList.add('hg-tl-meter-mark-hov');
+                    const src = mk.source === 'Auto' ? ' · auto' : '';
+                    inst.dateBadge.textContent =
+                        `${this._fmtDate(mk.dateObj)} · ${this._fmtNum(mk.value)}${mk.unit ? ' ' + mk.unit : ''}${src}`;
+                    inst.dateBadge.style.display = 'block';
+                });
+                mkEl.addEventListener('mouseleave', () => {
+                    inst.hovId = null;
+                    mkEl.classList.remove('hg-tl-meter-mark-hov');
+                    inst.updateBadge();
+                });
+                cell.appendChild(mkEl);
+            });
 
             const pos = this._adjPos(inst, row.events);
 

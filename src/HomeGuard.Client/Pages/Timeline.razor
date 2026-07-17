@@ -4,6 +4,7 @@
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
 @inject RecurringRuleApiClient RuleApi
+@inject MeterReadingApiClient MeterApi
 @inject TimelineInterop TimelineInterop
 @inject ISnackbar Snackbar
 @implements IAsyncDisposable
@@ -46,6 +47,7 @@
     private List<RecurringRuleWithPredictionsDto> _rules = [];
     private Dictionary<Guid, string> _equipMap = [];
     private Dictionary<Guid, string?> _equipMeterUnit = [];
+    private Dictionary<Guid, List<MeterReadingDto>> _readings = [];
 
     // Canonical title per service record ID (computed once after load)
     private Dictionary<Guid, string> _canonicals = [];
@@ -89,6 +91,14 @@
         _warranties = warrantyTask.Result ?? [];
         _services = serviceTask.Result ?? [];
         _rules = rulesTask.Result ?? [];
+
+        // Standalone meter readings — only equipment with a meter has any
+        var metered = equipment.Where(e => !string.IsNullOrEmpty(e.MeterUnit)).Select(e => e.Id).ToList();
+        var readingTasks = metered.ToDictionary(id => id, id => MeterApi.GetByEquipmentAsync(id));
+        await Task.WhenAll(readingTasks.Values);
+        _readings = readingTasks.ToDictionary(
+            kv => kv.Key,
+            kv => (kv.Value.Result ?? []).Where(r => r.Source != "Service").ToList());
 
         // Build canonical title clusters per equipment (fuzzy-matched, stable order)
         var clustersByEquip = new Dictionary<Guid, List<string>>();
@@ -205,12 +215,26 @@
                             RuleId: rule.Rule.Id)));
                     }
 
+                    // Standalone readings — ticks on the first row of the equipment's cluster only
+                    List<TimelineMark>? marks = null;
+                    if (canonical == firstCanonical && _readings.TryGetValue(grp.Key, out var rds) && rds.Count > 0)
+                        marks = rds
+                            .OrderBy(r => r.ReadingDate)
+                            .Select(r => new TimelineMark(
+                                DateIso: r.ReadingDate.ToString("yyyy-MM-dd", null),
+                                Value: r.Value,
+                                Unit: meterUnit,
+                                Source: r.Source,
+                                Note: r.Note))
+                            .ToList();
+
                     rows.Add(new TimelineRow(
                         Id: $"equip-{grp.Key}-{Math.Abs(canonical.GetHashCode()):x8}",
                         Label: canonical,
                         Group: canonical == firstCanonical ? equipName : null,
                         Color: ServiceColor,
-                        Events: events
+                        Events: events,
+                        Marks: marks
                     ));
                 }
             }
