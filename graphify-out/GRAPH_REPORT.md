@@ -1,16 +1,16 @@
 # Graph Report - HomeGuard  (2026-07-17)
 
 ## Corpus Check
-- 135 files · ~48,905 words
+- 141 files · ~48,736 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1617 nodes · 2755 edges · 97 communities (83 shown, 14 thin omitted)
+- 1696 nodes · 2793 edges · 103 communities (89 shown, 14 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 25 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c73078a9`
+- Built from commit: `3fd92158`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -103,19 +103,25 @@
 - [[_COMMUNITY_Community 93|Community 93]]
 - [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 95|Community 95]]
+- [[_COMMUNITY_Community 96|Community 96]]
+- [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 98|Community 98]]
+- [[_COMMUNITY_Community 99|Community 99]]
+- [[_COMMUNITY_Community 100|Community 100]]
+- [[_COMMUNITY_Community 101|Community 101]]
+- [[_COMMUNITY_Community 102|Community 102]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `Guid` - 100 edges
-2. `ServiceRecord` - 35 edges
-3. `Warranty` - 29 edges
-4. `Equipment` - 27 edges
-5. `RecurringRuleService` - 24 edges
-6. `ServiceRecordService` - 21 edges
-7. `WarrantyService` - 20 edges
-8. `StartupDiagnostics` - 20 edges
-9. `BlobEntry` - 19 edges
-10. `RecurringRule` - 19 edges
+1. `ServiceRecord` - 35 edges
+2. `Warranty` - 29 edges
+3. `Equipment` - 27 edges
+4. `RecurringRuleService` - 24 edges
+5. `ServiceRecordService` - 21 edges
+6. `WarrantyService` - 20 edges
+7. `StartupDiagnostics` - 20 edges
+8. `BlobEntry` - 19 edges
+9. `RecurringRule` - 19 edges
+10. `EquipmentService` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `CI Workflow` --references--> `Container Configuration`  [INFERRED]
@@ -137,59 +143,59 @@
 - **HomeGuard External Integrations** — web_push, vapid_keys, fido2_passkeys, blob_storage, nextcloud_integration, google_calendar, ical_feed [INFERRED 0.85]
 - **Client UI Dependencies** — mudblazor, vis_timeline [EXTRACTED 1.00]
 
-## Communities (97 total, 14 thin omitted)
+## Communities (103 total, 14 thin omitted)
 
 ### Community 0 - "Warranty & Calendar"
-Cohesion: 0.09
-Nodes (22): CreateWarrantyRequest, CancellationToken, IResult, Task, WebApplication, NotificationRuleDto, NotificationRuleRequest, SetNotificationRulesRequest (+14 more)
+Cohesion: 0.06
+Nodes (41): ICalCalendar, CreateWarrantyRequest, CancellationToken, Guid, IResult, Task, WebApplication, NotificationRuleDto (+33 more)
 
 ### Community 1 - "Blob & Notifications"
-Cohesion: 0.07
-Nodes (26): IFormFile, BlobEndpoints, CalendarFeedEndpoints, CancellationToken, HttpContext, IResult, Task, WebApplication (+18 more)
+Cohesion: 0.09
+Nodes (24): CancellationToken, DateTimeOffset, Guid, IReadOnlyList, Task, IBlobEntryRepository, IRecurringRuleRepository, IScheduledJobRepository (+16 more)
 
 ### Community 2 - "Domain & Repos"
-Cohesion: 0.06
-Nodes (15): Entity, PasskeyCredential, BlobEntry, DateTimeOffset, int, TimeSpan, ScheduledJob, BlobStorageOptions (+7 more)
+Cohesion: 0.10
+Nodes (8): Entity, AppUser, Guid, List, PasskeyCredential, AppUserRepository, Credential, User
 
 ### Community 3 - "Equipment Module"
 Cohesion: 0.06
-Nodes (31): Fact, CreateEquipmentRequest, CancellationToken, IResult, Task, WebApplication, EquipmentDetailDto, EquipmentEndpoints (+23 more)
+Nodes (34): Fact, CreateEquipmentRequest, CancellationToken, Guid, IResult, Task, WebApplication, EquipmentDetailDto (+26 more)
 
 ### Community 4 - "Service Records"
-Cohesion: 0.07
-Nodes (30): CreateServiceRecordRequest, CancellationToken, IResult, Task, WebApplication, ServiceRecordDto, ServiceRecordEndpoints, UpdateServiceRecordRequest (+22 more)
+Cohesion: 0.13
+Nodes (19): CreateServiceRecordRequest, CancellationToken, Guid, IResult, Task, WebApplication, ServiceRecordDto, ServiceRecordEndpoints (+11 more)
 
 ### Community 5 - "Client API Clients"
-Cohesion: 0.07
-Nodes (41): IBrowserFile, long, Guid, CancellationToken, HttpClient, JsonSerializerOptions, List, Task (+33 more)
+Cohesion: 0.09
+Nodes (34): CancellationToken, Guid, HttpClient, JsonSerializerOptions, List, Task, EquipmentApiClient, Json (+26 more)
 
 ### Community 6 - "Equipment Detail UI"
-Cohesion: 0.03
-Nodes (78): BlobApiClient, Microsoft.AspNetCore.Components, MudCollapse, MudPaper, MudSwitch, route:/equipment/{Id:guid}, CloseRuleDialog, CloseServiceDialog (+70 more)
+Cohesion: 0.06
+Nodes (30): MeterReadingSection, Microsoft.AspNetCore.Components, route:/equipment/{Id:guid}, ServiceSection, DeleteEquipmentAsync, OnInitializedAsync, OpenEditDialog, DialogActions (+22 more)
 
 ### Community 7 - "Infrastructure Repos"
-Cohesion: 0.24
-Nodes (6): CancellationToken, DateOnly, IReadOnlyList, Task, EquipmentRepository, ServiceRecordRepository
+Cohesion: 0.20
+Nodes (9): CancellationToken, DateOnly, DateTimeOffset, Guid, IReadOnlyList, Task, EquipmentRepository, ServiceRecordRepository (+1 more)
 
 ### Community 8 - "Tech Stack & Brand"
-Cohesion: 0.09
-Nodes (22): Blazor WASM PWA, HomeGuard Brand Identity, HomeGuard.Client, HomeGuard.Client.Layout, HomeGuard.Client.Services, HomeGuard.Common, Microsoft.AspNetCore.Components.Forms, Microsoft.AspNetCore.Components.Routing (+14 more)
+Cohesion: 0.07
+Nodes (24): Blazor WASM PWA, Color, HomeGuard Brand Identity, HomeGuard.Client, HomeGuard.Client.Layout, HomeGuard.Client.Services, HomeGuard.Common, Microsoft.AspNetCore.Components.Forms (+16 more)
 
 ### Community 9 - "Service Records UI"
-Cohesion: 0.05
-Nodes (39): route:/service, DaysLabel, DeleteAsync, LoadAsync, OnInitializedAsync, OpenAddDialog, OpenEditDialog, ChildContent (+31 more)
+Cohesion: 0.08
+Nodes (24): route:/service, DeleteAsync, LoadAsync, OnInitializedAsync, OnSavedAsync, ChildContent, EquipmentApiClient, EquipmentSummary (+16 more)
 
 ### Community 10 - "Warranties UI"
-Cohesion: 0.05
-Nodes (36): route:/warranties, DeleteAsync, LoadAsync, OnInitializedAsync, OpenAddDialog, OpenEditDialog, ChildContent, DialogActions (+28 more)
+Cohesion: 0.08
+Nodes (24): route:/warranties, DeleteAsync, LoadAsync, OnInitializedAsync, OnSavedAsync, ChildContent, EquipmentApiClient, EquipmentSummary (+16 more)
 
 ### Community 11 - "Settings UI"
 Cohesion: 0.06
 Nodes (34): IDialogService, MudTooltip, NotificationApiClient, PushStatus, route:/settings, AddDeviceAsync, ConfirmRevokeAsync, FlushAsync (+26 more)
 
 ### Community 12 - "Auth Endpoints"
-Cohesion: 0.13
-Nodes (22): AuthenticatorAssertionRawResponse, AuthenticatorAttestationRawResponse, IFido2, AddDeviceRequest, AuthEndpoints, CredentialDto, CancellationToken, HttpContext (+14 more)
+Cohesion: 0.12
+Nodes (24): AuthenticatorAssertionRawResponse, AuthenticatorAttestationRawResponse, IFido2, AddDeviceRequest, AuthEndpoints, CredentialDto, CancellationToken, Guid (+16 more)
 
 ### Community 13 - "Home Dashboard"
 Cohesion: 0.06
@@ -201,11 +207,11 @@ Nodes (13): Assembly, ConfigurationManager, IServiceProvider, IEnumerable, ILogg
 
 ### Community 15 - "Equipment List UI"
 Cohesion: 0.07
-Nodes (26): EquipmentForm, route:/equipment, CategoryIcon, OnInitializedAsync, OpenAddDialog, OpenDetail, DialogActions, DialogContent (+18 more)
+Nodes (26): route:/equipment, CategoryIcon, OnInitializedAsync, OpenAddDialog, OpenDetail, DialogActions, DialogContent, EquipmentApiClient (+18 more)
 
 ### Community 16 - "Auth Client"
-Cohesion: 0.17
-Nodes (12): Error, AuthApiClient, AuthResult, AuthResultDto, CredentialDto, CancellationToken, HttpClient, List (+4 more)
+Cohesion: 0.16
+Nodes (13): Error, AuthApiClient, AuthResult, AuthResultDto, CredentialDto, CancellationToken, Guid, HttpClient (+5 more)
 
 ### Community 17 - "Client DB & Outbox"
 Cohesion: 0.12
@@ -252,8 +258,8 @@ Cohesion: 0.13
 Nodes (14): CapturedDocument, DocumentCapture, HomeGuard.Client.Model, IJSObjectReference, CapturePhoto, ClearCapture, DisposeAsync, OnAfterRenderAsync (+6 more)
 
 ### Community 28 - "Notification Scheduler"
-Cohesion: 0.25
-Nodes (9): CancellationToken, DateOnly, DateTimeOffset, string, Task, DateOnlyExtensions, JobTypes, NotificationJobPayload (+1 more)
+Cohesion: 0.13
+Nodes (13): CancellationToken, DateOnly, DateTimeOffset, Guid, string, Task, DateOnlyExtensions, JobTypes (+5 more)
 
 ### Community 29 - "API Dependencies"
 Cohesion: 0.13
@@ -280,8 +286,8 @@ Cohesion: 0.15
 Nodes (12): LayoutComponentBase, MudAppBar, MudDrawer, MudDrawerHeader, MudLayout, MudMainContent, NavMenu, MudContainer (+4 more)
 
 ### Community 35 - "Community 35"
-Cohesion: 0.17
-Nodes (11): CancellationToken, string, T, Task, DeletePayload, SyncOperationTypes, SyncProcessorService, OutboxEntry (+3 more)
+Cohesion: 0.15
+Nodes (12): CancellationToken, Guid, string, T, Task, DeletePayload, SyncOperationTypes, SyncProcessorService (+4 more)
 
 ### Community 36 - "EF Migrations"
 Cohesion: 0.09
@@ -312,16 +318,16 @@ Cohesion: 0.25
 Nodes (6): DelegatingHandler, HttpRequestMessage, HttpResponseMessage, ApiAuthHandler, CancellationToken, Task
 
 ### Community 43 - "Equipment Form Page"
-Cohesion: 0.25
-Nodes (7): MudDatePicker, MudGrid, MudItem, MudNumericField, MudSelect, MudSelectItem, MudTextField
+Cohesion: 0.07
+Nodes (29): RecurringRuleDialog, DeleteRuleAsync, DeleteServiceAsync, IntervalLabel, LoadRulesAsync, LoadServicesAsync, OnAfterRender, OnInitializedAsync (+21 more)
 
 ### Community 44 - "Equipment Form Shared"
 Cohesion: 0.25
 Nodes (7): MudDatePicker, MudGrid, MudItem, MudNumericField, MudSelect, MudSelectItem, MudTextField
 
 ### Community 46 - "Community 46"
-Cohesion: 0.21
-Nodes (7): DateOnly, enabled, IEnumerable, List, offset, Warranty, WarrantyRepository
+Cohesion: 0.16
+Nodes (13): IFormFile, BlobEndpoints, CalendarFeedEndpoints, CancellationToken, Guid, HttpContext, IResult, Task (+5 more)
 
 ### Community 48 - "Model Snapshot"
 Cohesion: 0.33
@@ -360,16 +366,16 @@ Cohesion: 0.40
 Nodes (4): EquipmentFormModel, RecurringRuleFormModel, ServiceRecordFormModel, WarrantyFormModel
 
 ### Community 71 - "Community 71"
-Cohesion: 0.21
-Nodes (8): CalendarEventDto, CancellationToken, Stream, Task, IBlobStorage, ICalendarProvider, INotificationSender, IProcessedOperationStore
+Cohesion: 0.20
+Nodes (9): CalendarEventDto, CancellationToken, Guid, Stream, Task, IBlobStorage, ICalendarProvider, INotificationSender (+1 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.11
 Nodes (17): Architecture Patterns, Backend, Domain Models, Equipment, Frontend, HomeGuard — Claude Code Context, Key Conventions, MeterReading / MeterUnit (+9 more)
 
 ### Community 73 - "Community 73"
-Cohesion: 0.27
-Nodes (9): PushNotification, CancellationToken, IEnumerable, ILogger, string, Task, PushSubscriptionEntity, WebPushNotificationSender (+1 more)
+Cohesion: 0.25
+Nodes (10): PushNotification, CancellationToken, Guid, IEnumerable, ILogger, string, Task, PushSubscriptionEntity (+2 more)
 
 ### Community 74 - "Community 74"
 Cohesion: 0.09
@@ -384,8 +390,8 @@ Cohesion: 0.18
 Nodes (10): 1. Prerequisites, 2. VAPID keys (Web Push), 3. Database migration, 4. Run (development), 5. Run with Podman (production), Getting started, HomeGuard, iCal feed (+2 more)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.33
-Nodes (6): ICalCalendar, CancellationToken, DateOnly, int, Task, ICalFeedGenerator
+Cohesion: 0.10
+Nodes (20): MudAutocomplete, OpenAdd, OpenEdit, DialogActions, DialogContent, EquipmentSummary, MudButton, MudDatePicker (+12 more)
 
 ### Community 78 - "Community 78"
 Cohesion: 0.31
@@ -396,16 +402,16 @@ Cohesion: 0.22
 Nodes (6): DbContext, IDesignTimeDbContextFactory, HomeGuardDbContextFactory, ModelBuilder, HomeGuardDbContext, ProcessedOperation
 
 ### Community 86 - "Community 86"
-Cohesion: 0.24
-Nodes (8): BlobEntryRepository, DateTimeOffset, RecurringRuleRepository, ScheduledJobRepository, CancellationToken, T, Task, RepositoryBase
+Cohesion: 0.27
+Nodes (8): BlobEntryRepository, MeterReadingRepository, RecurringRuleRepository, CancellationToken, Guid, T, Task, RepositoryBase
 
 ### Community 87 - "Community 87"
-Cohesion: 0.14
-Nodes (16): CreateMeterReadingRequest, CancellationToken, IResult, MeterReading, Task, WebApplication, MeterReadingDto, MeterReadingEndpoints (+8 more)
+Cohesion: 0.08
+Nodes (27): CreateMeterReadingRequest, CancellationToken, Guid, IResult, MeterReading, Task, WebApplication, MeterReadingDto (+19 more)
 
 ### Community 88 - "Community 88"
-Cohesion: 0.40
-Nodes (5): CancellationToken, DateOnly, IReadOnlyList, Task, IWarrantyRepository
+Cohesion: 0.10
+Nodes (19): DeleteAsync, LoadAsync, OnInitializedAsync, OnSavedAsync, Guid, MudButton, MudChip, MudCollapse (+11 more)
 
 ### Community 89 - "Community 89"
 Cohesion: 0.40
@@ -413,51 +419,75 @@ Nodes (4): Microsoft.EntityFrameworkCore, Microsoft.EntityFrameworkCore.Relation
 
 ### Community 90 - "Community 90"
 Cohesion: 0.10
-Nodes (24): CreateRecurringRuleRequest, CancellationToken, IResult, Task, WebApplication, PredictedEventDto, RecurringRuleDto, RecurringRuleEndpoints (+16 more)
+Nodes (27): CreateRecurringRuleRequest, CancellationToken, Guid, IResult, Task, WebApplication, PredictedEventDto, RecurringRuleDto (+19 more)
 
 ### Community 91 - "Community 91"
 Cohesion: 0.40
 Nodes (3): ModelBuilder, HomeGuard.Infrastructure.Migrations, ServiceRecordAndRecurringRule
 
 ### Community 92 - "Community 92"
-Cohesion: 0.31
-Nodes (5): AppUser, List, AppUserRepository, Credential, User
+Cohesion: 0.12
+Nodes (16): DeleteAsync, LoadAsync, OnInitializedAsync, OnSavedAsync, EquipmentSummary, MeterReadingApiClient, MeterReadingDialog, MeterReadingDto (+8 more)
 
 ### Community 93 - "Community 93"
-Cohesion: 0.43
-Nodes (4): SyncAck, CancellationToken, Task, ProcessedOperationStore
+Cohesion: 0.39
+Nodes (5): SyncAck, CancellationToken, Guid, Task, ProcessedOperationStore
 
 ### Community 94 - "Community 94"
 Cohesion: 0.40
 Nodes (3): IConfiguration, IServiceCollection, InfrastructureServiceExtensions
 
 ### Community 95 - "Community 95"
-Cohesion: 0.19
-Nodes (8): CancellationToken, IReadOnlyList, Task, IMeterReadingRepository, DateOnly, MeterReading, MeterReadingSource, MeterReadingRepository
+Cohesion: 0.12
+Nodes (16): OpenAdd, OpenEdit, DialogActions, DialogContent, EquipmentSummary, MudButton, MudDatePicker, MudDialog (+8 more)
+
+### Community 96 - "Community 96"
+Cohesion: 0.12
+Nodes (15): MudSwitch, OpenAdd, OpenEdit, DialogActions, DialogContent, MudButton, MudDialog, MudGrid (+7 more)
+
+### Community 97 - "Community 97"
+Cohesion: 0.20
+Nodes (8): DateOnly, enabled, Guid, IEnumerable, List, offset, ServiceRecord, ServiceStatus
 
 ### Community 98 - "Community 98"
 Cohesion: 0.40
 Nodes (3): ModelBuilder, HomeGuard.Infrastructure.Migrations, MeterReading
 
+### Community 99 - "Community 99"
+Cohesion: 0.18
+Nodes (5): DateTimeOffset, int, TimeSpan, ScheduledJob, ScheduledJobRepository
+
+### Community 100 - "Community 100"
+Cohesion: 0.23
+Nodes (8): IBrowserFile, long, BlobApiClient, BlobUploadResult, CancellationToken, Guid, HttpClient, Task
+
+### Community 101 - "Community 101"
+Cohesion: 0.36
+Nodes (6): CancellationToken, DateOnly, Guid, IReadOnlyList, Task, IServiceRecordRepository
+
+### Community 102 - "Community 102"
+Cohesion: 0.40
+Nodes (3): CancellationToken, Task, RecurringRuleMaterializationService
+
 ## Knowledge Gaps
-- **584 isolated node(s):** `node`, `CredentialDto`, `PendingRegistration`, `PendingAddDevice`, `NotificationRuleRequest` (+579 more)
+- **617 isolated node(s):** `node`, `CredentialDto`, `PendingRegistration`, `PendingAddDevice`, `NotificationRuleRequest` (+612 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Guid` connect `Client API Clients` to `Warranty & Calendar`, `Blob & Notifications`, `Domain & Repos`, `Equipment Module`, `Service Records`, `Equipment Detail UI`, `Infrastructure Repos`, `Auth Endpoints`, `Auth Client`, `Notification Scheduler`, `Community 35`, `Community 46`, `Community 71`, `Community 73`, `Community 86`, `Community 87`, `Community 88`, `Community 90`, `Community 92`, `Community 93`, `Community 95`?**
-  _High betweenness centrality (0.170) - this node is a cross-community bridge._
-- **Why does `IUnitOfWork` connect `Auth Endpoints` to `Warranty & Calendar`, `Blob & Notifications`, `Equipment Module`, `Service Records`, `Community 71`, `EF Core & UnitOfWork`, `Community 87`, `Community 90`, `Notification Scheduler`?**
+- **Why does `SyncProcessorService` connect `Community 35` to `Warranty & Calendar`, `Equipment Module`, `Community 71`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Why does `IUnitOfWork` connect `Auth Endpoints` to `Warranty & Calendar`, `Equipment Module`, `Service Records`, `Community 102`, `Community 71`, `Community 46`, `EF Core & UnitOfWork`, `Community 87`, `Community 90`, `Notification Scheduler`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Why does `WarrantyService` connect `Warranty & Calendar` to `Community 35`, `Auth Endpoints`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `SyncApiClient` connect `Client API Clients` to `Client DB & Outbox`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `node`, `CredentialDto`, `PendingRegistration` to the rest of the system?**
-  _584 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _617 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Warranty & Calendar` be split into smaller, more focused modules?**
-  _Cohesion score 0.09178743961352658 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05582603050957481 - nodes in this community are weakly interconnected._
 - **Should `Blob & Notifications` be split into smaller, more focused modules?**
-  _Cohesion score 0.07397959183673469 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08585858585858586 - nodes in this community are weakly interconnected._
 - **Should `Domain & Repos` be split into smaller, more focused modules?**
-  _Cohesion score 0.0636734693877551 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10256410256410256 - nodes in this community are weakly interconnected._

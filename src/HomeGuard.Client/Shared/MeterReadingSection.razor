@@ -1,0 +1,94 @@
+@* Meter reading history + quick-entry for one equipment (EquipmentDetail section).
+   Renders nothing when the equipment has no MeterUnit. Self-loads the merged
+   history (standalone + service-record readings). *@
+@namespace HomeGuard.Client.Common
+@inject MeterReadingApiClient Api
+
+@if (!string.IsNullOrWhiteSpace(Equipment.MeterUnit))
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2 mt-4">
+        <MudIcon Icon="@Icons.Material.Filled.Speed" />
+        <MudText Typo="Typo.h6">Meter readings</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Text" Size="Size.Small"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => _showAdd = true">Add</MudButton>
+    </MudStack>
+
+    @if (_readings.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="mb-4">No readings yet.</MudText>
+    }
+    else
+    {
+        @foreach (var r in _readings.Take(_showAll ? int.MaxValue : 5))
+        {
+            <MudPaper @key="@r.Id" Elevation="1" Class="mb-1 px-4 py-2"
+                      Style="border-radius:var(--hg-radius-md)">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                    <MudText Typo="Typo.body1" Style="font-weight:600">
+                        @r.Value.ToString("0.###") @Equipment.MeterUnit
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @r.ReadingDate.ToString("d MMM yyyy", null)
+                    </MudText>
+                    <MudSpacer />
+                    @if (r.Source == "Service")
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@(r.Note ?? "Service")</MudChip>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrWhiteSpace(r.Note))
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@r.Note</MudText>
+                        }
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                       Color="Color.Error" OnClick="() => DeleteAsync(r.Id)" />
+                    }
+                </MudStack>
+            </MudPaper>
+        }
+        @if (_readings.Count > 5 && !_showAll)
+        {
+            <MudButton Variant="Variant.Text" Size="Size.Small" Class="mb-4"
+                       OnClick="() => _showAll = true">
+                Show all (@_readings.Count)
+            </MudButton>
+        }
+    }
+
+    <MeterReadingDialog @bind-Visible="_showAdd"
+                        Equipment="EquipmentAsSummaryList"
+                        FixedEquipmentId="@Equipment.Id"
+                        OnSaved="OnSavedAsync" />
+}
+
+@code {
+    [Parameter, EditorRequired] public EquipmentDetailDto Equipment { get; set; } = null!;
+
+    private List<MeterReadingDto> _readings = [];
+    private bool _showAdd;
+    private bool _showAll;
+
+    // The quick-entry dialog takes EquipmentSummary items; wrap the detail we already have.
+    private List<EquipmentSummary> EquipmentAsSummaryList =>
+    [
+        new EquipmentSummary(
+            Equipment.Id, Equipment.Name, Equipment.Category, Equipment.PurchaseDate,
+            Equipment.Brand, Equipment.Model, Equipment.Tags, Equipment.MeterUnit, Equipment.UpdatedAt)
+    ];
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+        => _readings = await Api.GetByEquipmentAsync(Equipment.Id) ?? [];
+
+    private Task OnSavedAsync(MeterReadingDto _) => LoadAsync();
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await Api.DeleteAsync(id);
+        await LoadAsync();
+    }
+}

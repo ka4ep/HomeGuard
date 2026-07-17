@@ -1,0 +1,109 @@
+@* Add/edit warranty dialog — shared by the Warranties page (equipment select)
+   and WarrantySection on EquipmentDetail (fixed equipment). Owns the save call;
+   parents open it via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
+@namespace HomeGuard.Client.Common
+@inject WarrantyApiClient Api
+
+<MudDialog @bind-Visible="_visible">
+    <TitleContent>@(_editId.HasValue ? "Edit warranty" : "Add warranty")</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            @if (FixedEquipmentId is null)
+            {
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_equipmentId" Label="Equipment" Required="true"
+                               Disabled="_editId.HasValue">
+                        @foreach (var e in Equipment)
+                        {
+                            <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Name" Label="Name" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.StartDateNullable" Label="Start date"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.EndDateNullable" Label="End date"
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Provider" Label="Provider" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.ContractNumber" Label="Contract number" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Notes" Label="Notes"
+                              Lines="3" Sizing="InputSizing.Auto" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    /// <summary>All equipment to choose from; ignored when FixedEquipmentId is set.</summary>
+    [Parameter] public List<EquipmentSummary> Equipment { get; set; } = [];
+
+    /// <summary>When set, the equipment is fixed (dialog opened from an equipment page).</summary>
+    [Parameter] public Guid? FixedEquipmentId { get; set; }
+
+    /// <summary>The created/updated warranty, or null if the API returned nothing.</summary>
+    [Parameter] public EventCallback<WarrantyDto?> OnSaved { get; set; }
+
+    private bool  _visible;
+    private bool  _saving;
+    private Guid? _editId;
+    private Guid  _equipmentId;
+    private WarrantyFormModel _form = new();
+
+    public void OpenAdd()
+    {
+        _editId      = null;
+        _form        = new WarrantyFormModel();
+        _equipmentId = FixedEquipmentId ?? Equipment.FirstOrDefault()?.Id ?? Guid.Empty;
+        _visible     = true;
+        StateHasChanged();
+    }
+
+    public void OpenEdit(WarrantyDto w)
+    {
+        _editId      = w.Id;
+        _equipmentId = w.EquipmentId;
+        _form = new WarrantyFormModel
+        {
+            Name              = w.Name,
+            Provider          = w.Provider,
+            ContractNumber    = w.ContractNumber,
+            Notes             = w.Notes,
+            StartDateNullable = w.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDateNullable   = w.EndDate.ToDateTime(TimeOnly.MinValue),
+        };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        var result = _editId.HasValue
+            ? await Api.UpdateAsync(_editId.Value, new UpdateWarrantyDto(
+                _form.Name, _form.StartDate, _form.EndDate,
+                _form.Provider, _form.ContractNumber, _form.Notes))
+            : await Api.CreateAsync(new CreateWarrantyDto(
+                _equipmentId, _form.Name, _form.StartDate, _form.EndDate,
+                _form.Provider, _form.ContractNumber, _form.Notes));
+        _saving  = false;
+        _visible = false;
+        await OnSaved.InvokeAsync(result);
+    }
+}

@@ -1,0 +1,114 @@
+@* Warranty list + add/edit dialog for one equipment (EquipmentDetail section).
+   Self-contained: loads its own data by EquipmentId. *@
+@namespace HomeGuard.Client.Common
+@inject WarrantyApiClient Api
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" />
+    <MudText Typo="Typo.h6">Warranties</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Text" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="() => _dialog.OpenAdd()">Add</MudButton>
+</MudStack>
+
+@if (_warranties.Count == 0)
+{
+    <MudText Color="Color.Secondary" Class="mb-4">No warranties registered.</MudText>
+}
+else
+{
+    @foreach (var w in _warranties)
+    {
+        <MudPaper @key="@w.Id" Elevation="1" Class="mb-1"
+                  Style="border-radius:var(--hg-radius-md); overflow:hidden">
+            @* Заголовок — кликабельная строка *@
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="px-4 py-2"
+                      Style="cursor:pointer; flex-wrap:wrap"
+                      @onclick="() => Toggle(w.Id)">
+                <MudText Typo="Typo.body1" Style="font-weight:600; flex:1">@w.Name</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @w.StartDate.ToString("d MMM yyyy", null) → @w.EndDate.ToString("d MMM yyyy", null)
+                </MudText>
+                <MudChip T="string" Size="Size.Small" Color="@Display.WarrantyColor(w.DaysRemaining)">
+                    @Display.WarrantyLabel(w.DaysRemaining)
+                </MudChip>
+                <MudIcon Icon="@(_expanded.Contains(w.Id)
+                                ? Icons.Material.Filled.ExpandLess
+                                : Icons.Material.Filled.ExpandMore)"
+                         Color="Color.Secondary" />
+            </MudStack>
+            @* Детали *@
+            <MudCollapse Expanded="@_expanded.Contains(w.Id)">
+                <MudDivider />
+                <MudStack Spacing="3" Class="px-4 py-3">
+                    @if (w.Provider is not null || w.ContractNumber is not null)
+                    {
+                        <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
+                            @if (w.Provider is not null)
+                            {
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                    <MudText Typo="Typo.body2">@w.Provider</MudText>
+                                </MudStack>
+                            }
+                            @if (w.ContractNumber is not null)
+                            {
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Contract №</MudText>
+                                    <MudText Typo="Typo.body2">@w.ContractNumber</MudText>
+                                </MudStack>
+                            }
+                        </MudStack>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(w.Notes))
+                    {
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                            <MudText Typo="Typo.body2" Style="white-space:pre-line">@w.Notes</MudText>
+                        </MudStack>
+                    }
+                    <MudStack Row="true" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                       Size="Size.Small"
+                                       OnClick="() => _dialog.OpenEdit(w)" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteAsync(w.Id)" />
+                    </MudStack>
+                </MudStack>
+            </MudCollapse>
+        </MudPaper>
+    }
+}
+
+<WarrantyDialog @ref="_dialog" FixedEquipmentId="EquipmentId" OnSaved="OnSavedAsync" />
+
+@code {
+    [Parameter, EditorRequired] public Guid EquipmentId { get; set; }
+
+    private List<WarrantyDto> _warranties = [];
+    private WarrantyDialog _dialog = null!;
+
+    // Развёрнутые строки — вместо MudExpansionPanel (каскадный параметр
+    // ненадёжен в сложном дереве компонентов; MudCollapse + HashSet надёжнее)
+    private readonly HashSet<Guid> _expanded = [];
+
+    private void Toggle(Guid id)
+    {
+        if (!_expanded.Remove(id)) _expanded.Add(id);
+    }
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+        => _warranties = await Api.GetByEquipmentAsync(EquipmentId) ?? [];
+
+    private Task OnSavedAsync(WarrantyDto? _) => LoadAsync();
+
+    private async Task DeleteAsync(Guid id)
+    {
+        await Api.DeleteAsync(id);
+        _warranties.RemoveAll(w => w.Id == id);
+    }
+}

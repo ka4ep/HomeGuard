@@ -1,0 +1,150 @@
+@* Add/edit service record dialog — shared by the ServiceRecords page (equipment select)
+   and ServiceSection on EquipmentDetail (fixed equipment). Owns the save call and the
+   title autocomplete (rules + past records of the selected equipment); parents open it
+   via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
+@namespace HomeGuard.Client.Common
+@inject ServiceRecordApiClient Api
+@inject RecurringRuleApiClient RuleApi
+
+<MudDialog @bind-Visible="_visible">
+    <TitleContent>@(_editId.HasValue ? "Edit service record" : "Add service record")</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            @if (FixedEquipmentId is null)
+            {
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="_equipmentId" Label="Equipment" Required="true"
+                               Disabled="_editId.HasValue">
+                        @foreach (var e in Equipment)
+                        {
+                            <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            }
+            <MudItem xs="12">
+                <MudAutocomplete T="string" @bind-Value="_form.Title" Label="Title" Required="true"
+                                 SearchFunc="SearchTitles" Strict="false" CoerceText="true"
+                                 ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.ServiceDateNullable"
+                               Label="Service date" DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_form.Status" Label="Status">
+                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                    <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.ServiceProvider" Label="Provider" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField @bind-Value="_form.Cost" Label="Cost" Format="F2"
+                                 Adornment="Adornment.Start" AdornmentText="€" />
+            </MudItem>
+            <MudItem xs="12" sm="3">
+                <MudNumericField @bind-Value="_form.MeterReading"
+                                 Label="@("Meter reading" + (CurrentMeterUnit is { Length: > 0 } u ? $" ({u})" : ""))" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Notes" Label="Notes"
+                              Lines="3" Sizing="InputSizing.Auto" />
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    /// <summary>All equipment to choose from; ignored when FixedEquipmentId is set.</summary>
+    [Parameter] public List<EquipmentSummary> Equipment { get; set; } = [];
+
+    /// <summary>When set, the equipment is fixed (dialog opened from an equipment page).</summary>
+    [Parameter] public Guid? FixedEquipmentId { get; set; }
+
+    /// <summary>Meter unit shown in the reading label when FixedEquipmentId is set.</summary>
+    [Parameter] public string? MeterUnit { get; set; }
+
+    /// <summary>Preselected status for new records ("Completed" | "Planned").</summary>
+    [Parameter] public string DefaultStatus { get; set; } = "Completed";
+
+    /// <summary>The created/updated record, or null if the API returned nothing.</summary>
+    [Parameter] public EventCallback<ServiceRecordDto?> OnSaved { get; set; }
+
+    private bool  _visible;
+    private bool  _saving;
+    private Guid? _editId;
+    private Guid  _equipmentId;
+    private ServiceRecordFormModel _form = new();
+
+    private string? CurrentMeterUnit => FixedEquipmentId is not null
+        ? MeterUnit
+        : Equipment.FirstOrDefault(e => e.Id == _equipmentId)?.MeterUnit;
+
+    public void OpenAdd()
+    {
+        _editId      = null;
+        _form        = new ServiceRecordFormModel { Status = DefaultStatus };
+        _equipmentId = FixedEquipmentId ?? Equipment.FirstOrDefault()?.Id ?? Guid.Empty;
+        _visible     = true;
+        StateHasChanged();
+    }
+
+    public void OpenEdit(ServiceRecordDto sr)
+    {
+        _editId      = sr.Id;
+        _equipmentId = sr.EquipmentId;
+        _form = new ServiceRecordFormModel
+        {
+            Title               = sr.Title,
+            ServiceProvider     = sr.ServiceProvider,
+            Cost                = sr.Cost,
+            MeterReading        = sr.MeterReading,
+            Notes               = sr.Notes,
+            Status              = sr.Status,
+            ServiceDateNullable = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
+        };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        var result = _editId.HasValue
+            ? await Api.UpdateAsync(_editId.Value, new UpdateServiceRecordDto(
+                _form.Title, _form.ServiceDate, _form.Status,
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading))
+            : await Api.CreateAsync(new CreateServiceRecordDto(
+                _equipmentId, _form.Title, _form.ServiceDate, _form.Status,
+                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading));
+        _saving  = false;
+        _visible = false;
+        await OnSaved.InvokeAsync(result);
+    }
+
+    private async Task<IEnumerable<string>> SearchTitles(string? search, CancellationToken ct)
+    {
+        if (_equipmentId == Guid.Empty) return [];
+
+        var rulesTask   = RuleApi.GetByEquipmentAsync(_equipmentId, ct);
+        var recordsTask = Api.GetByEquipmentAsync(_equipmentId, ct);
+        await Task.WhenAll(rulesTask, recordsTask);
+
+        var titles = (rulesTask.Result ?? []).Select(r => r.Title)
+            .Concat((recordsTask.Result ?? []).Select(s => s.Title))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(t => t);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            titles = titles.Where(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)).OrderBy(t => t);
+
+        return titles;
+    }
+}

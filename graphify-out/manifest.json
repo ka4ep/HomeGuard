@@ -205,14 +205,9 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/EquipmentDetail.razor": {
-    "mtime": 1784210071.8429596,
-    "ast_hash": "3507338a76c0424fb5d9e38dbe0749d0",
+    "mtime": 1784296875.659997,
+    "ast_hash": "828cd0d21dd8a71ac43f8a8a4e4fc456",
     "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Pages/EquipmentForm.razor": {
-    "mtime": 1780389784.0476665,
-    "ast_hash": "36397bf7b0bd86cabd65ed5b86907995",
-    "semantic_hash": "36397bf7b0bd86cabd65ed5b86907995"
   },
   "src/HomeGuard.Client/Pages/Home.razor": {
     "mtime": 1784210000.4920616,
@@ -225,8 +220,8 @@
     "semantic_hash": "2187f08ec85373c742ba909a2169e64c"
   },
   "src/HomeGuard.Client/Pages/ServiceRecords.razor": {
-    "mtime": 1784018553.6253667,
-    "ast_hash": "ef9501817a3a59cbf8a53c37582ee7cd",
+    "mtime": 1784296918.6320758,
+    "ast_hash": "550988d57944cfbf4e373c101f25d1af",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Settings.razor": {
@@ -240,9 +235,9 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Warranties.razor": {
-    "mtime": 1780571781.3277812,
-    "ast_hash": "e1f5a6cc1def4d41a6bfa5398d13f221",
-    "semantic_hash": "e1f5a6cc1def4d41a6bfa5398d13f221"
+    "mtime": 1784296937.6357436,
+    "ast_hash": "9de0b17f2e0ca6d2aba8de117689ca79",
+    "semantic_hash": ""
   },
   "src/HomeGuard.Client/Program.cs": {
     "mtime": 1780389784.0476665,
@@ -295,8 +290,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/EquipmentForm.razor": {
-    "mtime": 1783943982.3842242,
-    "ast_hash": "0d3c6283bb7e2af59ecb5962ad08a7a9",
+    "mtime": 1784296882.0495808,
+    "ast_hash": "57808c6070a417cfef169db4ab80f0c9",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/FormModels.cs": {
@@ -680,8 +675,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/MeterReadingDialog.razor": {
-    "mtime": 1784210211.4680216,
-    "ast_hash": "4da2c5ffe43be7e50b527f03599fadc6",
+    "mtime": 1784296894.8405612,
+    "ast_hash": "dfadc96fd26b938ca1d6196a6f8509fd",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/MeterReading.cs": {
@@ -702,6 +697,41 @@
   "tests/HomeGuard.Tests.Unit/TimelinePredictionServiceTests.cs": {
     "mtime": 1784210298.1972923,
     "ast_hash": "7f342b7fefe1802c38360ccc6f36d9ea",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/Display.cs": {
+    "mtime": 1784296713.0651116,
+    "ast_hash": "f60212425f184f24d45dbbbdaaf80ca5",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/MeterReadingSection.razor": {
+    "mtime": 1784296852.3251822,
+    "ast_hash": "7de3e9a4b2c9b43d2806c5f01017b80c",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/RecurringRuleDialog.razor": {
+    "mtime": 1784296772.867401,
+    "ast_hash": "e9f50cacb6ea76390f46650029a123c2",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/ServiceRecordDialog.razor": {
+    "mtime": 1784296755.5361536,
+    "ast_hash": "f5541e07e1b74a83e54dc1489a14f83d",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/ServiceSection.razor": {
+    "mtime": 1784296834.9710538,
+    "ast_hash": "9c3b9d2771e033d2bc46b9c5dc46524f",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/WarrantyDialog.razor": {
+    "mtime": 1784296729.6799548,
+    "ast_hash": "4a615f2e51971862987d91215db47072",
+    "semantic_hash": ""
+  },
+  "src/HomeGuard.Client/Shared/WarrantySection.razor": {
+    "mtime": 1784296795.984131,
+    "ast_hash": "a865e79078ab80cba7a08602241db129",
     "semantic_hash": ""
   }
 }

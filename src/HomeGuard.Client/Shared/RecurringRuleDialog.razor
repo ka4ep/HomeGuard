@@ -1,0 +1,105 @@
+@* Add/edit recurring rule dialog for one equipment. Owns the save call;
+   parents open it via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
+@namespace HomeGuard.Client.Common
+@inject RecurringRuleApiClient Api
+
+<MudDialog @bind-Visible="_visible">
+    <TitleContent>@(_editId.HasValue ? "Edit recurring rule" : "Set up recurring")</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Title" Label="Title" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.IntervalDays" Label="Interval (days)"
+                                 HelperText="Leave blank to auto-compute from history" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.IntervalMeter"
+                                 Label="@("Interval" + (MeterUnit is { Length: > 0 } u ? $" ({u})" : " (meter)"))"
+                                 HelperText="Leave blank to auto-compute from history" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.MaterializeDaysAhead" Label="Materialize (days ahead)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.PredictionsAhead" Label="Predictions to show" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch @bind-Value="_form.AnchorToPurchaseDate" Color="Color.Primary" Label="Existed since purchase" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    On: the average interval counts from the equipment's purchase date, so one record is enough
+                    to predict the next. Off: only counts from this item's own first recorded service.
+                </MudText>
+            </MudItem>
+            @if (_editId.HasValue)
+            {
+                <MudItem xs="12">
+                    <MudSwitch @bind-Value="_form.IsActive" Color="Color.Primary" Label="Active" />
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public Guid EquipmentId { get; set; }
+
+    /// <summary>Meter unit shown in the interval label.</summary>
+    [Parameter] public string? MeterUnit { get; set; }
+
+    /// <summary>The created/updated rule, or null if the API returned nothing.</summary>
+    [Parameter] public EventCallback<RecurringRuleDto?> OnSaved { get; set; }
+
+    private bool  _visible;
+    private bool  _saving;
+    private Guid? _editId;
+    private RecurringRuleFormModel _form = new();
+
+    /// <summary>Opens for a new rule, optionally prefilled with a service record's title.</summary>
+    public void OpenAdd(string? title = null)
+    {
+        _editId  = null;
+        _form    = new RecurringRuleFormModel { Title = title ?? string.Empty };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    public void OpenEdit(RecurringRuleDto r)
+    {
+        _editId = r.Id;
+        _form = new RecurringRuleFormModel
+        {
+            Title                = r.Title,
+            IntervalDays         = r.IntervalDays,
+            IntervalMeter        = r.IntervalMeter,
+            MaterializeDaysAhead = r.MaterializeDaysAhead,
+            PredictionsAhead     = r.PredictionsAhead,
+            AnchorToPurchaseDate = r.AnchorToPurchaseDate,
+            IsActive             = r.IsActive,
+        };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        var result = _editId.HasValue
+            ? await Api.UpdateAsync(_editId.Value, new UpdateRecurringRuleDto(
+                _form.Title, _form.IntervalDays, _form.IntervalMeter,
+                _form.MaterializeDaysAhead, _form.PredictionsAhead,
+                _form.AnchorToPurchaseDate, _form.IsActive))
+            : await Api.CreateAsync(new CreateRecurringRuleDto(
+                EquipmentId, _form.Title, _form.IntervalDays, _form.IntervalMeter,
+                _form.MaterializeDaysAhead, _form.PredictionsAhead, _form.AnchorToPurchaseDate));
+        _saving  = false;
+        _visible = false;
+        await OnSaved.InvokeAsync(result);
+    }
+}

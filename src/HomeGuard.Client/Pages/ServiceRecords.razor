@@ -1,7 +1,6 @@
 @page "/service"
 @inject ServiceRecordApiClient Api
 @inject EquipmentApiClient EquipmentApi
-@inject RecurringRuleApiClient RuleApi
 
 <PageTitle>Service records</PageTitle>
 
@@ -9,7 +8,7 @@
     <MudText Typo="Typo.h5">Service records</MudText>
     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Add"
-               OnClick="OpenAddDialog">
+               OnClick="() => _dialog.OpenAdd()">
         Add
     </MudButton>
 </MudStack>
@@ -64,7 +63,7 @@ else
                             {
                                 <MudChip T="string" Size="Size.Small"
                                          Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
-                                    @DaysLabel(sr.DaysUntilNextService)
+                                    @Display.ServiceDaysLabel(sr.DaysUntilNextService)
                                 </MudChip>
                             }
                         </div>
@@ -117,7 +116,7 @@ else
                         <MudStack Row="true" Spacing="1">
                             <MudIconButton Icon="@Icons.Material.Outlined.Edit"
                                            Size="Size.Small"
-                                           OnClick="() => OpenEditDialog(sr)" />
+                                           OnClick="() => _dialog.OpenEdit(sr)" />
                             <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
                                            Size="Size.Small" Color="Color.Error"
                                            OnClick="() => DeleteAsync(sr.Id)" />
@@ -131,66 +130,15 @@ else
     </MudExpansionPanels>
 }
 
-@* ── Диалог добавления / редактирования ─────────────────────────────────────── *@
-<MudDialog @bind-Visible="_showDialog">
-    <TitleContent>@(_editId.HasValue ? "Edit service record" : "Add service record")</TitleContent>
-    <DialogContent>
-        <MudGrid>
-            <MudItem xs="12">
-                <MudSelect @bind-Value="_form.EquipmentId" Label="Equipment" Required="true">
-                    @foreach (var e in _equipment)
-                    {
-                        <MudSelectItem Value="@e.Id">@e.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12">
-                <MudAutocomplete T="string" @bind-Value="_form.Title" Label="Title" Required="true"
-                                 SearchFunc="SearchTitles" Strict="false" CoerceText="true"
-                                 ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_form.ServiceDateNullable" Label="Service date"
-                               DateFormat="yyyy-MM-dd" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="_form.Status" Label="Status">
-                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                    <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.ServiceProvider" Label="Provider / garage" />
-            </MudItem>
-            <MudItem xs="12" sm="3">
-                <MudNumericField @bind-Value="_form.Cost" Label="Cost"
-                                 Format="F2" Adornment="Adornment.Start" AdornmentText="€" />
-            </MudItem>
-            <MudItem xs="12" sm="3">
-                <MudNumericField @bind-Value="_form.MeterReading" Label="Meter reading" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes" Lines="4"
-                              Sizing="InputSizing.Auto" />
-            </MudItem>
-        </MudGrid>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="() => _showDialog = false">Cancel</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
-    </DialogActions>
-</MudDialog>
+<ServiceRecordDialog @ref="_dialog" Equipment="_equipment" DefaultStatus="Planned"
+                     OnSaved="OnSavedAsync" />
 
 @code {
     private List<ServiceRecordDto>?  _items;
     private List<EquipmentSummary>   _equipment      = [];
     private Dictionary<Guid, string> _equipmentNames = [];
-    private int   _tab;
-    private bool  _showDialog;
-    private bool  _saving;
-    private Guid? _editId;
-    private ServiceFormModel _form = new();
+    private int _tab;
+    private ServiceRecordDialog _dialog = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -206,90 +154,11 @@ else
             : await Api.GetOverdueAsync()  ?? [];
     }
 
-    private void OpenAddDialog()
-    {
-        _editId = null;
-        _form   = new ServiceFormModel
-        {
-            EquipmentId = _equipment.FirstOrDefault()?.Id ?? Guid.Empty,
-            Status      = "Planned",
-        };
-        _showDialog = true;
-    }
-
-    private void OpenEditDialog(ServiceRecordDto sr)
-    {
-        _editId = sr.Id;
-        _form   = new ServiceFormModel
-        {
-            EquipmentId         = sr.EquipmentId,
-            Title               = sr.Title,
-            ServiceProvider     = sr.ServiceProvider,
-            Cost                = sr.Cost,
-            MeterReading        = sr.MeterReading,
-            Notes               = sr.Notes,
-            Status              = sr.Status,
-            ServiceDateNullable = sr.ServiceDate.ToDateTime(TimeOnly.MinValue),
-        };
-        _showDialog = true;
-    }
-
-    private async Task SaveAsync()
-    {
-        _saving = true;
-        if (_editId.HasValue)
-        {
-            await Api.UpdateAsync(_editId.Value, new UpdateServiceRecordDto(
-                _form.Title, _form.ServiceDate, _form.Status,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading));
-        }
-        else
-        {
-            await Api.CreateAsync(new CreateServiceRecordDto(
-                _form.EquipmentId, _form.Title, _form.ServiceDate, _form.Status,
-                _form.Cost, _form.ServiceProvider, _form.Notes, _form.MeterReading));
-        }
-        await LoadAsync();
-        _saving     = false;
-        _showDialog = false;
-    }
+    private Task OnSavedAsync(ServiceRecordDto? _) => LoadAsync();
 
     private async Task DeleteAsync(Guid id)
     {
         await Api.DeleteAsync(id);
         _items?.RemoveAll(sr => sr.Id == id);
-    }
-
-    private async Task<IEnumerable<string>> SearchTitles(string? search, CancellationToken ct)
-    {
-        if (_form.EquipmentId == Guid.Empty) return [];
-
-        var rulesTask   = RuleApi.GetByEquipmentAsync(_form.EquipmentId, ct);
-        var recordsTask = Api.GetByEquipmentAsync(_form.EquipmentId, ct);
-        await Task.WhenAll(rulesTask, recordsTask);
-
-        var titles = (rulesTask.Result ?? []).Select(r => r.Title)
-            .Concat((recordsTask.Result ?? []).Select(s => s.Title))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(t => t);
-
-        if (!string.IsNullOrWhiteSpace(search))
-            titles = titles.Where(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)).OrderBy(t => t);
-
-        return titles;
-    }
-
-    private static string DaysLabel(int? days) => days switch
-    {
-        null  => "—",
-        0     => "Today",
-        1     => "Tomorrow",
-        <= 30 => $"In {days}d",
-        _     => $"In {days / 30}mo",
-    };
-
-    private sealed class ServiceFormModel : HomeGuard.Client.Common.ServiceRecordFormModel
-    {
-        public Guid EquipmentId { get; set; }
     }
 }

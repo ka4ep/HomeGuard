@@ -1,0 +1,252 @@
+@* Service records + recurring rules for one equipment (EquipmentDetail sections).
+   The two lists are coupled (the "Repeats…" alert and the repeat button bridge them),
+   so they live in one component. Self-contained: loads its own data by EquipmentId.
+   EditServiceId/EditRuleId support the Timeline card's deep links. *@
+@namespace HomeGuard.Client.Common
+@inject ServiceRecordApiClient ServiceApi
+@inject RecurringRuleApiClient RuleApi
+
+@* ── Service records ─────────────────────────────────────────────────────── *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.Build" />
+    <MudText Typo="Typo.h6">Service records</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Text" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="() => _srDialog.OpenAdd()">Add</MudButton>
+</MudStack>
+
+@if (_serviceRecords.Count == 0)
+{
+    <MudText Color="Color.Secondary" Class="mb-4">No service records yet.</MudText>
+}
+else
+{
+    @foreach (var sr in _serviceRecords)
+    {
+        <MudPaper @key="@sr.Id" Elevation="1" Class="mb-1"
+                  Style="border-radius:var(--hg-radius-md); overflow:hidden">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="px-4 py-2"
+                      Style="cursor:pointer; flex-wrap:wrap"
+                      @onclick="() => Toggle(sr.Id)">
+                <MudStack Spacing="0" Style="flex:1">
+                    <MudText Typo="Typo.body1" Style="font-weight:600">@sr.Title</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @sr.ServiceDate.ToString("d MMM yyyy", null)
+                    </MudText>
+                </MudStack>
+                @if (sr.IsOverdue)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Error">Overdue</MudChip>
+                }
+                else if (sr.DaysUntilNextService.HasValue)
+                {
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
+                        @Display.ServiceDaysLabel(sr.DaysUntilNextService)
+                    </MudChip>
+                }
+                <MudIcon Icon="@(_expanded.Contains(sr.Id)
+                                ? Icons.Material.Filled.ExpandLess
+                                : Icons.Material.Filled.ExpandMore)"
+                         Color="Color.Secondary" />
+            </MudStack>
+            <MudCollapse Expanded="@_expanded.Contains(sr.Id)">
+                <MudDivider />
+                <MudStack Spacing="3" Class="px-4 py-3">
+                    <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
+                        @if (sr.Cost.HasValue)
+                        {
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Cost</MudText>
+                                <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
+                            </MudStack>
+                        }
+                        @if (sr.MeterReading.HasValue)
+                        {
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Meter reading</MudText>
+                                <MudText Typo="Typo.body2">@sr.MeterReading @MeterUnit</MudText>
+                            </MudStack>
+                        }
+                        @if (sr.ServiceProvider is not null)
+                        {
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                <MudText Typo="Typo.body2">@sr.ServiceProvider</MudText>
+                            </MudStack>
+                        }
+                    </MudStack>
+                    @if (!string.IsNullOrWhiteSpace(sr.Notes))
+                    {
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                            <MudText Typo="Typo.body2" Style="white-space:pre-line">@sr.Notes</MudText>
+                        </MudStack>
+                    }
+                    @{
+                        var linkedRule = FindRuleForTitle(sr.Title);
+                    }
+                    @if (linkedRule is not null)
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true" Icon="@Icons.Material.Filled.Repeat">
+                            Repeats @IntervalLabel(linkedRule)
+                        </MudAlert>
+                    }
+                    <MudStack Row="true" Spacing="1">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                       Size="Size.Small"
+                                       OnClick="() => _srDialog.OpenEdit(sr)" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Color="Color.Error"
+                                       OnClick="() => DeleteServiceAsync(sr.Id)" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Repeat"
+                                       Size="Size.Small"
+                                       title="@(linkedRule is null ? "Set up recurring" : "Edit recurring rule")"
+                                       OnClick="() => OpenRuleDialogForTitle(sr.Title)" />
+                    </MudStack>
+                </MudStack>
+            </MudCollapse>
+        </MudPaper>
+    }
+}
+
+@* ── Recurring rules ─────────────────────────────────────────────────────── *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.Repeat" />
+    <MudText Typo="Typo.h6">Recurring rules</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Text" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="() => _ruleDialog.OpenAdd()">Add</MudButton>
+</MudStack>
+
+@if (_rules.Count == 0)
+{
+    <MudText Color="Color.Secondary" Class="mb-4">No recurring rules yet — attach one from a service record, or add one here.</MudText>
+}
+else
+{
+    @foreach (var r in _rules)
+    {
+        <MudPaper @key="@r.Id" Elevation="1" Class="mb-1 px-4 py-2"
+                  Style="border-radius:var(--hg-radius-md)">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                <MudStack Spacing="0" Style="flex:1">
+                    <MudText Typo="Typo.body1" Style="font-weight:600">@r.Title</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Repeats @IntervalLabel(r)</MudText>
+                </MudStack>
+                @if (!r.IsActive)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Inactive</MudChip>
+                }
+                else if (r.AnchorToPurchaseDate)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Since purchase</MudChip>
+                }
+                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small"
+                               OnClick="() => _ruleDialog.OpenEdit(r)" />
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                               Color="Color.Error" OnClick="() => DeleteRuleAsync(r.Id)" />
+            </MudStack>
+        </MudPaper>
+    }
+}
+
+<ServiceRecordDialog @ref="_srDialog" FixedEquipmentId="EquipmentId" MeterUnit="@MeterUnit"
+                     OnSaved="OnServiceSavedAsync" />
+<RecurringRuleDialog @ref="_ruleDialog" EquipmentId="EquipmentId" MeterUnit="@MeterUnit"
+                     OnSaved="OnRuleSavedAsync" />
+
+@code {
+    [Parameter, EditorRequired] public Guid EquipmentId { get; set; }
+    [Parameter] public string? MeterUnit { get; set; }
+
+    // Deep-link from the Timeline card: auto-opens the matching dialog after load.
+    [Parameter] public Guid? EditServiceId { get; set; }
+    [Parameter] public Guid? EditRuleId { get; set; }
+
+    private List<ServiceRecordDto> _serviceRecords = [];
+    private List<RecurringRuleDto> _rules          = [];
+
+    private ServiceRecordDialog _srDialog   = null!;
+    private RecurringRuleDialog _ruleDialog = null!;
+
+    // Deep-link targets found after load; consumed in OnAfterRender once the dialog refs exist.
+    private ServiceRecordDto? _pendingEditService;
+    private RecurringRuleDto? _pendingEditRule;
+
+    private readonly HashSet<Guid> _expanded = [];
+
+    private void Toggle(Guid id)
+    {
+        if (!_expanded.Remove(id)) _expanded.Add(id);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(LoadServicesAsync(), LoadRulesAsync());
+
+        if (EditServiceId.HasValue)
+            _pendingEditService = _serviceRecords.FirstOrDefault(s => s.Id == EditServiceId.Value);
+        else if (EditRuleId.HasValue)
+            _pendingEditRule = _rules.FirstOrDefault(r => r.Id == EditRuleId.Value);
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (_pendingEditService is not null)
+        {
+            var sr = _pendingEditService;
+            _pendingEditService = null;
+            _srDialog.OpenEdit(sr);
+        }
+        else if (_pendingEditRule is not null)
+        {
+            var r = _pendingEditRule;
+            _pendingEditRule = null;
+            _ruleDialog.OpenEdit(r);
+        }
+    }
+
+    private async Task LoadServicesAsync()
+        => _serviceRecords = await ServiceApi.GetByEquipmentAsync(EquipmentId) ?? [];
+
+    private async Task LoadRulesAsync()
+        => _rules = await RuleApi.GetByEquipmentAsync(EquipmentId) ?? [];
+
+    private Task OnServiceSavedAsync(ServiceRecordDto? _) => LoadServicesAsync();
+    private Task OnRuleSavedAsync(RecurringRuleDto? _)    => LoadRulesAsync();
+
+    private async Task DeleteServiceAsync(Guid id)
+    {
+        await ServiceApi.DeleteAsync(id);
+        _serviceRecords.RemoveAll(sr => sr.Id == id);
+    }
+
+    private async Task DeleteRuleAsync(Guid id)
+    {
+        await RuleApi.DeleteAsync(id);
+        _rules.RemoveAll(r => r.Id == id);
+    }
+
+    private RecurringRuleDto? FindRuleForTitle(string title)
+        => _rules.FirstOrDefault(r => string.Equals(r.Title.Trim(), title.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Opens the rule dialog prefilled for this title — edit if a rule already exists, else create.</summary>
+    private void OpenRuleDialogForTitle(string title)
+    {
+        var existing = FindRuleForTitle(title);
+        if (existing is not null) _ruleDialog.OpenEdit(existing);
+        else _ruleDialog.OpenAdd(title);
+    }
+
+    private string IntervalLabel(RecurringRuleDto r)
+    {
+        var parts = new List<string>();
+        if (r.IntervalDays.HasValue) parts.Add($"~{r.IntervalDays}d");
+        if (r.IntervalMeter.HasValue) parts.Add($"~{r.IntervalMeter} {MeterUnit}".Trim());
+        if (parts.Count == 0) return "automatically (from history)";
+        return "every " + string.Join(" / ", parts);
+    }
+}
