@@ -189,6 +189,14 @@
     border-style: dashed;
 }
 
+/* Planned service: a small faded marker on the interval line — informational,
+   not a physical service visit. */
+.hg-tl-evbtn-planned {
+    border-width: 1.5px;
+    border-radius: 3px;
+    z-index: 4;
+}
+
 .hg-tl-cursor-overlay {
     position: absolute;
     top: 44px;

@@ -158,9 +158,10 @@ public sealed class RecurringRuleService
         if (predictions.Count == 0) return null;
         var next = predictions[0];
 
+        // MeterReading stays null: it's the ACTUAL reading, filled in on completion.
         var record = ServiceRecord.Create(
             rule.EquipmentId, rule.Title, next.Date, ServiceStatus.Planned,
-            meterReading: next.MeterReading, recurringRuleId: rule.Id, originalPredictedDate: next.Date);
+            recurringRuleId: rule.Id, originalPredictedDate: next.Date);
 
         await _serviceRecords.AddAsync(record, ct);
         await _uow.SaveChangesAsync(ct);

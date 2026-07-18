@@ -48,9 +48,11 @@ public sealed class RecurringRuleMaterializationService
 
             if (next.Date > today.AddDays(rule.MaterializeDaysAhead)) continue;
 
+            // MeterReading stays null: it's the ACTUAL reading, filled in on completion.
+            // The predicted value is recomputed live and would go stale here.
             var record = Domain.Entities.ServiceRecord.Create(
                 rule.EquipmentId, rule.Title, next.Date, ServiceStatus.Planned,
-                meterReading: next.MeterReading, recurringRuleId: rule.Id, originalPredictedDate: next.Date);
+                recurringRuleId: rule.Id, originalPredictedDate: next.Date);
 
             await _serviceRecords.AddAsync(record, ct);
         }

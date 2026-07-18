@@ -43,6 +43,11 @@ try
     validator.RunAll();
     diag.ValidationResults.AddRange(validator.Results);
 
+    // ── JSON: enums travel as strings ("Vehicle", "Completed") in both directions ──
+    builder.Services.ConfigureHttpJsonOptions(o =>
+        o.SerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
     // ── Application-layer services ────────────────────────────────────────
     builder.Services.AddHomeGuardApplication();
 

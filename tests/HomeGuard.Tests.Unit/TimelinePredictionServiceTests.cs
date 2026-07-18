@@ -154,6 +154,108 @@ public sealed class TimelinePredictionServiceTests
         result[0].Date.Should().Be(last.AddDays(50));
     }
 
+    [Fact]
+    public void Explicit_meter_interval_silences_the_auto_calendar_axis()
+    {
+        // Rule: every 7 200 km, nothing about days. Past services ~9.5 months apart
+        // must NOT auto-derive a competing calendar step that fires first.
+        var eq = Car();
+        var rule = RecurringRule.Create(eq.Id, "Oil change",
+            intervalMeter: 7_200, anchorToPurchaseDate: false, predictionsAhead: 1);
+
+        var records = new[]
+        {
+            Completed(eq, "Oil change", new DateOnly(2024, 12, 1), meter: 37_700),
+            Completed(eq, "Oil change", new DateOnly(2025, 9, 15), meter: 44_900),
+        };
+        var history = new[]
+        {
+            new MeterPoint(new DateOnly(2024, 12, 1), 37_700),
+            new MeterPoint(new DateOnly(2025, 9, 15), 44_900),
+            new MeterPoint(new DateOnly(2026, 7, 18), 50_500), // recent manual reading
+        };
+
+        var result = TimelinePredictionService.Predict(rule, eq, records, history);
+
+        // Threshold 52 100 km, ~21.5 km/day → ~74 days after the latest reading.
+        result.Should().ContainSingle();
+        result[0].MeterReading.Should().Be(52_100);
+        result[0].Date.Should().Be(new DateOnly(2026, 9, 30));
+    }
+
+    // ── Materialized Planned records ──────────────────────────────────────────
+
+    [Fact]
+    public void Planned_record_replaces_first_prediction_and_shifts_the_rest()
+    {
+        var eq = Car(meterUnit: null);
+        var rule = RecurringRule.Create(eq.Id, "Inspection", intervalDays: 365, predictionsAhead: 2);
+        var last = new DateOnly(2026, 1, 10);
+        var records = new[]
+        {
+            Completed(eq, "Inspection", last),
+            // Occurrence #1 already materialized (and rescheduled a bit later than predicted).
+            ServiceRecord.Create(eq.Id, "Inspection", new DateOnly(2027, 2, 1), ServiceStatus.Planned),
+        };
+
+        var result = TimelinePredictionService.Predict(rule, eq, records, []);
+
+        // No prediction duplicates the Planned date; the next ones count from it.
+        result.Should().HaveCount(2);
+        result[0].Date.Should().Be(new DateOnly(2028, 2, 1));
+        result[1].Date.Should().Be(new DateOnly(2029, 1, 31));
+    }
+
+    [Fact]
+    public void Planned_record_shifts_meter_thresholds_by_one_interval()
+    {
+        // 100 km/day, threshold every 10 000 km, occurrence #1 (60 000 km) materialized.
+        var eq = Car();
+        var rule = RecurringRule.Create(eq.Id, "Oil change",
+            intervalMeter: 10_000, anchorToPurchaseDate: false, predictionsAhead: 1);
+
+        var last = new DateOnly(2026, 1, 1);
+        var records = new[]
+        {
+            Completed(eq, "Oil change", last, meter: 50_000),
+            ServiceRecord.Create(eq.Id, "Oil change", last.AddDays(100), ServiceStatus.Planned),
+        };
+        var history = new[]
+        {
+            new MeterPoint(last, 50_000),
+            new MeterPoint(last.AddDays(10), 51_000), // 100 km/day
+        };
+
+        var result = TimelinePredictionService.Predict(rule, eq, records, history);
+
+        // First remaining prediction targets 70 000 km (not the materialized 60 000).
+        result.Should().ContainSingle();
+        result[0].MeterReading.Should().Be(70_000);
+        result[0].Date.Should().Be(last.AddDays(200));
+    }
+
+    [Fact]
+    public void Predicted_meter_readings_are_rounded_to_whole_units()
+    {
+        var eq = Car();
+        var rule = RecurringRule.Create(eq.Id, "Oil change",
+            intervalDays: 100, anchorToPurchaseDate: false, predictionsAhead: 1);
+
+        var last = new DateOnly(2026, 1, 1);
+        var records = new[] { Completed(eq, "Oil change", last, meter: 50_000) };
+        var history = new[]
+        {
+            new MeterPoint(last, 50_000),
+            new MeterPoint(last.AddDays(7), 50_100), // 14.28…/day — fractional estimate
+        };
+
+        var result = TimelinePredictionService.Predict(rule, eq, records, history);
+
+        result.Should().ContainSingle();
+        result[0].MeterReading.Should().NotBeNull();
+        (result[0].MeterReading!.Value % 1).Should().Be(0);
+    }
+
     // ── EstimateMeterReading ──────────────────────────────────────────────────
 
     [Fact]

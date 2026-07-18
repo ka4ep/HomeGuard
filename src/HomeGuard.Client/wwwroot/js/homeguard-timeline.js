@@ -61,7 +61,9 @@ window.homeGuardTimeline = {
     _parseRows(json) {
         return JSON.parse(json).map(r => ({
             ...r,
-            events: r.events.map(e => ({ ...e, dateObj: this._parseDate(e.date) })),
+            events: r.events
+                .map(e => ({ ...e, dateObj: this._parseDate(e.date) }))
+                .sort((a, b) => a.dateObj - b.dateObj),
             marks: (r.marks || []).map(m => ({ ...m, dateObj: this._parseDate(m.date) })),
         }));
     },
@@ -365,11 +367,16 @@ window.homeGuardTimeline = {
                 cell.appendChild(mkEl);
             });
 
-            const pos = this._adjPos(inst, row.events);
+            // Planned records are informational markers, not visits: they don't join the
+            // interval chain, so the block between Completed and Predicted stays unbroken.
+            const anchors = row.events.filter(ev => ev.status !== 'Planned');
+            const plannedEvents = row.events.filter(ev => ev.status === 'Planned');
 
-            // interval blocks — strictly between consecutive buttons
-            row.events.slice(0, -1).forEach((ev, i) => {
-                const nev = row.events[i + 1];
+            const pos = this._adjPos(inst, anchors);
+
+            // interval blocks — strictly between consecutive anchor buttons
+            anchors.slice(0, -1).forEach((ev, i) => {
+                const nev = anchors[i + 1];
                 const x1 = pos[i] + BTN, x2 = pos[i + 1];
                 const cx = Math.max(0, x1), ce = Math.min(inst.tw, x2), cw = ce - cx;
                 if (cw < 1) return;
@@ -408,13 +415,12 @@ window.homeGuardTimeline = {
                 cell.appendChild(ib);
             });
 
-            // event buttons
-            row.events.forEach((ev, i) => {
+            // event buttons (anchors: completed services, warranty points, predictions)
+            anchors.forEach((ev, i) => {
                 const x = pos[i];
                 if (x + BTN < -4 || x > inst.tw + 4) return;
 
                 const isExpiry = ev.isExpiry;
-                const isPlanned = ev.status === 'Planned';
                 const isPredicted = ev.isPredicted;
                 const isSel = inst.selEv && inst.selEv.ev.id === ev.id;
                 const base = isPredicted ? '#aaa' : isExpiry ? '#ef4444' : row.color;
@@ -422,7 +428,7 @@ window.homeGuardTimeline = {
                 const btn = document.createElement('div');
                 btn.className = 'hg-tl-evbtn' + (isPredicted ? ' hg-tl-evbtn-pred' : '');
                 btn.style.cssText = `left:${x}px;top:${(RH - BTN) / 2}px;width:${BTN}px;height:${BTN}px;border-color:${base};`;
-                const fillAlpha = isSel ? '' : (isPredicted || isPlanned ? '88' : 'cc');
+                const fillAlpha = isSel ? '' : (isPredicted ? '88' : 'cc');
                 btn.style.background = base + fillAlpha;
                 if (isSel) {
                     btn.style.outline = '2px solid white';
@@ -446,6 +452,49 @@ window.homeGuardTimeline = {
                     btn.style.background = isSel ? base : base + fillAlpha;
                     btn.style.transform = isSel ? 'scale(1.1)' : 'scale(1)';
                     btn.style.boxShadow = isSel ? `0 0 0 3px ${base}55` : 'none';
+                    inst.updateBadge();
+                });
+                btn.addEventListener('mousedown', e => e.stopPropagation());
+                btn.addEventListener('click', () => {
+                    inst.hovId = null;
+                    inst.selEv = (inst.selEv && inst.selEv.ev.id === ev.id) ? null : { ev, row };
+                    inst.updateCard();
+                    inst.render();
+                });
+                cell.appendChild(btn);
+            });
+
+            // Planned markers — small, faded, sitting ON the interval line: info, not a visit.
+            plannedEvents.forEach(ev => {
+                const PB = 14;
+                const x = this._toX(inst, ev.dateObj) - PB / 2;
+                if (x + PB < -4 || x > inst.tw + 4) return;
+
+                const isSel = inst.selEv && inst.selEv.ev.id === ev.id;
+                const base = row.color;
+
+                const btn = document.createElement('div');
+                btn.className = 'hg-tl-evbtn hg-tl-evbtn-planned';
+                btn.style.cssText = `left:${x}px;top:${(RH - PB) / 2}px;width:${PB}px;height:${PB}px;border-color:${base}aa;`;
+                btn.style.background = isSel ? base : base + '44';
+                if (isSel) {
+                    btn.style.outline = '2px solid white';
+                    btn.style.boxShadow = `0 0 0 3px ${base}55`;
+                }
+
+                btn.addEventListener('mouseenter', e => {
+                    e.stopPropagation();
+                    inst.hovId = ev.id;
+                    btn.style.background = base;
+                    btn.style.transform = 'scale(1.25)';
+                    inst.dateBadge.textContent = `Planned · ${this._fmtDate(ev.dateObj)}` +
+                        (ev.meterReading != null ? ` · ${this._fmtNum(ev.meterReading)}${ev.meterUnit ? ' ' + this._esc(ev.meterUnit) : ''}` : '');
+                    inst.dateBadge.style.display = 'block';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    inst.hovId = null;
+                    btn.style.background = isSel ? base : base + '44';
+                    btn.style.transform = 'scale(1)';
                     inst.updateBadge();
                 });
                 btn.addEventListener('mousedown', e => e.stopPropagation());

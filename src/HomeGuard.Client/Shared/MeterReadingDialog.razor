@@ -8,6 +8,16 @@
 <MudDialog Visible="Visible" VisibleChanged="OnVisibleChanged">
     <TitleContent>Record meter reading</TitleContent>
     <DialogContent>
+        @if (MeteredEquipment.Count == 0)
+        {
+            <MudAlert Severity="Severity.Info">
+                None of your equipment has a meter unit yet, so there is nothing to record
+                a reading against. Set "Meter unit" (e.g. km, kWh, h) on the equipment first —
+                Equipment → open item → Edit.
+            </MudAlert>
+        }
+        else
+        {
         <MudGrid>
             <MudItem xs="12">
                 <MudSelect T="Guid?" Value="_equipmentId" ValueChanged="OnEquipmentChanged"
@@ -45,6 +55,7 @@
                 </MudItem>
             }
         </MudGrid>
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CloseAsync">Cancel</MudButton>

@@ -46,7 +46,18 @@ public static class TimelinePredictionService
             .OrderBy(r => r.ServiceDate)
             .ToList();
 
+        // An un-completed Planned record IS the next occurrence, already materialized —
+        // predictions must not duplicate it and count onward from it instead.
+        var planned = ruleRecords
+            .Where(r => r.Status == ServiceStatus.Planned)
+            .OrderBy(r => r.ServiceDate)
+            .LastOrDefault();
+
         var points = meterHistory.OrderBy(p => p.Date).ToList();
+
+        // An explicit interval on exactly one axis silences the auto-derived other axis:
+        // "every 7 200 km" must not compete with a historical-average calendar cadence
+        // (and vice versa). Both axes are auto-derived only when neither is set explicitly.
 
         // ── Days step: manual override wins, otherwise average the gaps between data points ──
         var dayPoints = new List<DateOnly>();
@@ -59,7 +70,7 @@ public static class TimelinePredictionService
         {
             dayStep = rule.IntervalDays.Value;
         }
-        else if (dayPoints.Count >= 2)
+        else if (!rule.IntervalMeter.HasValue && dayPoints.Count >= 2)
         {
             var gaps = dayPoints
                 .Zip(dayPoints.Skip(1), (a, b) => b.DayNumber - a.DayNumber)
@@ -71,7 +82,7 @@ public static class TimelinePredictionService
 
         // ── Meter step: manual override wins, otherwise average this rule's own deltas ──
         decimal? meterStep = rule.IntervalMeter;
-        if (meterStep is null)
+        if (meterStep is null && !rule.IntervalDays.HasValue)
         {
             var meterPoints = completed
                 .Where(r => r.MeterReading.HasValue)
@@ -91,6 +102,15 @@ public static class TimelinePredictionService
 
         var lastDate = dayPoints.Count > 0 ? dayPoints.Max() : equipment.PurchaseDate;
 
+        // With a materialized Planned occurrence, day-stepping continues from its date and
+        // meter thresholds skip one interval (the Planned one).
+        var occurrenceOffset = 0;
+        if (planned is not null)
+        {
+            if (planned.ServiceDate > lastDate) lastDate = planned.ServiceDate;
+            occurrenceOffset = 1;
+        }
+
         // Meter value at the last service of THIS rule — the anchor the "+ intervalMeter"
         // thresholds count from. Falls back to an estimate when the record carried no reading.
         var lastServiceMeter = completed.LastOrDefault(r => r.MeterReading.HasValue)?.MeterReading
@@ -109,7 +129,7 @@ public static class TimelinePredictionService
             decimal? target = null;
             if (meterStep.HasValue && lastServiceMeter.HasValue && ratePerDay > 0 && latest.HasValue)
             {
-                target = lastServiceMeter.Value + meterStep.Value * i;
+                target = lastServiceMeter.Value + meterStep.Value * (i + occurrenceOffset);
                 var days = (double)((target.Value - latest.Value.Value) / ratePerDay.Value);
                 meterDate = latest.Value.Date.AddDays((int)Math.Round(days));
             }
@@ -122,9 +142,10 @@ public static class TimelinePredictionService
 
             var meter = meterWins
                 ? target
-                : EstimateMeterReading(points, date) ?? (lastServiceMeter + meterStep * i);
+                : EstimateMeterReading(points, date) ?? (lastServiceMeter + meterStep * (i + occurrenceOffset));
 
-            results.Add(new PredictedEvent(date, meter));
+            // Predictions are coarse by nature — whole units, no false precision.
+            results.Add(new PredictedEvent(date, meter is null ? null : Math.Round(meter.Value)));
         }
 
         return results;
