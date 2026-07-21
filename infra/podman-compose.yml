@@ -25,6 +25,10 @@ services:
       # ── База данных ───────────────────────────────────────────────────
       ConnectionStrings__DefaultConnection: "Data Source=/app/data/homeguard.db"
 
+      # ── API-ключ для машинных клиентов (инжесторы) ────────────────────
+      # Пустой = машинный доступ выключен. Генерация: openssl rand -hex 32
+      Auth__ApiKey: "${HOMEGUARD_API_KEY}"
+
       # ── FIDO2 / Passkeys ──────────────────────────────────────────────
       # ServerDomain — hostname без схемы и порта, должен совпадать с Origin.
       # Origins — полные URL (схема + хост + порт) с которых открывается приложение.
@@ -58,7 +62,32 @@ services:
       # Том homeguard-logs монтируется в /app/logs — Serilog пишет туда.
       # Для просмотра: podman exec homeguard ls /app/logs
 
+  # ── Одометр из портала VW EU Data Act (Cupra) ─────────────────────────
+  # Требует активной continuous-подписки на портале — см. tools/euda-ingestor/README.md.
+  # Отключить: podman-compose stop odometer-ingestor (или закомментировать сервис).
+  odometer-ingestor:
+    build:
+      context: ../tools/euda-ingestor
+      dockerfile: Containerfile
+    image: homeguard-euda-ingestor:latest
+    container_name: homeguard-euda-ingestor
+    restart: unless-stopped
+    depends_on:
+      - homeguard
+    volumes:
+      - euda-ingestor-state:/data
+    environment:
+      EUDA_EMAIL:    "${EUDA_EMAIL}"
+      EUDA_PASSWORD: "${EUDA_PASSWORD}"
+      EUDA_BRAND:    "cupra"
+      # EUDA_VIN — нужен только если на аккаунте несколько машин.
+      HOMEGUARD_URL: "http://homeguard:8080"
+      HOMEGUARD_API_KEY:      "${HOMEGUARD_API_KEY}"
+      HOMEGUARD_EQUIPMENT_ID: "${EUDA_EQUIPMENT_ID}"
+      POLL_INTERVAL_MINUTES:  "360"
+
 volumes:
   homeguard-data:
   homeguard-blobs:
   homeguard-logs:
+  euda-ingestor-state:

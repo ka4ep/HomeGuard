@@ -186,6 +186,11 @@ public sealed class MeterReadingRepository : RepositoryBase<MeterReading>, IMete
 
         return all.OrderByDescending(r => r.ReadingDate).ToList();
     }
+
+    public async Task<MeterReading?> FindAsync(
+        Guid equipmentId, DateOnly readingDate, MeterReadingSource source, CancellationToken ct = default)
+        => await Set.FirstOrDefaultAsync(
+            r => r.EquipmentId == equipmentId && r.ReadingDate == readingDate && r.Source == source, ct);
 }
 
 // ── BlobEntry ─────────────────────────────────────────────────────────────────

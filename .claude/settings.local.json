@@ -1,4 +1,5 @@
 {
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "graphify"
   ],
@@ -7,5 +8,9 @@
     "autoAllowBashIfSandboxed": true
   },
   "prefersReducedMotion": true,
-  "enableAllProjectMcpServers": true
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)"
+    ]
+  }
 }

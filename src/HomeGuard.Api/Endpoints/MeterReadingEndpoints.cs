@@ -9,7 +9,8 @@ public static class MeterReadingEndpoints
     public static void MapMeterReadingEndpoints(this WebApplication app)
     {
         var grp = app.MapGroup("/api/meter-readings")
-            .WithTags("MeterReadings");
+            .WithTags("MeterReadings")
+            .RequireAuthorization("CookieOrApiKey");
 
         grp.MapGet("/by-equipment/{equipId:guid}", GetByEquipment);
         grp.MapPost("/",                           Create);

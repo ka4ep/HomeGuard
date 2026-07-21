@@ -40,9 +40,18 @@ internal static class PasskeyAuthExtensions
                         return Task.CompletedTask;
                     }
                 };
-            });
+            })
+            .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, ApiKeyAuthHandler>(
+                ApiKeyAuthHandler.SchemeName, null);
 
-        services.AddAuthorization();
+        services.AddAuthorization(opts =>
+            // Machine-facing endpoints: a logged-in family member OR an ingestor
+            // presenting X-Api-Key. Cookie stays the default scheme elsewhere.
+            opts.AddPolicy("CookieOrApiKey", p => p
+                .AddAuthenticationSchemes(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    ApiKeyAuthHandler.SchemeName)
+                .RequireAuthenticatedUser()));
 
         // MemoryCache is required by Fido2 internals.
         services.AddMemoryCache();

@@ -80,6 +80,20 @@ public sealed class MeterReadingService
 
     public async Task<MeterReading> CreateAsync(CreateMeterReadingCommand cmd, CancellationToken ct = default)
     {
+        // Auto ingestors repost on every poll cycle — collapse to one reading
+        // per equipment per day (the freshest value of the day wins).
+        if (cmd.Source == MeterReadingSource.Auto)
+        {
+            var existing = await _readings.FindAsync(
+                cmd.EquipmentId, cmd.ReadingDate, MeterReadingSource.Auto, ct);
+            if (existing is not null)
+            {
+                existing.Update(cmd.ReadingDate, cmd.Value, cmd.Note);
+                await _uow.SaveChangesAsync(ct);
+                return existing;
+            }
+        }
+
         var reading = MeterReading.Create(
             cmd.EquipmentId, cmd.ReadingDate, cmd.Value, cmd.Source, cmd.Note);
 

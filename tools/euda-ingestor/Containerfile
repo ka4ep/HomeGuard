@@ -1,0 +1,11 @@
+FROM python:3.12-alpine
+
+RUN pip install --no-cache-dir requests
+
+WORKDIR /app
+COPY euda_ingestor.py .
+
+# Состояние (последний обработанный датасет) живёт в /data — подмонтируй том.
+VOLUME /data
+
+CMD ["python", "euda_ingestor.py"]
