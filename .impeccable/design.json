@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-10T00:00:00Z",
+  "title": "Design System: HomeGuard",
+  "extensions": {
+    "colorMeta": {
+      "slate": {
+        "role": "primary",
+        "displayName": "Slate Ink",
+        "canonical": "#4f6fa0",
+        "tonalRamp": ["#192433", "#2C3E59", "#405A82", "#5476AB", "#7D97BF", "#A6B8D3", "#CFD9E7", "#EEF1F7"]
+      },
+      "greige": {
+        "role": "neutral",
+        "displayName": "Clay",
+        "canonical": "#BAB2AC",
+        "tonalRamp": ["#2A2623", "#48413C", "#6A6058", "#8B7E74", "#A79D95", "#C3BCB7", "#DFDBD8", "#F3F2F1"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#eeeae4",
+        "tonalRamp": ["#2F281E", "#514533", "#77654B", "#9C8563", "#B4A388", "#CCC0AE", "#E3DDD3", "#F5F3EF"]
+      },
+      "warranty": {
+        "role": "secondary",
+        "displayName": "Muted Iris",
+        "canonical": "#6E6BA8",
+        "tonalRamp": ["#1D1C30", "#333154", "#4A487A", "#625EA1", "#8785B7", "#ADABCE", "#D3D2E5", "#EFEFF6"]
+      },
+      "service": {
+        "role": "secondary",
+        "displayName": "Muted Moss",
+        "canonical": "#4E8A6B",
+        "tonalRamp": ["#1C3126", "#305542", "#467C60", "#5CA37E", "#83B99D", "#AACFBC", "#D1E5DB", "#EFF6F2"]
+      },
+      "meter": {
+        "role": "secondary",
+        "displayName": "Muted Brass",
+        "canonical": "#9C752E",
+        "tonalRamp": ["#3B2C11", "#664D1E", "#96702C", "#C5943A", "#D3AD69", "#E1C799", "#EFE1C8", "#F9F4EB"]
+      },
+      "money": {
+        "role": "secondary",
+        "displayName": "Muted Plum",
+        "canonical": "#8A5F72",
+        "tonalRamp": ["#2D1F25", "#4F3641", "#734F5F", "#97687D", "#B08C9C", "#C9B0BB", "#E2D5DB", "#F5F0F2"]
+      },
+      "today": {
+        "role": "tertiary",
+        "displayName": "Ember",
+        "canonical": "#D85A30",
+        "tonalRamp": ["#341407", "#59220C", "#823212", "#AB4218", "#C4693F", "#D79470", "#E9BFA8", "#F7E5DA"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The money figure a screen is about. Tabular numerals, at most one per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles." },
+      "title": { "displayName": "Title", "purpose": "Name of the open object: a contract, a piece of equipment, a service record." },
+      "body": { "displayName": "Body", "purpose": "All prose including markdown summary cards. Measure capped at 65-75ch." },
+      "label": { "displayName": "Catalogue Label", "purpose": "9.5px uppercase label above a value. The system's most recognisable gesture." }
+    },
+    "shadows": [
+      { "name": "card", "value": "0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10)", "purpose": "Every card, panel and timeline grid at rest." },
+      { "name": "modal", "value": "0 8px 32px rgba(30,28,26,.18), 0 0 0 .5px rgba(60,50,40,.12)", "purpose": "Dialogs only — the single third elevation." },
+      { "name": "lift", "value": "0 8px 22px rgba(30,28,26,.18)", "purpose": "Response state, paired with translateY(-3px), inside @media (hover:hover) and (pointer:fine) only." }
+    ],
+    "motion": [
+      { "name": "standard", "value": "160ms ease", "purpose": "Every state transition: background, colour, border, shadow. One duration for the whole system." }
+    ],
+    "breakpoints": [
+      { "name": "phone", "value": "600px" },
+      { "name": "desktop", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one actionable colour in the system. Sentence case, never ALL CAPS.",
+      "html": "<button class=\"ds-btn\">Confirm payment</button>",
+      "css": ".ds-btn { background: var(--hg-accent, #4f6fa0); color: #fff; border: none; border-radius: var(--hg-radius-sm, 6px); padding: 8px 16px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: .8125rem; font-weight: 500; letter-spacing: 0; text-transform: none; cursor: pointer; transition: background 160ms ease; } .ds-btn:hover { background: var(--hg-accent-dark, #3a5278); } .ds-btn:focus-visible { outline: 2px solid var(--hg-accent-dark, #3a5278); outline-offset: 2px; } .ds-btn:active { background: var(--hg-accent-dark, #3a5278); }"
+    },
+    {
+      "name": "Ghost Button on Card",
+      "kind": "button",
+      "refersTo": "button-ghost-on-card",
+      "description": "Secondary action inside cream paper. On the clay ground the border flips to white-18% and the label to Ink on Greige.",
+      "html": "<button class=\"ds-btn-ghost\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><path d=\"M14 3v5h5\"/></svg>Policy</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--hg-accent, #4f6fa0); border: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-sm, 6px); padding: 8px 12px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: .8125rem; font-weight: 500; cursor: pointer; transition: background 160ms ease, border-color 160ms ease; } .ds-btn-ghost:hover { background: rgba(79,111,160,.06); border-color: var(--hg-border-strong, rgba(60,50,40,.25)); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--hg-accent, #4f6fa0); outline-offset: 2px; }"
+    },
+    {
+      "name": "Field Well",
+      "kind": "custom",
+      "refersTo": "field-well",
+      "description": "The system's signature: catalogue label over a tabular value. Every fact is displayed this way.",
+      "html": "<div class=\"ds-well\"><span>Next payment</span><b>168,50 &euro;</b></div>",
+      "css": ".ds-well { display: block; background: var(--hg-card-top, #faf8f5); border-radius: var(--hg-radius-sm, 6px); padding: 7px 9px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-well span { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #9c9590); margin-bottom: 2px; } .ds-well b { font-size: 13.5px; font-weight: 500; color: var(--hg-text, #1e1c1a); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A document on the clay table. Shadow plus hairline at rest; the lift state is pointer-only.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-t\">KASKO &mdash; Cupra Born</div><div class=\"ds-card-s\">If P&amp;C Insurance &middot; POL-4471902</div></div>",
+      "css": ".ds-card { background: var(--hg-card, #eeeae4); color: var(--hg-text, #1e1c1a); border: .5px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); box-shadow: 0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10); padding: 14px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; transition: box-shadow 160ms ease, transform 160ms ease; } .ds-card-t { font-size: 17px; font-weight: 600; letter-spacing: -.015em; line-height: 1.25; } .ds-card-s { font-size: 11.5px; color: var(--hg-text-subtle, #9c9590); margin-top: 3px; } @media (hover: hover) and (pointer: fine) { .ds-card:hover { box-shadow: 0 8px 22px rgba(30,28,26,.18); transform: translateY(-3px); } }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-success",
+      "description": "Pale wash plus dark ink, always as a pair, always a full pill, never bordered.",
+      "html": "<span class=\"ds-chip ds-chip-ok\">Paid</span> <span class=\"ds-chip ds-chip-warn\">Planned</span> <span class=\"ds-chip ds-chip-bad\">Overdue 2 d</span>",
+      "css": ".ds-chip { display: inline-block; border-radius: 999px; padding: 2px 9px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; font-size: 10.5px; font-weight: 600; letter-spacing: .02em; white-space: nowrap; } .ds-chip-ok { background: var(--hg-success-bg, #d8eee0); color: var(--hg-success-text, #2d6040); } .ds-chip-warn { background: var(--hg-warning-bg, #f5ede0); color: var(--hg-warning-text, #7a4f10); } .ds-chip-bad { background: var(--hg-danger-bg, #f5e8e8); color: var(--hg-danger-text, #7a2a2a); }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Inside the Clay Deep chrome, contrast comes from lightness, not hue — the active row never uses Slate.",
+      "html": "<div class=\"ds-nav\"><a class=\"ds-nav-l is-active\" href=\"#\">Contracts</a><a class=\"ds-nav-l\" href=\"#\">Equipment</a><a class=\"ds-nav-l\" href=\"#\">Timeline</a></div>",
+      "css": ".ds-nav { background: var(--hg-bg-deep, #7a7672); padding: 8px 4px; border-radius: var(--hg-radius-md, 10px); display: flex; flex-direction: column; gap: 2px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-nav-l { display: block; color: rgba(255,255,255,.65); text-decoration: none; border-radius: var(--hg-radius-sm, 6px); margin: 0 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; transition: background 160ms ease, color 160ms ease; } .ds-nav-l:hover { background: rgba(255,255,255,.1); color: #EDE9E4; } .ds-nav-l.is-active { background: rgba(255,255,255,.15); color: #EDE9E4; } .ds-nav-l:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: -2px; }"
+    },
+    {
+      "name": "Density Switch",
+      "kind": "custom",
+      "refersTo": "density-toggle-on",
+      "description": "Two densities of one world. Lives on every list surface, remembered per screen and per device; defaults to List on a phone and Cards on a desktop.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-seg-b\">Cards</button><button class=\"ds-seg-b is-on\">List</button></div>",
+      "css": ".ds-seg { display: inline-flex; gap: 4px; background: rgba(0,0,0,.2); border-radius: var(--hg-radius-md, 10px); padding: 3px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-seg-b { border: none; background: transparent; color: rgba(255,255,255,.62); border-radius: 6px; padding: 5px 13px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 160ms ease, color 160ms ease; } .ds-seg-b:hover { color: #EDE9E4; } .ds-seg-b.is-on { background: var(--hg-card, #eeeae4); color: var(--hg-text, #1e1c1a); font-weight: 600; box-shadow: 0 2px 8px rgba(30,28,26,.10); } .ds-seg-b:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: 1px; }"
+    },
+    {
+      "name": "Timeline Row",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The one custom-drawn surface: fixed label column, panning track, entity hues, hollow marks for predictions, Ember for today.",
+      "html": "<div class=\"ds-tl\"><div class=\"ds-tl-l\"><i>Cupra Born</i><b>Engine oil</b></div><div class=\"ds-tl-t\"><span class=\"ds-tl-link\"></span><span class=\"ds-tl-dot\"></span><span class=\"ds-tl-dot ds-tl-dot2\"></span><span class=\"ds-tl-dot ds-tl-pred\"></span><span class=\"ds-tl-today\"></span></div></div>",
+      "css": ".ds-tl { display: flex; height: 50px; background: var(--hg-card, #eeeae4); border: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-tl-l { flex: 0 0 110px; background: var(--hg-card-top, #faf8f5); border-right: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); padding: 0 12px; display: flex; flex-direction: column; justify-content: center; } .ds-tl-l i { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #9c9590); } .ds-tl-l b { font-size: 13px; font-weight: 500; color: var(--hg-text-muted, #6b6560); } .ds-tl-t { flex: 1; position: relative; } .ds-tl-link { position: absolute; top: 50%; left: 12%; width: 52%; height: 2px; transform: translateY(-50%); background: #4E8A6B; opacity: .34; } .ds-tl-dot { position: absolute; top: 50%; left: 12%; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #4E8A6B; background: #fff; transform: translate(-50%,-50%); } .ds-tl-dot2 { left: 64%; } .ds-tl-pred { left: 92%; border-style: dashed; border-color: #9c9590; background: #f2f0ed; } .ds-tl-today { position: absolute; top: 0; bottom: 0; left: 46%; width: 2px; background: #D85A30; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warm Archive",
+    "overview": "HomeGuard is the drawer where a household keeps proof of what it owns: the boiler's warranty card, the car's service book, the insurance policy with the clause about winter tyres. The interface is that drawer made legible. Cards are documents on a clay-coloured table — they lift off the surface, they carry small uppercase catalogue labels, and they hold facts rather than illustrations. The mood is calm, warm and literate: a family archive kept by someone precise, not a finance dashboard.\n\nDensity is the system's signature. Values live in small tinted wells with a 9.5px uppercase label above them, so a screen can carry a dozen facts without shouting. Warmth comes from the ground, not from decoration: a greige page, cream paper, a single slate-blue ink for every action. Colour is scarce and always carries meaning — an entity's identity or a status — never mood.\n\nThe interface answers to two scenes with one language. On a phone it is a list you check while standing at the car; on a desktop it is a two-pane workspace where a contract opens beside its neighbours. These are densities of one world, not two looks: the same tokens, the same labels, the same ink — only how many objects fit on screen changes, under a switch the user controls.",
+    "keyCharacteristics": [
+      "Warm greige ground with cream documents floating on it",
+      "One slate-blue ink for every action, everywhere",
+      "Small uppercase catalogue labels over tabular values",
+      "Facts in tinted wells, never in free-floating text",
+      "Exactly two elevation levels; the third is a modal",
+      "Colour identifies a thing or a state, never decorates"
+    ],
+    "rules": [
+      { "name": "The One Ink Rule", "body": "Slate is the only actionable colour. If something is slate-blue, it can be pressed; if it can be pressed, it is slate-blue. A decorative slate element is a bug.", "section": "colors" },
+      { "name": "The Meaning-Only Rule", "body": "Every non-neutral colour answers one of two questions: what kind of thing is this (entity hues) or what state is it in (semantic pairs). No colour exists to make a screen livelier.", "section": "colors" },
+      { "name": "The Ember Reserve", "body": "#D85A30 belongs to 'today'. Never reuse it for errors, warnings, or highlights — its value is that it appears exactly once per timeline.", "section": "colors" },
+      { "name": "The Label-Over-Value Rule", "body": "A fact is a 9.5px uppercase label with a 13.5px/500 value beneath it, inside a tinted well. Not 'Label: value' on one line, not a bare number hoping to be understood.", "section": "typography" },
+      { "name": "The Tabular Rule", "body": "Every number that can be compared down a column — money, meter readings, dates, counts — carries font-variant-numeric: tabular-nums. Numbers that jitter between rows read as an unfinished product.", "section": "typography" },
+      { "name": "The Second Object Rule", "body": "Extra width buys a second object, never wider rows. A desktop screen shows the list and the open item; it does not stretch one card to 1400px.", "section": "layout" },
+      { "name": "The Two-Level Rule", "body": "Ground → card → tonal field. Anything that needs a third elevation is a dialog, and should be built as one.", "section": "elevation" },
+      { "name": "The Pointer-Only Lift Rule", "body": "The lift state lives inside @media (hover:hover) and (pointer:fine). On touch, cards stay at rest — a hover shadow on a phone is a state no finger can produce, and it costs scroll performance.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do state every fact as a label-over-value well: 9.5px uppercase label, 13.5px/500 tabular value, Paper Top background, 6px radius.",
+      "Do give numbers font-variant-numeric: tabular-nums wherever they can be compared down a column.",
+      "Do spend extra width on a second object — a rail plus a detail pane — rather than on wider rows.",
+      "Do keep the density switch on every list surface — List by default on a phone, Cards on a desktop — and remember the choice per screen and per device.",
+      "Do gate the lift state behind @media (hover:hover) and (pointer:fine).",
+      "Do theme the browser's own surfaces from the palette: selection, caret, scrollbar (6px, Clay Raised thumb), and focus rings.",
+      "Do check any new entity hue at 3:1 against Paper (#eeeae4) before adopting it — this is how #B08A3C became #9C752E."
+    ],
+    "donts": [
+      "Don't use Slate for anything that cannot be pressed, and don't build an action in any other colour.",
+      "Don't nest a shadow inside a card; separate inner regions with Paper Top instead.",
+      "Don't put a coloured bar wider than 1px on the edge of a card or row — a 7px status dot carries the same information without the costume.",
+      "Don't reuse Ember (#D85A30) for anything but 'today'.",
+      "Don't let MudBlazor's ALL CAPS buttons back in, and don't reintroduce Roboto — app.css still carries a Blazor-template font-family: 'Roboto' on html, body and a Google Fonts link in index.html; both are leftovers, and Plus Jakarta Sans is the only face in this system.",
+      "Don't introduce a second visual language for a roomier layout. Roominess is a density of this world — bigger type and more air on the same tokens, not 20px radii and sentence-case labels borrowed from somewhere else.",
+      "Don't set colour in HomeGuardTheme.cs; mud-overrides.css is the single source of truth and its !important rules will win silently."
+    ]
+  }
+}

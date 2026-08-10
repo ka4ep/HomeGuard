@@ -1,0 +1,16 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [
+      "design-directions.html"
+    ],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-08-10T10:44:13.149Z",
+        "reason": "User confirmed Plus Jakarta Sans is intentional"
+      }
+    ]
+  }
+}

@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HomeGuard — направления оформления</title>
+<style>
+@font-face{font-family:'Plus Jakarta Sans';src:url('src/HomeGuard.Client/wwwroot/fonts/PlusJakartaSans/PlusJakartaSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('src/HomeGuard.Client/wwwroot/fonts/PlusJakartaSans/PlusJakartaSans-Medium.woff2') format('woff2');font-weight:500;font-display:swap}
+@font-face{font-family:'Plus Jakarta Sans';src:url('src/HomeGuard.Client/wwwroot/fonts/PlusJakartaSans/PlusJakartaSans-SemiBold.woff2') format('woff2');font-weight:600;font-display:swap}
+
+:root{
+  /* реальные токены проекта — variables.css */
+  --hg-bg:#BAB2AC; --hg-bg-deep:#7a7672; --hg-card:#eeeae4; --hg-card-top:#faf8f5;
+  --hg-border-card:rgba(60,50,40,.12); --hg-border-strong:rgba(60,50,40,.25);
+  --hg-text:#1e1c1a; --hg-text-muted:#6b6560; --hg-text-subtle:#9c9590;
+  --hg-accent:#4f6fa0; --hg-accent-dark:#3a5278; --hg-accent-on-card:#dce6f2; --hg-accent-text:#3a5278;
+  --hg-success-bg:#d8eee0; --hg-success-text:#2d6040;
+  --hg-warning-bg:#f5ede0; --hg-warning-text:#7a4f10;
+  --hg-danger-bg:#f5e8e8;  --hg-danger-text:#7a2a2a;
+  --hg-radius-sm:6px; --hg-radius-md:10px; --hg-radius-lg:16px;
+  --hg-shadow-card:0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10);
+  --hg-shadow-modal:0 8px 32px rgba(30,28,26,.18), 0 0 0 .5px rgba(60,50,40,.12);
+  /* хром этого листа */
+  --sheet:#413C38; --sheet-2:#4C4642; --ink:#EFE9E1; --ink-mute:#B3A99E; --ink-faint:#8A8078;
+  --rule:rgba(239,233,225,.14);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--sheet);color:var(--ink);
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+::selection{background:#a8c4e8;color:#1e1c1a}
+*{scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--ink-faint);border-radius:4px}
+::-webkit-scrollbar-track{background:transparent}
+
+.wrap{max-width:1240px;margin:0 auto;padding:clamp(28px,5vw,64px) clamp(18px,4vw,40px) 96px}
+
+/* ── шапка ────────────────────────────────────────────────── */
+.lede h1{font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:600;letter-spacing:-.02em;margin:0 0 14px;line-height:1.15}
+.lede p{margin:0 0 10px;max-width:68ch;color:var(--ink-mute)}
+.lede strong{color:var(--ink);font-weight:500}
+.rule{height:1px;background:var(--rule);border:0;margin:44px 0 0}
+
+/* ── секции ───────────────────────────────────────────────── */
+section{padding-top:52px}
+.shead{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-bottom:8px}
+.shead h2{font-size:1.22rem;font-weight:600;margin:0;letter-spacing:-.01em}
+.shead .q{color:var(--ink-faint);font-size:.9rem}
+.snote{color:var(--ink-mute);margin:0 0 30px;max-width:74ch;font-size:.94rem}
+
+/* ── специмены ────────────────────────────────────────────── */
+.specimens{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:clamp(20px,2.4vw,34px);align-items:start}
+.spec{min-width:0}
+.spec h3{font-size:1rem;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+.spec h3 span{color:var(--ink-faint);font-weight:500;margin-right:8px}
+.spec .why{color:var(--ink-mute);font-size:.86rem;line-height:1.55;margin:0 0 16px;min-height:3.4em}
+.spec .why b{color:var(--ink);font-weight:500}
+.frame{border-radius:20px;overflow:hidden;border:1px solid rgba(0,0,0,.28);box-shadow:0 14px 40px rgba(0,0,0,.3)}
+.tag{display:block;margin-top:12px;font-size:.76rem;color:var(--ink-faint);line-height:1.5;font-variant-numeric:tabular-nums}
+
+/* ═══ НАПРАВЛЕНИЕ A — Тёплый архив ═══════════════════════════ */
+.wa{background:var(--hg-bg);padding:16px 14px 20px;color:var(--hg-text);font-size:15px}
+.wa-top{display:flex;justify-content:space-between;align-items:center;margin:2px 4px 14px}
+.wa-top h4{margin:0;font-size:1.02rem;font-weight:600;color:#403c39;letter-spacing:-.01em}
+.wa-top .cnt{font-size:.72rem;color:#5E5B58;letter-spacing:.05em;text-transform:uppercase;font-weight:600}
+.wa-card{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);padding:14px}
+.wa-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.wa-ttl{font-size:15px;font-weight:600;line-height:1.3}
+.wa-sub{font-size:11.5px;color:var(--hg-text-subtle);margin-top:3px}
+.wa-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:13px}
+.wa-well{background:var(--hg-card-top);border-radius:var(--hg-radius-sm);padding:7px 9px}
+.wa-lbl{font-size:9.5px;font-weight:600;color:var(--hg-text-subtle);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.wa-val{font-size:13.5px;font-weight:500;color:var(--hg-text);font-variant-numeric:tabular-nums}
+.wa-acts{display:flex;gap:7px;margin-top:13px}
+.wa-btn{flex:1;text-align:center;background:var(--hg-accent);color:#fff;border-radius:var(--hg-radius-sm);padding:8px;font-size:12.5px;font-weight:500}
+.wa-btn.gh{flex:0 0 auto;background:transparent;color:var(--hg-accent);border:1px solid var(--hg-border-card);padding:8px 12px;display:flex;align-items:center;gap:6px}
+.wa-list{margin-top:9px;display:flex;flex-direction:column;gap:6px}
+.wa-row{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.wa-row .nm{flex:1;min-width:0}
+.wa-row .nm b{display:block;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wa-row .nm span{font-size:10px;color:var(--hg-text-subtle);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.wa-row .amt{text-align:right;font-variant-numeric:tabular-nums}
+.wa-row .amt b{display:block;font-size:13.5px;font-weight:600}
+.wa-row .amt span{font-size:11px;color:var(--hg-text-subtle)}
+
+/* ═══ НАПРАВЛЕНИЕ B — Кухонный стол ═════════════════════════ */
+.kt{background:#C6BFB7;padding:20px 16px 24px;color:#241f1b}
+.kt-top{margin:2px 4px 16px}
+.kt-top h4{margin:0;font-size:1.32rem;font-weight:600;letter-spacing:-.02em}
+.kt-top p{margin:3px 0 0;font-size:13px;color:#5c5550}
+.kt-card{background:#F6F2EC;border-radius:20px;box-shadow:0 3px 14px rgba(35,28,22,.11);padding:19px}
+.kt-chip{display:inline-block;background:#e5e0ea;color:#5a4a72;border-radius:999px;padding:3px 11px;font-size:11.5px;font-weight:600;margin-bottom:9px}
+.kt-ttl{font-size:19px;font-weight:600;line-height:1.24;letter-spacing:-.02em}
+.kt-sub{font-size:13px;color:#7a726c;margin-top:4px}
+.kt-hero{margin:17px 0 4px;display:flex;align-items:baseline;gap:9px}
+.kt-hero b{font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1}
+.kt-hero span{font-size:14px;color:#7a726c}
+.kt-when{font-size:14px;color:#4a443f}
+.kt-track{height:7px;border-radius:99px;background:#e2dcd3;margin:17px 0 8px;overflow:hidden}
+.kt-track i{display:block;height:100%;width:50%;border-radius:99px;background:#7f8f6a}
+.kt-cap{font-size:13px;color:#7a726c}
+.kt-btn{display:block;text-align:center;margin-top:17px;background:#4f6fa0;color:#fff;border-radius:14px;padding:13px;font-size:15px;font-weight:600}
+.kt-row{background:#F6F2EC;border-radius:18px;box-shadow:0 3px 14px rgba(35,28,22,.11);padding:14px 16px;margin-top:11px;display:flex;align-items:center;gap:12px}
+.kt-row .nm{flex:1;min-width:0}
+.kt-row .nm b{display:block;font-size:15px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kt-row .nm span{font-size:12.5px;color:#7a726c}
+.kt-row .amt{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ═══ НАПРАВЛЕНИЕ C — Приборная панель ══════════════════════ */
+.cp{background:var(--hg-bg);padding:14px 12px 18px;color:var(--hg-text)}
+.cp-panel{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);overflow:hidden}
+.cp-head{display:grid;grid-template-columns:1fr 78px 60px;gap:8px;padding:9px 12px;border-bottom:1px solid var(--hg-border-card);background:var(--hg-card)}
+.cp-head span{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-muted)}
+.cp-head span:nth-child(2){text-align:right}
+.cp-head span:nth-child(3){text-align:right}
+.cp-r{display:grid;grid-template-columns:1fr 78px 60px;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid rgba(60,50,40,.07)}
+.cp-r:nth-child(even){background:rgba(255,255,255,.4)}
+.cp-nm{display:flex;align-items:center;gap:8px;min-width:0}
+.cp-dot{width:7px;height:7px;border-radius:2px;flex:0 0 auto}
+.cp-nm b{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-amt{text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cp-due{text-align:right;font-size:11.5px;color:var(--hg-text-muted);font-variant-numeric:tabular-nums}
+.cp-due.od{color:var(--hg-danger-text);font-weight:600}
+.cp-foot{display:grid;grid-template-columns:1fr auto;padding:10px 12px;background:var(--hg-card-top);border-top:1px solid var(--hg-border-card)}
+.cp-foot span{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-muted);align-self:center}
+.cp-foot b{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.cp-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.cp-tile{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-sm);padding:8px 9px}
+.cp-tile span{display:block;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.cp-tile b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ── бейджи статуса, общие ────────────────────────────────── */
+.b{display:inline-block;border-radius:999px;padding:2px 9px;font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.b-ok{background:var(--hg-success-bg);color:var(--hg-success-text)}
+.b-warn{background:var(--hg-warning-bg);color:var(--hg-warning-text)}
+.b-bad{background:var(--hg-danger-bg);color:var(--hg-danger-text)}
+.b-ins{background:var(--hg-accent-on-card);color:var(--hg-accent-text)}
+
+/* ═══ БЛОК 2 — цвета сущностей ══════════════════════════════ */
+.tl{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);overflow:hidden}
+.tl-axis{display:flex;height:26px;background:var(--hg-card-top);border-bottom:2px solid var(--hg-border-card)}
+.tl-axis .sp{flex:0 0 92px;border-right:1px solid var(--hg-border-card)}
+.tl-axis .ax{flex:1;position:relative}
+.tl-axis .ax i{position:absolute;top:7px;font-size:9.5px;font-style:normal;color:var(--hg-text-subtle);font-weight:600;transform:translateX(-50%);letter-spacing:.04em}
+.tl-row{display:flex;height:38px;border-bottom:1px solid var(--hg-border-card)}
+.tl-row:last-child{border-bottom:0}
+.tl-lbl{flex:0 0 92px;border-right:1px solid var(--hg-border-card);background:var(--hg-card-top);padding:0 9px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.tl-lbl b{font-size:11px;font-weight:500;color:var(--hg-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-lbl i{font-size:8.5px;font-style:normal;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.tl-track{flex:1;position:relative}
+.tl-track .grid{position:absolute;top:0;bottom:0;width:1px;background:var(--hg-border-card)}
+.tl-track .today{position:absolute;top:0;bottom:0;width:2px;background:#D85A30;left:46%}
+.bar{position:absolute;top:50%;transform:translateY(-50%);height:13px;border-radius:3px}
+.dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;border:2px solid;background:#fff}
+.dia{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:11px;height:11px;border-radius:2px;border:2px solid}
+.lnk{position:absolute;top:50%;height:2px;transform:translateY(-50%);opacity:.34}
+.swatches{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.sw{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid var(--rule);border-radius:7px;padding:5px 10px 5px 7px;font-size:11.5px;color:var(--ink-mute);font-variant-numeric:tabular-nums}
+.sw i{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+
+/* ═══ БЛОК 3 — глубина ══════════════════════════════════════ */
+.depth{background:var(--hg-bg);border-radius:14px;padding:26px 20px;display:flex;flex-direction:column;gap:16px}
+.dcard{background:var(--hg-card);border-radius:var(--hg-radius-md);padding:13px 15px;color:var(--hg-text)}
+.dcard b{display:block;font-size:14px;font-weight:600}
+.dcard span{font-size:11.5px;color:var(--hg-text-subtle)}
+.d1{border:.5px solid var(--hg-border-card);box-shadow:var(--hg-shadow-card)}
+.d2{border:1px solid var(--hg-border-strong);box-shadow:none}
+.d3{border:.5px solid var(--hg-border-card);box-shadow:0 2px 8px rgba(30,28,26,.10)}
+.d3b{border:.5px solid var(--hg-border-card);box-shadow:0 8px 22px rgba(30,28,26,.18);transform:translateY(-3px)}
+.dwell{background:var(--hg-card-top);border-radius:var(--hg-radius-sm);padding:7px 9px;margin-top:9px}
+.dwell i{display:block;font-style:normal;font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.dwell b{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums}
+.dstate{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5E5B58;margin:0 2px -6px}
+
+/* ── подвал ───────────────────────────────────────────────── */
+.answer{margin-top:56px;border:1px solid var(--rule);border-radius:14px;padding:26px 28px;background:var(--sheet-2)}
+.answer h2{margin:0 0 14px;font-size:1.1rem;font-weight:600}
+.answer ol{margin:0;padding-left:20px;color:var(--ink-mute)}
+.answer li{margin-bottom:9px}
+.answer li b{color:var(--ink);font-weight:500}
+.answer p{color:var(--ink-faint);font-size:.88rem;margin:16px 0 0}
+
+/* ═══ БЛОК 4 — десктоп и плотность ═════════════════════════ */
+.wide{overflow-x:auto;border-radius:18px;border:1px solid rgba(0,0,0,.28);box-shadow:0 14px 40px rgba(0,0,0,.3);margin-bottom:10px}
+.wide>.in{min-width:1010px}
+.dsk{background:var(--hg-bg);color:var(--hg-text)}
+.dbar{display:flex;align-items:center;gap:14px;padding:10px 15px;background:var(--hg-bg-deep);border-bottom:1px solid rgba(255,255,255,.18)}
+.dbar h5{margin:0;font-size:15px;font-weight:600;color:#EDE9E4;letter-spacing:-.01em}
+.dbar .fill{flex:1}
+.dbar .meta{font-size:10.5px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.seg{display:flex;gap:4px;background:rgba(0,0,0,.2);border-radius:var(--hg-radius-md);padding:3px}
+.seg span{padding:5px 13px;border-radius:calc(var(--hg-radius-md) - 3px);font-size:12px;font-weight:500;color:rgba(255,255,255,.62)}
+.seg span.on{background:var(--hg-card);color:var(--hg-text);box-shadow:var(--hg-shadow-card);font-weight:600}
+.md{display:grid;grid-template-columns:286px 1fr;gap:13px;padding:13px}
+.md-rail{display:flex;flex-direction:column;gap:5px;min-width:0}
+.md-item{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);padding:9px 11px;display:flex;align-items:center;gap:9px;min-width:0}
+.md-item.on{box-shadow:var(--hg-shadow-card);border-color:var(--hg-border-strong);background:var(--hg-card-top)}
+.md-item .nm{flex:1;min-width:0}
+.md-item .nm b{display:block;font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-item .nm i{font-style:normal;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.md-item .am{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.md-pane{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);padding:15px;min-width:0}
+.md-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.md-h .t{font-size:17px;font-weight:600;letter-spacing:-.015em;line-height:1.25}
+.md-h .s{font-size:11.5px;color:var(--hg-text-subtle);margin-top:3px}
+.md-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:13px}
+.md-sum{margin-top:12px;background:var(--hg-card-top);border-radius:var(--hg-radius-sm);padding:12px 14px}
+.md-sum .hd{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle);margin-bottom:6px}
+.md-sum p{margin:0 0 6px;font-size:12.5px;line-height:1.55;color:var(--hg-text)}
+.md-sum ul{margin:0;padding-left:16px;font-size:12.5px;line-height:1.6;color:var(--hg-text-muted)}
+.md-sum ul b{color:var(--hg-text);font-weight:600}
+.tbl{width:100%;border-collapse:collapse;margin-top:12px}
+.tbl th{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-muted);text-align:left;padding:0 9px 6px;border-bottom:1px solid var(--hg-border-card)}
+.tbl th.r,.tbl td.r{text-align:right}
+.tbl td{font-size:12.5px;padding:7px 9px;border-bottom:1px solid rgba(60,50,40,.07);font-variant-numeric:tabular-nums}
+.tbl td.nm{font-weight:500;font-variant-numeric:normal}
+.tbl tr.fut td{color:var(--hg-text-subtle)}
+.prog{height:5px;border-radius:99px;background:#ddd8d0;overflow:hidden;width:78px}
+.prog i{display:block;height:100%;background:#8A5F72}
+.rail{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 13px 13px}
+.rail div{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-sm);padding:8px 10px}
+.rail span{display:block;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.rail b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.mseg{display:flex;gap:4px;background:rgba(0,0,0,.1);border-radius:var(--hg-radius-md);padding:3px;margin:0 4px 10px}
+.mseg span{flex:1;text-align:center;padding:6px;border-radius:calc(var(--hg-radius-md) - 3px);font-size:12px;font-weight:500;color:#5E5B58}
+.mseg span.on{background:var(--hg-card);color:var(--hg-text);box-shadow:var(--hg-shadow-card);font-weight:600}
+.rmy{background:var(--hg-card);border:.5px solid var(--hg-border-card);border-radius:var(--hg-radius-md);box-shadow:var(--hg-shadow-card);padding:15px}
+.rmy .lb{font-size:9.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--hg-text-subtle)}
+.rmy .t{font-size:17px;font-weight:600;letter-spacing:-.015em;margin-top:5px;line-height:1.25}
+.rmy .s{font-size:12px;color:var(--hg-text-subtle);margin-top:2px}
+.rmy .big{font-size:27px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:14px;line-height:1}
+.rmy .due{font-size:12.5px;color:var(--hg-text-muted);margin-top:4px}
+.rmy .tr{height:6px;border-radius:99px;background:#ddd8d0;margin:14px 0 7px;overflow:hidden}
+.rmy .tr i{display:block;height:100%;width:50%;background:#8A5F72;border-radius:99px}
+.rmy .cap{font-size:11.5px;color:var(--hg-text-subtle)}
+.rmy .btn{margin-top:14px;text-align:center;background:var(--hg-accent);color:#fff;border-radius:var(--hg-radius-sm);padding:10px;font-size:13.5px;font-weight:500}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:var(--hg-bg);padding:14px;border-radius:14px}
+.vs>div{min-width:0}
+.vs .cap2{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#5E5B58;margin-bottom:7px}
+
+@media (max-width:760px){
+  .spec .why{min-height:0}
+  .cp-head,.cp-r{grid-template-columns:1fr 76px 56px}
+  .vs{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/>
+  </symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3l7 3v5.5c0 4.3-2.9 8.3-7 9.5-4.1-1.2-7-5.2-7-9.5V6z"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+
+  <div class="lede">
+    <h1>HomeGuard — три направления, один и тот же экран</h1>
+    <p>Всё нарисовано на реальных токенах проекта и настоящем Plus Jakarta Sans. Экран взят из ближайшей работы — договоры и платежи. Статично, без интерактива.</p>
+    <p><strong>Блоки 2 и 3 закрыты</strong> — отмечено в заголовках. Блок 1 остался открытым и переехал в блок 4, где появился десктоп и переключатель плотности.</p>
+    <hr class="rule">
+  </div>
+
+  <!-- ═══════════ БЛОК 1 ═══════════ -->
+  <section>
+    <div class="shead"><h2>Блок 1 · Общее направление</h2><span class="q">какой мир, в котором живут все будущие экраны</span></div>
+    <p class="snote">Один и тот же договор КАСКО и один и тот же список платежей. Меняется плотность, размер шрифта, радиусы и то, насколько прямо говорит интерфейс.</p>
+
+    <div class="specimens">
+
+      <!-- A -->
+      <div class="spec">
+        <h3><span>A</span>Тёплый архив</h3>
+        <p class="why">То, что уже собрано в <b>variables.css</b>. Карточка-документ: микролейблы капсом, значения в «лунках», данных много и они плотные. Новых экранов не переделывает — договоры просто встают в этот же строй.</p>
+        <div class="frame">
+          <div class="wa">
+            <div class="wa-top"><h4>Contracts</h4><span class="cnt">6 active</span></div>
+            <div class="wa-card">
+              <div class="wa-hdr">
+                <div>
+                  <div class="wa-ttl">KASKO — Cupra Born</div>
+                  <div class="wa-sub">If P&amp;C Insurance · POL-4471902</div>
+                </div>
+                <span class="b b-ins">Insurance</span>
+              </div>
+              <div class="wa-grid">
+                <div class="wa-well"><div class="wa-lbl">Next payment</div><div class="wa-val">168,50 €</div></div>
+                <div class="wa-well"><div class="wa-lbl">Due</div><div class="wa-val">28 Aug 2026</div></div>
+                <div class="wa-well"><div class="wa-lbl">Paid</div><div class="wa-val">2 of 4</div></div>
+                <div class="wa-well"><div class="wa-lbl">Period</div><div class="wa-val">12.02.26 — 11.02.27</div></div>
+              </div>
+              <div class="wa-acts">
+                <div class="wa-btn">Confirm payment</div>
+                <div class="wa-btn gh"><svg width="14" height="14"><use href="#i-doc"/></svg>Policy</div>
+              </div>
+            </div>
+            <div class="wa-list">
+              <div class="wa-row">
+                <div class="nm"><span>Lease</span><b>Cupra Born</b></div>
+                <div class="amt"><b>320,00 €</b><span>32 of 48</span></div>
+              </div>
+              <div class="wa-row">
+                <div class="nm"><span>Subscription</span><b>Netflix Premium</b></div>
+                <div class="amt"><b>17,99 €</b><span>monthly</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="tag">15px / 1.6 · радиусы 6–10 · лейблы 9,5px .06em · 4 поля в две колонки</span>
+      </div>
+
+      <!-- B -->
+      <div class="spec">
+        <h3><span>B</span>Кухонный стол</h3>
+        <p class="why">Мягче и крупнее: радиусы 18–20, воздуха больше, лейблы обычным регистром, главная цифра — героем. Читается через всю кухню, но на экран влезает <b>втрое меньше данных</b>, и таймлайн придётся перерисовывать.</p>
+        <div class="frame">
+          <div class="kt">
+            <div class="kt-top"><h4>Contracts</h4><p>6 active · 488,50 € this month</p></div>
+            <div class="kt-card">
+              <span class="kt-chip">Insurance</span>
+              <div class="kt-ttl">KASKO — Cupra Born</div>
+              <div class="kt-sub">If P&amp;C Insurance</div>
+              <div class="kt-hero"><b>168,50 €</b><span>due 28 August</span></div>
+              <div class="kt-when">Next payment in 18 days</div>
+              <div class="kt-track"><i></i></div>
+              <div class="kt-cap">2 of 4 payments this year</div>
+              <div class="kt-btn">Mark as paid</div>
+            </div>
+            <div class="kt-row">
+              <div class="nm"><b>Cupra Born</b><span>Lease · 32 of 48</span></div>
+              <div class="amt">320,00 €</div>
+            </div>
+            <div class="kt-row">
+              <div class="nm"><b>Netflix Premium</b><span>Subscription · monthly</span></div>
+              <div class="amt">17,99 €</div>
+            </div>
+          </div>
+        </div>
+        <span class="tag">19px заголовок · 30px сумма · радиусы 14–20 · один экран = один договор</span>
+      </div>
+
+      <!-- C -->
+      <div class="spec">
+        <h3><span>C</span>Приборная панель</h3>
+        <p class="why">Инструмент смотрителя: сплошной плотный список, суммы столбиком справа, табличные цифры, статус — точкой и цветом. Сильнее всего именно для денег, но «family-friendly, not corporate» из CLAUDE.md заметно отступает.</p>
+        <div class="frame">
+          <div class="cp">
+            <div class="cp-panel">
+              <div class="cp-head"><span>Upcoming</span><span>Amount</span><span>Due</span></div>
+              <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A4A6A"></i><b>Lease — Cupra Born</b></div><div class="cp-amt">320,00 €</div><div class="cp-due od">2 d ago</div></div>
+              <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A4A6A"></i><b>KASKO — Cupra Born</b></div><div class="cp-amt">168,50 €</div><div class="cp-due">28 Aug</div></div>
+              <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#1D9E75"></i><b>Oil change — service</b></div><div class="cp-amt">~90,00 €</div><div class="cp-due">31 Aug</div></div>
+              <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A4A6A"></i><b>Netflix Premium</b></div><div class="cp-amt">17,99 €</div><div class="cp-due">01 Sep</div></div>
+              <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#7F77DD"></i><b>Dishwasher warranty</b></div><div class="cp-amt">—</div><div class="cp-due">14 Sep</div></div>
+              <div class="cp-foot"><span>Total this month</span><b>488,50 €</b></div>
+            </div>
+            <div class="cp-strip">
+              <div class="cp-tile"><span>Monthly</span><b>612 €</b></div>
+              <div class="cp-tile"><span>Overdue</span><b>1</b></div>
+              <div class="cp-tile"><span>Balance</span><b>10 360 €</b></div>
+            </div>
+          </div>
+        </div>
+        <span class="tag">строка 38px · цифры табличные · капс-шапка как в текущих таблицах</span>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ═══════════ БЛОК 2 ═══════════ -->
+  <section>
+    <div class="shead"><h2>Блок 2 · Цвета сущностей на таймлайне</h2><span class="q">решено — вариант 3, приглушить под фон</span></div>
+    <p class="snote">Один и тот же кусок таймлайна: гарантия посудомойки, замена масла и платежи по лизингу. Оранжевая черта — «сегодня». Приглушённая семья оказалась вдобавок контрастнее нынешней: 3,4–4,4 : 1 к карточке против 2,8–3,1 сейчас.</p>
+
+    <div class="specimens">
+
+      <!-- 1 -->
+      <div class="spec">
+        <h3><span>1</span>Канонизировать и добавить деньги</h3>
+        <p class="why">Нынешние цвета закрепляются, платежи получают четвёртый — сливовый. Ряды различимы <b>боковым зрением</b>, без чтения подписей.</p>
+        <div class="tl">
+          <div class="tl-axis"><div class="sp"></div><div class="ax"><i style="left:14%">MAR</i><i style="left:38%">JUN</i><i style="left:62%">SEP</i><i style="left:86%">DEC</i></div></div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Dishwasher</i><b>Warranty</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="bar" style="left:6%;width:74%;background:#7F77DD"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Cupra Born</i><b>Engine oil</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:12%;width:52%;background:#1D9E75"></span>
+              <span class="dot" style="left:12%;border-color:#1D9E75"></span><span class="dot" style="left:64%;border-color:#1D9E75"></span>
+              <span class="dot" style="left:92%;border-color:#c2beb8;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Lease</i><b>Payments</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:8%;width:84%;background:#8A4A6A"></span>
+              <span class="dia" style="left:10%;border-color:#8A4A6A;background:#8A4A6A"></span>
+              <span class="dia" style="left:31%;border-color:#8A4A6A;background:#8A4A6A"></span>
+              <span class="dia" style="left:52%;border-color:#8A4A6A;background:#8A4A6A"></span>
+              <span class="dia" style="left:73%;border-color:#8A4A6A;background:#f2f0ed"></span>
+              <span class="dia" style="left:92%;border-color:#8A4A6A;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+        </div>
+        <div class="swatches">
+          <span class="sw"><i style="background:#7F77DD"></i>#7F77DD гарантии</span>
+          <span class="sw"><i style="background:#1D9E75"></i>#1D9E75 сервис</span>
+          <span class="sw"><i style="background:#D89A30"></i>#D89A30 счётчик</span>
+          <span class="sw"><i style="background:#8A4A6A"></i>#8A4A6A деньги</span>
+        </div>
+      </div>
+
+      <!-- 2 -->
+      <div class="spec">
+        <h3><span>2</span>Один голос, разная форма</h3>
+        <p class="why">Всё в slate-blue, тип события кодируется формой: полоса — гарантия, круг — сервис, ромб — платёж. Спокойнее и строже; цена — <b>чтение ряда замедляется</b>.</p>
+        <div class="tl">
+          <div class="tl-axis"><div class="sp"></div><div class="ax"><i style="left:14%">MAR</i><i style="left:38%">JUN</i><i style="left:62%">SEP</i><i style="left:86%">DEC</i></div></div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Dishwasher</i><b>Warranty</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="bar" style="left:6%;width:74%;background:#4f6fa0"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Cupra Born</i><b>Engine oil</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:12%;width:52%;background:#4f6fa0"></span>
+              <span class="dot" style="left:12%;border-color:#4f6fa0"></span><span class="dot" style="left:64%;border-color:#4f6fa0"></span>
+              <span class="dot" style="left:92%;border-color:#c2beb8;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Lease</i><b>Payments</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:8%;width:84%;background:#4f6fa0"></span>
+              <span class="dia" style="left:10%;border-color:#4f6fa0;background:#4f6fa0"></span>
+              <span class="dia" style="left:31%;border-color:#4f6fa0;background:#4f6fa0"></span>
+              <span class="dia" style="left:52%;border-color:#4f6fa0;background:#4f6fa0"></span>
+              <span class="dia" style="left:73%;border-color:#4f6fa0;background:#f2f0ed"></span>
+              <span class="dia" style="left:92%;border-color:#4f6fa0;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+        </div>
+        <div class="swatches">
+          <span class="sw"><i style="background:#4f6fa0"></i>#4f6fa0 всё</span>
+          <span class="sw"><i style="background:var(--hg-success-bg)"></i>цвет остаётся только за статусом</span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="spec">
+        <h3><span>3</span>Приглушить под фон</h3>
+        <p class="why">Те же четыре роли, но в температуре греж-фона: никто не «кричит», лист выглядит собранным. Придётся <b>перекрасить таймлайн и перепроверить контраст</b>.</p>
+        <div class="tl">
+          <div class="tl-axis"><div class="sp"></div><div class="ax"><i style="left:14%">MAR</i><i style="left:38%">JUN</i><i style="left:62%">SEP</i><i style="left:86%">DEC</i></div></div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Dishwasher</i><b>Warranty</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="bar" style="left:6%;width:74%;background:#6E6BA8"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Cupra Born</i><b>Engine oil</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:12%;width:52%;background:#4E8A6B"></span>
+              <span class="dot" style="left:12%;border-color:#4E8A6B"></span><span class="dot" style="left:64%;border-color:#4E8A6B"></span>
+              <span class="dot" style="left:92%;border-color:#c2beb8;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+          <div class="tl-row">
+            <div class="tl-lbl"><i>Lease</i><b>Payments</b></div>
+            <div class="tl-track"><span class="grid" style="left:14%"></span><span class="grid" style="left:38%"></span><span class="grid" style="left:62%"></span><span class="grid" style="left:86%"></span>
+              <span class="lnk" style="left:8%;width:84%;background:#8A5F72"></span>
+              <span class="dia" style="left:10%;border-color:#8A5F72;background:#8A5F72"></span>
+              <span class="dia" style="left:31%;border-color:#8A5F72;background:#8A5F72"></span>
+              <span class="dia" style="left:52%;border-color:#8A5F72;background:#8A5F72"></span>
+              <span class="dia" style="left:73%;border-color:#8A5F72;background:#f2f0ed"></span>
+              <span class="dia" style="left:92%;border-color:#8A5F72;background:#f2f0ed"></span><span class="today"></span></div>
+          </div>
+        </div>
+        <div class="swatches">
+          <span class="sw"><i style="background:#6E6BA8"></i>#6E6BA8 гарантии</span>
+          <span class="sw"><i style="background:#4E8A6B"></i>#4E8A6B сервис</span>
+          <span class="sw"><i style="background:#9C752E"></i>#9C752E счётчик · было #B08A3C, 2,68 : 1 — не проходит</span>
+          <span class="sw"><i style="background:#8A5F72"></i>#8A5F72 деньги</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ═══════════ БЛОК 3 ═══════════ -->
+  <section>
+    <div class="shead"><h2>Блок 3 · Глубина</h2><span class="q">решено — 3 на десктопе, 1 на мобильном</span></div>
+    <p class="snote">Одна карточка на настоящем фоне #BAB2AC. Разделение честное и делается одним правилом <code style="font-size:.85em;color:var(--ink)">@media (hover:hover) and (pointer:fine)</code>: тень-отклик включается только там, где есть курсор, на тачскрине остаётся вариант 1.</p>
+
+    <div class="specimens">
+
+      <div class="spec">
+        <h3><span>1</span>Как сейчас — два уровня</h3>
+        <p class="why">Тень + полупрозрачная кайма 0,5px. Внутри карточки — только тон, никаких вложенных теней. Правило легко проверяется: <b>больше двух уровней не бывает</b>.</p>
+        <div class="depth">
+          <div class="dcard d1">
+            <b>KASKO — Cupra Born</b><span>If P&amp;C Insurance</span>
+            <div class="dwell"><i>Next payment</i><b>168,50 € · 28 Aug</b></div>
+          </div>
+        </div>
+        <span class="tag">0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10)</span>
+      </div>
+
+      <div class="spec">
+        <h3><span>2</span>Совсем плоско</h3>
+        <p class="why">Теней нет, разделяют кайма и тон. Строже и быстрее, но на сером фоне карточка перестаёт всплывать — а сейчас читаемость держится именно на этом.</p>
+        <div class="depth">
+          <div class="dcard d2">
+            <b>KASKO — Cupra Born</b><span>If P&amp;C Insurance</span>
+            <div class="dwell"><i>Next payment</i><b>168,50 € · 28 Aug</b></div>
+          </div>
+        </div>
+        <span class="tag">box-shadow: none · border 1px rgba(60,50,40,.25)</span>
+      </div>
+
+      <div class="spec">
+        <h3><span>3</span>Тень как отклик</h3>
+        <p class="why">В покое — как сейчас, при нажатии/наведении карточка приподнимается. Живее, но на телефоне наведения нет, а тени стоят производительности при прокрутке.</p>
+        <div class="depth">
+          <p class="dstate">В покое</p>
+          <div class="dcard d3"><b>KASKO — Cupra Born</b><span>If P&amp;C Insurance</span></div>
+          <p class="dstate">Отклик</p>
+          <div class="dcard d3b"><b>Lease — Cupra Born</b><span>320,00 € · 32 of 48</span></div>
+        </div>
+        <span class="tag">покой 0 2px 8px → отклик 0 8px 22px + translateY(-3px)</span>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ═══════════ БЛОК 4 ═══════════ -->
+  <section>
+    <div class="shead"><h2>Блок 4 · Десктоп и переключатель плотности</h2><span class="q">то, чего не было в первом заходе</span></div>
+    <p class="snote">Блоки 1–3 нарисованы в рамке шириной с телефон — это была только половина сцены. Ниже — десктоп, и переключатель, о котором вы сказали. Цвета уже приглушённые (ваш выбор во втором блоке).</p>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:0 0 4px">Десктоп · режим «Карточки» — расширенный A</h3>
+    <p class="snote" style="margin-bottom:14px">Ширина уходит не на растягивание строк, а на <b style="color:var(--ink);font-weight:500">второй объект</b>: слева список договоров, справа открытый — поля, markdown-сводка, график платежей целиком. Плотность и язык — те же, что в A.</p>
+    <div class="wide"><div class="in">
+      <div class="dsk">
+        <div class="dbar">
+          <h5>Contracts</h5>
+          <div class="seg"><span class="on">Cards</span><span>List</span></div>
+          <div class="fill"></div>
+          <span class="meta">6 active · 488,50 € in August</span>
+        </div>
+        <div class="md">
+          <div class="md-rail">
+            <div class="md-item on"><i class="cp-dot" style="background:#8A5F72"></i><div class="nm"><i>Insurance</i><b>KASKO — Cupra Born</b></div><div class="am">168,50 €</div></div>
+            <div class="md-item"><i class="cp-dot" style="background:#8A5F72"></i><div class="nm"><i>Lease</i><b>Cupra Born</b></div><div class="am">320,00 €</div></div>
+            <div class="md-item"><i class="cp-dot" style="background:#8A5F72"></i><div class="nm"><i>Subscription</i><b>Netflix Premium</b></div><div class="am">17,99 €</div></div>
+            <div class="md-item"><i class="cp-dot" style="background:#8A5F72"></i><div class="nm"><i>Insurance</i><b>Home — Ergo</b></div><div class="am">240,00 €</div></div>
+            <div class="md-item"><i class="cp-dot" style="background:#6E6BA8"></i><div class="nm"><i>Warranty</i><b>Dishwasher — Bosch</b></div><div class="am">—</div></div>
+            <div class="md-item"><i class="cp-dot" style="background:#8A5F72"></i><div class="nm"><i>Subscription</i><b>Cupra Connect</b></div><div class="am">9,99 €</div></div>
+          </div>
+          <div class="md-pane">
+            <div class="md-h">
+              <div>
+                <div class="t">KASKO — Cupra Born</div>
+                <div class="s">If P&amp;C Insurance · POL-4471902 · 12.02.2026 — 11.02.2027</div>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0"><span class="b b-ins">Insurance</span><span class="b b-ok">Active</span></div>
+            </div>
+            <div class="md-grid">
+              <div class="wa-well"><div class="wa-lbl">Next payment</div><div class="wa-val">168,50 €</div></div>
+              <div class="wa-well"><div class="wa-lbl">Due</div><div class="wa-val">28 Aug 2026</div></div>
+              <div class="wa-well"><div class="wa-lbl">Paid this term</div><div class="wa-val">2 of 4 · 337,00 €</div></div>
+              <div class="wa-well"><div class="wa-lbl">Deductible</div><div class="wa-val">150,00 €</div></div>
+            </div>
+            <div class="md-sum">
+              <div class="hd">Summary</div>
+              <p>Full casco with a 150 € deductible. Glass damage is covered without losing the no-claims bonus; one claim per year.</p>
+              <ul>
+                <li>Claims hotline <b>+372 777 1200</b>, 24/7 — call before towing.</li>
+                <li>Winter tyres mandatory from 1 Dec; a claim on summer tyres is refused.</li>
+                <li>Cancellation notice: <b>30 days</b> before 11.02.2027.</li>
+              </ul>
+            </div>
+            <table class="tbl">
+              <thead><tr><th>Installment</th><th>Due</th><th class="r">Amount</th><th>Status</th><th class="r">Paid</th></tr></thead>
+              <tbody>
+                <tr><td class="nm">1 of 4</td><td>12 Feb 2026</td><td class="r">168,50 €</td><td><span class="b b-ok">Paid</span></td><td class="r">12 Feb</td></tr>
+                <tr><td class="nm">2 of 4</td><td>12 May 2026</td><td class="r">168,50 €</td><td><span class="b b-ok">Paid</span></td><td class="r">14 May</td></tr>
+                <tr><td class="nm">3 of 4</td><td>28 Aug 2026</td><td class="r">168,50 €</td><td><span class="b b-warn">Planned</span></td><td class="r">—</td></tr>
+                <tr class="fut"><td class="nm">4 of 4</td><td>12 Nov 2026</td><td class="r">168,50 €</td><td>Projected</td><td class="r">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <span class="tag">рельс 286px · сводка и график видны без прокрутки · тот же язык, что в A</span>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:34px 0 4px">Десктоп · режим «Список» — расширенный C</h3>
+    <p class="snote" style="margin-bottom:14px">Тот же экран, другая задача: не «один договор подробно», а <b style="color:var(--ink);font-weight:500">все деньги месяца сразу</b>, включая сервис. Сортировка и группировка живут в шапке столбцов.</p>
+    <div class="wide"><div class="in">
+      <div class="dsk">
+        <div class="dbar">
+          <h5>Contracts</h5>
+          <div class="seg"><span>Cards</span><span class="on">List</span></div>
+          <div class="fill"></div>
+          <span class="meta">August 2026</span>
+        </div>
+        <div style="padding:13px">
+          <div class="md-pane" style="padding:12px 13px">
+            <table class="tbl" style="margin-top:0">
+              <thead><tr><th>Name</th><th>Kind</th><th>Item</th><th class="r">Amount</th><th>Due</th><th>Status</th><th>Progress</th></tr></thead>
+              <tbody>
+                <tr><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#8A5F72"></i>Lease</span></td><td>Lease</td><td>Cupra Born</td><td class="r">320,00 €</td><td>10 Aug</td><td><span class="b b-bad">Overdue 2 d</span></td><td><div class="prog"><i style="width:67%"></i></div></td></tr>
+                <tr><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#8A5F72"></i>KASKO</span></td><td>Insurance</td><td>Cupra Born</td><td class="r">168,50 €</td><td>28 Aug</td><td><span class="b b-warn">Planned</span></td><td><div class="prog"><i style="width:50%"></i></div></td></tr>
+                <tr><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#4E8A6B"></i>Engine oil</span></td><td>Service</td><td>Cupra Born</td><td class="r">~90,00 €</td><td>31 Aug</td><td><span class="b b-warn">Planned</span></td><td><div class="prog"><i style="width:92%;background:#4E8A6B"></i></div></td></tr>
+                <tr><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#8A5F72"></i>Netflix Premium</span></td><td>Subscription</td><td>—</td><td class="r">17,99 €</td><td>01 Sep</td><td><span class="b b-warn">Planned</span></td><td>—</td></tr>
+                <tr class="fut"><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#8A5F72"></i>Home — Ergo</span></td><td>Insurance</td><td>Apartment</td><td class="r">240,00 €</td><td>14 Sep</td><td>Projected</td><td><div class="prog"><i style="width:25%"></i></div></td></tr>
+                <tr class="fut"><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#6E6BA8"></i>Dishwasher — Bosch</span></td><td>Warranty</td><td>Dishwasher</td><td class="r">—</td><td>14 Sep</td><td>Expires</td><td><div class="prog"><i style="width:88%;background:#6E6BA8"></i></div></td></tr>
+                <tr class="fut"><td class="nm"><span style="display:inline-flex;align-items:center;gap:7px"><i class="cp-dot" style="background:#9C752E"></i>Gas meter</span></td><td>Reading</td><td>Apartment</td><td class="r">—</td><td>01 Oct</td><td>Projected</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="rail">
+          <div><span>This month</span><b>488,50 €</b></div>
+          <div><span>Monthly average</span><b>612,00 €</b></div>
+          <div><span>Overdue</span><b>1</b></div>
+          <div><span>Lease balance</span><b>10 360 €</b></div>
+        </div>
+      </div>
+    </div></div>
+    <span class="tag">7 столбцов · строка 32px · итоги внизу, а не в отдельной карточке</span>
+
+    <h3 style="font-size:1rem;font-weight:600;margin:34px 0 4px">Мобильный · тот же переключатель</h3>
+    <p class="snote" style="margin-bottom:14px">На телефоне переключатель тот же, но режимы — это ваши B и C: просторная карточка и плотный список. Умолчание по ширине экрана, выбор запоминается.</p>
+    <div class="specimens">
+      <div class="spec">
+        <p class="why" style="min-height:0"><b>Режим «Карточки»</b> — B, но собранный на токенах A: радиус 10, микролейбл капсом, акцент прежний.</p>
+        <div class="frame"><div class="wa" style="padding-top:12px">
+          <div class="mseg"><span class="on">Cards</span><span>List</span></div>
+          <div class="rmy">
+            <div class="lb">Insurance</div>
+            <div class="t">KASKO — Cupra Born</div>
+            <div class="s">If P&amp;C Insurance</div>
+            <div class="big">168,50 €</div>
+            <div class="due">due 28 August · in 18 days</div>
+            <div class="tr"><i></i></div>
+            <div class="cap">2 of 4 payments · 337,00 € paid</div>
+            <div class="btn">Confirm payment</div>
+          </div>
+        </div></div>
+      </div>
+      <div class="spec">
+        <p class="why" style="min-height:0"><b>Режим «Список»</b> — C: всё, что требует денег в этом месяце, одним экраном.</p>
+        <div class="frame"><div class="cp" style="padding-top:12px">
+          <div class="mseg"><span>Cards</span><span class="on">List</span></div>
+          <div class="cp-panel">
+            <div class="cp-head"><span>Upcoming</span><span>Amount</span><span>Due</span></div>
+            <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A5F72"></i><b>Lease — Cupra Born</b></div><div class="cp-amt">320,00 €</div><div class="cp-due od">2 d ago</div></div>
+            <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A5F72"></i><b>KASKO — Cupra Born</b></div><div class="cp-amt">168,50 €</div><div class="cp-due">28 Aug</div></div>
+            <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#4E8A6B"></i><b>Oil change — service</b></div><div class="cp-amt">~90,00 €</div><div class="cp-due">31 Aug</div></div>
+            <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#8A5F72"></i><b>Netflix Premium</b></div><div class="cp-amt">17,99 €</div><div class="cp-due">01 Sep</div></div>
+            <div class="cp-r"><div class="cp-nm"><i class="cp-dot" style="background:#6E6BA8"></i><b>Dishwasher warranty</b></div><div class="cp-amt">—</div><div class="cp-due">14 Sep</div></div>
+            <div class="cp-foot"><span>Total this month</span><b>488,50 €</b></div>
+          </div>
+        </div></div>
+      </div>
+      <div class="spec">
+        <p class="why" style="min-height:0"><b>Развилка, которую надо закрыть:</b> просторный режим на токенах A (слева) или на собственном языке B — радиус 20, лейблы обычным регистром, шрифт крупнее (справа).</p>
+        <div class="vs">
+          <div>
+            <div class="cap2">На токенах A</div>
+            <div class="rmy" style="padding:13px">
+              <div class="lb">Insurance</div>
+              <div class="t" style="font-size:15px">KASKO — Cupra Born</div>
+              <div class="big" style="font-size:22px;margin-top:11px">168,50 €</div>
+              <div class="due">due 28 August</div>
+            </div>
+          </div>
+          <div>
+            <div class="cap2">На языке B</div>
+            <div class="kt-card" style="padding:15px;border-radius:20px">
+              <span class="kt-chip" style="margin-bottom:7px">Insurance</span>
+              <div class="kt-ttl" style="font-size:17px">KASKO — Cupra Born</div>
+              <div class="kt-hero" style="margin:12px 0 3px"><b style="font-size:24px">168,50 €</b></div>
+              <div class="kt-when" style="font-size:13px">due 28 August</div>
+            </div>
+          </div>
+        </div>
+        <span class="tag">одна система с двумя плотностями — или две визуальные системы в одном приложении</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ ОТВЕТ ═══════════ -->
+  <div class="answer">
+    <h2>Что осталось решить</h2>
+    <ol>
+      <li><b>Просторный режим — на токенах A или на языке B?</b> Последняя пара в блоке 4. Слева одна система с двумя плотностями, справа две визуальные системы в одном приложении. Рекомендую левое.</li>
+      <li><b>Умолчание переключателя:</b> телефон открывается в «Карточках» или в «Списке»? Десктоп — предлагаю «Карточки», список по кнопке.</li>
+      <li><b>Где живёт переключатель:</b> только на экране договоров или на всех списках сразу — оборудование, сервис, гарантии?</li>
+    </ol>
+    <p>Закрыто: цвета — приглушённая семья (счётчик поправлен на #9C752E ради контраста), глубина — отклик на десктопе, покой на мобильном, шрифт — Plus Jakarta Sans, предупреждение снято в конфиге.</p>
+  </div>
+
+</div>
+</body>
+</html>
