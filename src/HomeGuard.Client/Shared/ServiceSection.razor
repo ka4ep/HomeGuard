@@ -3,22 +3,24 @@
    so they live in one component. Self-contained: loads its own data by EquipmentId.
    EditServiceId/EditRuleId support the Timeline card's deep links. *@
 @namespace HomeGuard.Client.Common
+@using System.Globalization
 @inject ServiceRecordApiClient ServiceApi
 @inject RecurringRuleApiClient RuleApi
+@inject IStringLocalizer<Strings> L
 
 @* ── Service records ─────────────────────────────────────────────────────── *@
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
     <MudIcon Icon="@Icons.Material.Filled.Build" />
-    <MudText Typo="Typo.h6">Service records</MudText>
+    <MudText Typo="Typo.h6">@L["Nav_Service"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Text" Size="Size.Small"
                StartIcon="@Icons.Material.Filled.Add"
-               OnClick="() => _srDialog.OpenAdd()">Add</MudButton>
+               OnClick="() => _srDialog.OpenAdd()">@L["Common_Add"]</MudButton>
 </MudStack>
 
 @if (_serviceRecords.Count == 0)
 {
-    <MudText Color="Color.Secondary" Class="mb-4">No service records yet.</MudText>
+    <MudText Color="Color.Secondary" Class="mb-4">@L["Service_SectionEmpty"]</MudText>
 }
 else
 {
@@ -32,18 +34,18 @@ else
                 <MudStack Spacing="0" Style="flex:1">
                     <MudText Typo="Typo.body1" Style="font-weight:600">@sr.Title</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @sr.ServiceDate.ToString("d MMM yyyy", null)
+                        @ShortDate(sr.ServiceDate)
                     </MudText>
                 </MudStack>
                 @if (sr.IsOverdue)
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Error">Overdue</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Error">@L["Service_Overdue"]</MudChip>
                 }
                 else if (sr.DaysUntilNextService.HasValue)
                 {
                     <MudChip T="string" Size="Size.Small"
                              Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
-                        @Display.ServiceDaysLabel(sr.DaysUntilNextService)
+                        @Display.ServiceDaysLabel(L, sr.DaysUntilNextService)
                     </MudChip>
                 }
                 <MudIcon Icon="@(_expanded.Contains(sr.Id)
@@ -58,21 +60,21 @@ else
                         @if (sr.Cost.HasValue)
                         {
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Cost</MudText>
-                                <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Cost"]</MudText>
+                                <MudText Typo="Typo.body2" Class="hg-tabular">@Money(sr.Cost.Value)</MudText>
                             </MudStack>
                         }
                         @if (sr.MeterReading.HasValue)
                         {
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Meter reading</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Meter"]</MudText>
                                 <MudText Typo="Typo.body2">@sr.MeterReading @MeterUnit</MudText>
                             </MudStack>
                         }
                         @if (sr.ServiceProvider is not null)
                         {
                             <MudStack Spacing="0">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Provider"]</MudText>
                                 <MudText Typo="Typo.body2">@sr.ServiceProvider</MudText>
                             </MudStack>
                         }
@@ -80,17 +82,18 @@ else
                     @if (!string.IsNullOrWhiteSpace(sr.Notes))
                     {
                         <MudStack Spacing="1">
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Notes"]</MudText>
                             <MudText Typo="Typo.body2" Style="white-space:pre-line">@sr.Notes</MudText>
                         </MudStack>
                     }
                     @{
-                        var linkedRule = FindRuleForTitle(sr.Title);
+                        var linkedRule  = FindRuleForTitle(sr.Title);
+                        var repeatTitle = linkedRule is null ? RuleSetUpLabel : RuleEditLabel;
                     }
                     @if (linkedRule is not null)
                     {
                         <MudAlert Severity="Severity.Info" Dense="true" Icon="@Icons.Material.Filled.Repeat">
-                            Repeats @IntervalLabel(linkedRule)
+                            @L["Rule_Repeats", IntervalLabel(linkedRule)]
                         </MudAlert>
                     }
                     <MudStack Row="true" Spacing="1">
@@ -102,7 +105,7 @@ else
                                        OnClick="() => DeleteServiceAsync(sr.Id)" />
                         <MudIconButton Icon="@Icons.Material.Outlined.Repeat"
                                        Size="Size.Small"
-                                       title="@(linkedRule is null ? "Set up recurring" : "Edit recurring rule")"
+                                       title="@repeatTitle"
                                        OnClick="() => OpenRuleDialogForTitle(sr.Title)" />
                     </MudStack>
                 </MudStack>
@@ -114,16 +117,16 @@ else
 @* ── Recurring rules ─────────────────────────────────────────────────────── *@
 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
     <MudIcon Icon="@Icons.Material.Filled.Repeat" />
-    <MudText Typo="Typo.h6">Recurring rules</MudText>
+    <MudText Typo="Typo.h6">@L["Rule_Section"]</MudText>
     <MudSpacer />
     <MudButton Variant="Variant.Text" Size="Size.Small"
                StartIcon="@Icons.Material.Filled.Add"
-               OnClick="() => _ruleDialog.OpenAdd()">Add</MudButton>
+               OnClick="() => _ruleDialog.OpenAdd()">@L["Common_Add"]</MudButton>
 </MudStack>
 
 @if (_rules.Count == 0)
 {
-    <MudText Color="Color.Secondary" Class="mb-4">No recurring rules yet — attach one from a service record, or add one here.</MudText>
+    <MudText Color="Color.Secondary" Class="mb-4">@L["Rule_Empty"]</MudText>
 }
 else
 {
@@ -134,15 +137,15 @@ else
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
                 <MudStack Spacing="0" Style="flex:1">
                     <MudText Typo="Typo.body1" Style="font-weight:600">@r.Title</MudText>
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Repeats @IntervalLabel(r)</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Rule_Repeats", IntervalLabel(r)]</MudText>
                 </MudStack>
                 @if (!r.IsActive)
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Inactive</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@L["Rule_Inactive"]</MudChip>
                 }
                 else if (r.AnchorToPurchaseDate)
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Default">Since purchase</MudChip>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default">@L["Rule_SincePurchase"]</MudChip>
                 }
                 <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small"
                                OnClick="() => _ruleDialog.OpenEdit(r)" />
@@ -241,12 +244,24 @@ else
         else _ruleDialog.OpenAdd(title);
     }
 
+    private string RuleSetUpLabel => L["Rule_SetUp"];
+    private string RuleEditLabel  => L["Rule_Edit"];
+
     private string IntervalLabel(RecurringRuleDto r)
     {
         var parts = new List<string>();
-        if (r.IntervalDays.HasValue) parts.Add($"~{r.IntervalDays}d");
+        if (r.IntervalDays.HasValue)  parts.Add(L["Rule_IntervalDays", r.IntervalDays]);
+        // MeterUnit — то, что ввёл пользователь ("km", "м³"), поэтому не переводится.
         if (r.IntervalMeter.HasValue) parts.Add($"~{r.IntervalMeter} {MeterUnit}".Trim());
-        if (parts.Count == 0) return "automatically (from history)";
-        return "every " + string.Join(" / ", parts);
+
+        return parts.Count == 0
+            ? L["Rule_FromHistory"]
+            : L["Rule_Every", string.Join(" / ", parts)];
     }
+
+    private static string ShortDate(DateOnly date)
+        => date.ToString("d", CultureInfo.CurrentCulture);
+
+    private static string Money(decimal amount)
+        => "€ " + amount.ToString("N2", CultureInfo.CurrentCulture);
 }

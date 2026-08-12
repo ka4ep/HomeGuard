@@ -4,16 +4,15 @@
 @namespace HomeGuard.Client.Common
 @inject MeterReadingApiClient Api
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<Strings> L
 
 <MudDialog Visible="Visible" VisibleChanged="OnVisibleChanged">
-    <TitleContent>Record meter reading</TitleContent>
+    <TitleContent>@L["Meter_DialogTitle"]</TitleContent>
     <DialogContent>
         @if (MeteredEquipment.Count == 0)
         {
             <MudAlert Severity="Severity.Info">
-                None of your equipment has a meter unit yet, so there is nothing to record
-                a reading against. Set "Meter unit" (e.g. km, kWh, h) on the equipment first —
-                Equipment → open item → Edit.
+                @L["Meter_NoMeteredEquipment"]
             </MudAlert>
         }
         else
@@ -21,7 +20,7 @@
         <MudGrid>
             <MudItem xs="12">
                 <MudSelect T="Guid?" Value="_equipmentId" ValueChanged="OnEquipmentChanged"
-                           Label="Equipment" Required="true"
+                           Label=@(L["Nav_Equipment"]) Required="true"
                            Disabled="@(FixedEquipmentId is not null)">
                     @foreach (var e in MeteredEquipment)
                     {
@@ -34,22 +33,22 @@
                                  Label="@ValueLabel" Min="0" HideSpinButtons="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_dateNullable" Label="Date" DateFormat="yyyy-MM-dd" />
+                <MudDatePicker @bind-Date="_dateNullable" Label=@(L["Meter_Date"]) DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_note" Label="Note" />
+                <MudTextField @bind-Value="_note" Label=@(L["Meter_Note"]) />
             </MudItem>
             @if (_lastReading is not null)
             {
                 <MudItem xs="12">
                     <MudText Typo="Typo.caption" Class="mud-text-secondary">
-                        Last known: @_lastReading.Value.ToString("0.###") @SelectedUnit
-                        on @_lastReading.ReadingDate.ToString("yyyy-MM-dd")
+                        @L["Meter_LastKnown", _lastReading.Value.ToString("0.###"), SelectedUnit ?? "",
+                             _lastReading.ReadingDate.ToString("d", System.Globalization.CultureInfo.CurrentCulture)]
                     </MudText>
                     @if (_value < _lastReading.Value)
                     {
                         <MudText Typo="Typo.caption" Color="Color.Warning">
-                            New value is lower than the last known reading.
+                            @L["Meter_LowerThanLast"]
                         </MudText>
                     }
                 </MudItem>
@@ -58,10 +57,10 @@
         }
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="CloseAsync">Cancel</MudButton>
+        <MudButton OnClick="CloseAsync">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
                    OnClick="SaveAsync" Disabled="@(_saving || _equipmentId is null || _value is null)">
-            Save
+            @L["Common_Save"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -92,7 +91,7 @@
         => Equipment.FirstOrDefault(e => e.Id == _equipmentId)?.MeterUnit;
 
     private string ValueLabel
-        => SelectedUnit is null ? "Reading" : $"Reading ({SelectedUnit})";
+        => SelectedUnit is null ? L["Meter_Reading"] : $"{L["Meter_Reading"]} ({SelectedUnit})";
 
     protected override async Task OnParametersSetAsync()
     {

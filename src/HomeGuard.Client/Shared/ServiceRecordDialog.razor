@@ -5,15 +5,16 @@
 @namespace HomeGuard.Client.Common
 @inject ServiceRecordApiClient Api
 @inject RecurringRuleApiClient RuleApi
+@inject IStringLocalizer<Strings> L
 
 <MudDialog @bind-Visible="_visible">
-    <TitleContent>@(_editId.HasValue ? "Edit service record" : "Add service record")</TitleContent>
+    <TitleContent>@(_editId.HasValue ? L["Service_DialogEdit"] : L["Service_DialogAdd"])</TitleContent>
     <DialogContent>
         <MudGrid>
             @if (FixedEquipmentId is null)
             {
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="_equipmentId" Label="Equipment" Required="true"
+                    <MudSelect @bind-Value="_equipmentId" Label=@(L["Nav_Equipment"]) Required="true"
                                Disabled="_editId.HasValue">
                         @foreach (var e in Equipment)
                         {
@@ -23,41 +24,41 @@
                 </MudItem>
             }
             <MudItem xs="12">
-                <MudAutocomplete T="string" @bind-Value="_form.Title" Label="Title" Required="true"
+                <MudAutocomplete T="string" @bind-Value="_form.Title" Label=@(L["Service_Title"]) Required="true"
                                  SearchFunc="SearchTitles" Strict="false" CoerceText="true"
                                  ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="_form.ServiceDateNullable"
-                               Label="Service date" DateFormat="yyyy-MM-dd" />
+                               Label=@(L["Service_Date"]) DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="_form.Status" Label="Status">
-                    <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
-                    <MudSelectItem Value="@("Planned")">Planned</MudSelectItem>
+                <MudSelect @bind-Value="_form.Status" Label=@(L["Service_Status"])>
+                    <MudSelectItem Value="@("Completed")">@L["ServiceStatus_Completed"]</MudSelectItem>
+                    <MudSelectItem Value="@("Planned")">@L["ServiceStatus_Planned"]</MudSelectItem>
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.ServiceProvider" Label="Provider" />
+                <MudTextField @bind-Value="_form.ServiceProvider" Label=@(L["Service_Provider"]) />
             </MudItem>
             <MudItem xs="12" sm="3">
-                <MudNumericField @bind-Value="_form.Cost" Label="Cost" Format="F2"
+                <MudNumericField @bind-Value="_form.Cost" Label=@(L["Service_Cost"]) Format="F2"
                                  Adornment="Adornment.Start" AdornmentText="€" />
             </MudItem>
             <MudItem xs="12" sm="3">
                 <MudNumericField @bind-Value="_form.MeterReading"
-                                 Label="@("Meter reading" + (CurrentMeterUnit is { Length: > 0 } u ? $" ({u})" : ""))" />
+                                 Label=@(MeterReadingLabel) />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes"
+                <MudTextField @bind-Value="_form.Notes" Label=@(L["Form_Notes"])
                               Lines="3" Sizing="InputSizing.Auto" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _visible = false">Cancel</MudButton>
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+                   OnClick="SaveAsync" Disabled="_saving">@L["Common_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -70,6 +71,13 @@
 
     /// <summary>Meter unit shown in the reading label when FixedEquipmentId is set.</summary>
     [Parameter] public string? MeterUnit { get; set; }
+
+    /// <summary>
+    /// Meter unit is the household's own word ("km", "м³") — it is appended to the
+    /// translated label rather than being translated itself.
+    /// </summary>
+    private string MeterReadingLabel =>
+        CurrentMeterUnit is { Length: > 0 } u ? $"{L["Service_Meter"]} ({u})" : L["Service_Meter"];
 
     /// <summary>Preselected status for new records ("Completed" | "Planned").</summary>
     [Parameter] public string DefaultStatus { get; set; } = "Completed";

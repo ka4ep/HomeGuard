@@ -13,9 +13,26 @@ window.homeGuardTimeline = {
     MAX_MPP: 400 * 86400000,
     ZOOM_FACTOR: 1.2,
 
-    create(elementId, rowsJson, dotNetRef) {
+    // Язык и подписи приходят из Blazor: строки лежат в resx, а не здесь, и формат
+    // дат/чисел должен совпадать с остальным приложением.
+    _locale: 'en-GB',
+    _labels: {},
+    _statuses: {},
+
+    _lbl(key, fallback) {
+        return this._labels[key] || fallback;
+    },
+
+    create(elementId, rowsJson, dotNetRef, optionsJson) {
         const host = document.getElementById(elementId);
         if (!host) return;
+
+        if (optionsJson) {
+            const opts = JSON.parse(optionsJson);
+            this._locale = opts.locale || this._locale;
+            this._labels = opts.labels || {};
+            this._statuses = opts.statuses || {};
+        }
 
         const inst = this._buildInstance(host);
         inst.dotNetRef = dotNetRef;
@@ -106,11 +123,11 @@ window.homeGuardTimeline = {
     },
 
     _fmtDate(d) {
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        return d.toLocaleDateString(this._locale, { day: 'numeric', month: 'short', year: 'numeric' });
     },
 
     _fmtNum(n, digits) {
-        return Number(n).toLocaleString('en-GB', digits ? { minimumFractionDigits: digits, maximumFractionDigits: digits } : {});
+        return Number(n).toLocaleString(this._locale, digits ? { minimumFractionDigits: digits, maximumFractionDigits: digits } : {});
     },
 
     // ── Instance construction ───────────────────────────────────────────────
@@ -549,16 +566,16 @@ window.homeGuardTimeline = {
         inst.cardSub.style.borderLeftColor = row.color;
 
         const items = [
-            ['Date', this._fmtDate(ev.dateObj)],
+            [this._lbl('date', 'Date'), this._fmtDate(ev.dateObj)],
         ];
-        if (ev.isPredicted) items.push(['Status', 'Predicted']);
-        else if (ev.status) items.push(['Status', ev.status]);
-        if (ev.meterReading != null) items.push(['Meter reading', this._fmtNum(ev.meterReading) + (ev.meterUnit ? ' ' + ev.meterUnit : '')]);
-        if (ev.cost != null) items.push(['Cost', this._fmtNum(ev.cost, 2) + ' €']);
-        if (ev.serviceProvider) items.push(['Provider', ev.serviceProvider]);
-        if (ev.isStart) items.push(['Event', 'Warranty start']);
-        if (ev.isExpiry) items.push(['Event', 'Warranty expiry']);
-        if (ev.notes) items.push(['Notes', ev.notes]);
+        if (ev.isPredicted) items.push([this._lbl('status', 'Status'), this._lbl('predicted', 'Predicted')]);
+        else if (ev.status) items.push([this._lbl('status', 'Status'), this._statuses[ev.status] || ev.status]);
+        if (ev.meterReading != null) items.push([this._lbl('meterReading', 'Meter reading'), this._fmtNum(ev.meterReading) + (ev.meterUnit ? ' ' + ev.meterUnit : '')]);
+        if (ev.cost != null) items.push([this._lbl('cost', 'Cost'), this._fmtNum(ev.cost, 2) + ' €']);
+        if (ev.serviceProvider) items.push([this._lbl('provider', 'Provider'), ev.serviceProvider]);
+        if (ev.isStart) items.push([this._lbl('event', 'Event'), this._lbl('warrantyStart', 'Warranty start')]);
+        if (ev.isExpiry) items.push([this._lbl('event', 'Event'), this._lbl('warrantyExpiry', 'Warranty expiry')]);
+        if (ev.notes) items.push([this._lbl('notes', 'Notes'), ev.notes]);
 
         inst.cardFields.innerHTML = items.map(([k, v]) =>
             `<div class="hg-tl-cf"><div class="hg-tl-cf-lbl">${this._esc(k)}</div><div class="hg-tl-cf-val">${this._esc(v)}</div></div>`
@@ -567,14 +584,14 @@ window.homeGuardTimeline = {
         inst.cardActions.innerHTML = '';
 
         if (ev.isPredicted && ev.ruleId) {
-            this._addCardAction(inst, '⚡', 'Materialize now', () => {
+            this._addCardAction(inst, '⚡', this._lbl('materializeNow', 'Materialize now'), () => {
                 if (inst.dotNetRef) inst.dotNetRef.invokeMethodAsync('NotifyMaterializeRequested', ev.ruleId);
             });
             if (ev.equipmentId) {
-                this._addCardAction(inst, '↻', 'Open recurring rule', `/equipment/${ev.equipmentId}?editRule=${ev.ruleId}`);
+                this._addCardAction(inst, '↻', this._lbl('openRule', 'Open recurring rule'), `/equipment/${ev.equipmentId}?editRule=${ev.ruleId}`);
             }
         } else if (ev.recordId && ev.equipmentId) {
-            this._addCardAction(inst, '✎', 'Edit record', `/equipment/${ev.equipmentId}?editService=${ev.recordId}`);
+            this._addCardAction(inst, '✎', this._lbl('editRecord', 'Edit record'), `/equipment/${ev.equipmentId}?editService=${ev.recordId}`);
         }
     },
 

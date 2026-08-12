@@ -5,10 +5,29 @@
 @inject IJSRuntime         JS
 @inject ISnackbar          Snackbar
 @inject IDialogService     Dialog
+@inject IStringLocalizer<Strings> L
 
-<PageTitle>Settings</PageTitle>
+<PageTitle>@L["Nav_Settings"]</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+<MudText Typo="Typo.h5" Class="mb-4">@L["Nav_Settings"]</MudText>
+
+@* ── Language ──────────────────────────────────────────────────────────────── *@
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Translate" Class="mr-1" />
+                @L["Settings_Language"]
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <LanguageSwitcher />
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+            @L["Settings_LanguageHelp"]
+        </MudText>
+    </MudCardContent>
+</MudCard>
 
 @* ── Passkey devices ───────────────────────────────────────────────────────── *@
 <MudCard Elevation="1" Class="mb-4">
@@ -16,7 +35,7 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h6">
                 <MudIcon Icon="@Icons.Material.Filled.Devices" Class="mr-1" />
-                Passkey devices
+                @L["Settings_Devices"]
             </MudText>
         </CardHeaderContent>
     </MudCardHeader>
@@ -28,7 +47,7 @@
         }
         else if (_credentials.Count == 0)
         {
-            <MudAlert Severity="Severity.Warning" Dense="true">No devices found.</MudAlert>
+            <MudAlert Severity="Severity.Warning" Dense="true">@L["Settings_NoDevices"]</MudAlert>
         }
         else
         {
@@ -40,14 +59,14 @@
                             <MudStack Spacing="0">
                                 <MudText Typo="Typo.body1">@cred.DeviceName</MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Added @cred.CreatedAt.LocalDateTime.ToString("d MMM yyyy")
+                                    @L["Settings_DeviceAdded", ShortDate(cred.CreatedAt)]
                                     @if (cred.LastUsedAt.HasValue)
                                     {
-                                        <span> · Last used @cred.LastUsedAt.Value.LocalDateTime.ToString("d MMM yyyy")</span>
+                                        <span> · @L["Settings_DeviceLastUsed", ShortDate(cred.LastUsedAt.Value)]</span>
                                     }
                                 </MudText>
                             </MudStack>
-                            <MudTooltip Text="@(_credentials.Count <= 1 ? "Can't remove last device" : "Revoke this device")">
+                            <MudTooltip Text="@(_credentials.Count <= 1 ? LastDeviceHint : RevokeHint)">
                                 <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
                                                Size="Size.Small"
                                                Color="Color.Error"
@@ -68,22 +87,22 @@
             <MudButton Variant="Variant.Outlined"
                        StartIcon="@Icons.Material.Filled.AddCircleOutline"
                        OnClick="@(() => _addingDevice = true)">
-                Add this device
+                @L["Settings_AddThisDevice"]
             </MudButton>
         }
         else
         {
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="px-2 pb-2 w-100">
                 <MudTextField @bind-Value="_newDeviceName"
-                              Label="Device name"
-                              Placeholder="e.g. iPhone 16, Work laptop"
+                              Label=@(L["Settings_DeviceName"])
+                              Placeholder=@(L["Settings_DeviceNamePlaceholder"])
                               Immediate="true"
                               Style="flex:1" />
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Primary"
                            Disabled="@(string.IsNullOrWhiteSpace(_newDeviceName) || _registeringDevice)"
                            OnClick="AddDeviceAsync">
-                    @(_registeringDevice ? "Registering…" : "Register passkey")
+                    @(_registeringDevice ? L["Settings_Registering"] : L["Settings_RegisterPasskey"])
                 </MudButton>
                 <MudIconButton Icon="@Icons.Material.Filled.Close"
                                OnClick="@(() => _addingDevice = false)" />
@@ -98,16 +117,16 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h6">
                 <MudIcon Icon="@Icons.Material.Filled.Sync" Class="mr-1" />
-                Offline sync
+                @L["Settings_OfflineSync"]
             </MudText>
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudText>Pending operations: <strong>@_pendingCount</strong></MudText>
+        <MudText>@L["Settings_PendingOperations"] <strong>@_pendingCount</strong></MudText>
     </MudCardContent>
     <MudCardActions>
         <MudButton Variant="Variant.Outlined" OnClick="FlushAsync" Disabled="_flushing">
-            Sync now
+            @L["Settings_SyncNow"]
         </MudButton>
     </MudCardActions>
 </MudCard>
@@ -118,7 +137,7 @@
         <CardHeaderContent>
             <MudText Typo="Typo.h6">
                 <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-1" />
-                Push notifications
+                @L["Settings_Push"]
             </MudText>
         </CardHeaderContent>
     </MudCardHeader>
@@ -126,19 +145,19 @@
         @if (_pushStatus == PushStatus.Granted)
         {
             <MudAlert Severity="Severity.Success" Dense="true">
-                Notifications enabled on this device.
+                @L["Settings_PushGranted"]
             </MudAlert>
         }
         else if (_pushStatus == PushStatus.Denied)
         {
             <MudAlert Severity="Severity.Warning" Dense="true">
-                Notifications blocked. Enable them in browser settings and reload.
+                @L["Settings_PushDenied"]
             </MudAlert>
         }
         else
         {
             <MudText Color="Color.Secondary">
-                Enable push notifications to get reminders about warranties and service dates.
+                @L["Settings_PushExplain"]
             </MudText>
         }
     </MudCardContent>
@@ -147,13 +166,19 @@
         {
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                        OnClick="SubscribeAsync" Disabled="_subscribing">
-                Enable notifications
+                @L["Settings_PushEnable"]
             </MudButton>
         }
     </MudCardActions>
 </MudCard>
 
 @code {
+    private string LastDeviceHint => L["Settings_CannotRemoveLast"];
+    private string RevokeHint      => L["Settings_RevokeDevice"];
+
+    private static string ShortDate(DateTimeOffset value)
+        => value.LocalDateTime.ToString("d", System.Globalization.CultureInfo.CurrentCulture);
+
     // ── Credentials ───────────────────────────────────────────────────────────
     private List<CredentialDto>? _credentials;
     private Guid?   _revoking;
@@ -188,7 +213,7 @@
             var optionsJson = await AuthApi.GetAddDeviceOptionsJsonAsync(_newDeviceName.Trim());
             if (optionsJson is null)
             {
-                Snackbar.Add("Could not start device registration.", Severity.Error);
+                Snackbar.Add(L["Settings_RegisterStartFailed"], Severity.Error);
                 return;
             }
 
@@ -197,18 +222,18 @@
 
             if (attestationElement.TryGetProperty("error", out var err))
             {
-                Snackbar.Add(err.GetString() ?? "Registration cancelled.", Severity.Warning);
+                Snackbar.Add(err.GetString() ?? L["Settings_RegisterCancelled"], Severity.Warning);
                 return;
             }
 
             var result = await AuthApi.CompleteAddDeviceAsync(attestationElement.GetRawText());
             if (!result.Success)
             {
-                Snackbar.Add(result.Error ?? "Registration failed.", Severity.Error);
+                Snackbar.Add(result.Error ?? L["Settings_RegisterFailed"], Severity.Error);
                 return;
             }
 
-            Snackbar.Add($"Device \"{_newDeviceName.Trim()}\" registered.", Severity.Success);
+            Snackbar.Add(L["Settings_DeviceRegistered", _newDeviceName.Trim()], Severity.Success);
             _credentials  = await AuthApi.GetCredentialsAsync();
             _newDeviceName = string.Empty;
             _addingDevice  = false;
@@ -228,10 +253,10 @@
     private async Task ConfirmRevokeAsync(CredentialDto cred)
     {
         var confirmed = await Dialog.ShowMessageBoxAsync(
-            title: "Revoke device",
-            message: $"Remove \"{cred.DeviceName}\"? This passkey will stop working immediately.",
-            yesText: "Remove",
-            cancelText: "Cancel");
+            title: L["Settings_RevokeTitle"],
+            message: L["Settings_RevokeMessage", cred.DeviceName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
 
         if (confirmed != true) return;
 
@@ -241,12 +266,12 @@
         var (success, error) = await AuthApi.RevokeCredentialAsync(cred.Id);
         if (success)
         {
-            Snackbar.Add($"\"{cred.DeviceName}\" removed.", Severity.Success);
+            Snackbar.Add(L["Settings_DeviceRemoved", cred.DeviceName], Severity.Success);
             _credentials = await AuthApi.GetCredentialsAsync();
         }
         else
         {
-            Snackbar.Add(error ?? "Could not revoke device.", Severity.Error);
+            Snackbar.Add(error ?? L["Settings_RevokeFailed"], Severity.Error);
         }
 
         _revoking = null;
@@ -262,8 +287,8 @@
         _flushing = false;
 
         Snackbar.Add(result.HasFailures
-            ? $"Sync done — {result.Failed} operation(s) failed."
-            : $"All synced ({result.Committed} operation(s)).",
+            ? L["Settings_SyncPartial", result.Failed]
+            : L["Settings_SyncDone", result.Committed],
             result.HasFailures ? Severity.Warning : Severity.Success);
     }
 
@@ -292,7 +317,7 @@
             var vapidKey = await NotificationApi.GetVapidPublicKeyAsync();
             if (vapidKey is null)
             {
-                Snackbar.Add("Push notifications not configured on the server.", Severity.Warning);
+                Snackbar.Add(L["Settings_PushNotConfigured"], Severity.Warning);
                 return;
             }
 
@@ -300,14 +325,14 @@
             var sub = await JS.InvokeAsync<PushSubscriptionJs?>("homeGuardPush.subscribe", vapidKey);
             if (sub is null)
             {
-                Snackbar.Add("Notification permission denied.", Severity.Warning);
+                Snackbar.Add(L["Settings_PushPermissionDenied"], Severity.Warning);
                 _pushStatus = PushStatus.Denied;
                 return;
             }
 
             await NotificationApi.SubscribeAsync(sub.Endpoint, sub.P256dh, sub.Auth);
             _pushStatus = PushStatus.Granted;
-            Snackbar.Add("Notifications enabled!", Severity.Success);
+            Snackbar.Add(L["Settings_PushEnabled"], Severity.Success);
         }
         catch (Exception ex) { Snackbar.Add(ex.Message, Severity.Error); }
         finally { _subscribing = false; }

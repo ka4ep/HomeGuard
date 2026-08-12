@@ -73,6 +73,14 @@
     --hg-warning-text: #7a4f10;
     --hg-danger-bg: #f5e8e8;
     --hg-danger-text: #7a2a2a;
+    /* Сущности — приглушённое семейство из DESIGN.md.
+       Каждый проверен на контраст ≥3:1 против Paper (#eeeae4): это значащая графика,
+       а не украшение, поэтому к ней применяется порог WCAG для нетекстовых элементов. */
+    --hg-warranty: #6E6BA8;
+    --hg-service: #4E8A6B;
+    --hg-meter: #9C752E;
+    --hg-money: #8A5F72;
+    --hg-today: #D85A30;
     /* Timeline */
     --hg-timeline-line: #d4cfc8;
     --hg-timeline-dot: var(--hg-accent);
@@ -101,4 +109,88 @@ html, body {
     background: var(--hg-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Утилиты --- */
+
+/*
+   Цифры одной ширины. Правило из DESIGN.md: суммы, даты и показания счётчиков
+   сравнивают по столбцу, поэтому в таблицах и любых колонках чисел они выравниваются
+   разряд в разряд, а не по ширине глифа.
+*/
+.hg-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+/*
+   Типографика внутри markdown-карточки. Правило DESIGN.md — «одна краска»:
+   заголовки внутри summary не заводят новый уровень иерархии, они только чуть
+   плотнее основного текста.
+*/
+.hg-markdown {
+    line-height: 1.65;
+}
+
+.hg-markdown > *:first-child { margin-top: 0; }
+.hg-markdown > *:last-child  { margin-bottom: 0; }
+
+.hg-markdown h1,
+.hg-markdown h2,
+.hg-markdown h3,
+.hg-markdown h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1.1em 0 .4em;
+    color: var(--hg-text);
+}
+
+.hg-markdown p  { margin: .6em 0; }
+.hg-markdown ul,
+.hg-markdown ol { margin: .6em 0; padding-left: 1.4em; }
+.hg-markdown li { margin: .25em 0; }
+
+.hg-markdown a {
+    color: var(--hg-accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.hg-markdown code {
+    font-size: .9em;
+    padding: .1em .35em;
+    border-radius: var(--hg-radius-sm);
+    background: var(--hg-bg-raised);
+}
+
+.hg-markdown blockquote {
+    margin: .8em 0;
+    padding-left: .9em;
+    border-left: 2px solid var(--hg-border-card);
+    color: var(--hg-text-muted);
+}
+
+.hg-markdown table {
+    border-collapse: collapse;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+.hg-markdown th,
+.hg-markdown td {
+    border-bottom: 1px solid var(--hg-border-card);
+    padding: .35em .5em;
+    text-align: left;
+}
+
+/*
+   Статус строки — точка, а не цветная полоса у края (бриф на этом настаивает):
+   статус это факт о записи, а не второй фон под ней.
+*/
+.hg-status-dot {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
 }

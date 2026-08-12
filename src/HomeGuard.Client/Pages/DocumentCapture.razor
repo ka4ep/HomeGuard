@@ -5,6 +5,7 @@
      Label      — опциональный заголовок над компонентом
 *@
 @inject IJSRuntime JS
+@inject IStringLocalizer<Strings> L
 @implements IAsyncDisposable
 
 <div class="dc-root">
@@ -75,7 +76,7 @@
                         </div>
                     }
                     <div class="dc-preview-actions">
-                        <button class="dc-btn-secondary" @onclick="ClearCapture">Удалить</button>
+                        <button class="dc-btn-secondary" @onclick="ClearCapture">@L["Common_Delete"]</button>
                     </div>
                 </div>
             }
@@ -99,7 +100,7 @@
                                 <circle cx="18" cy="19" r="6" stroke="currentColor" stroke-width="1.75"/>
                                 <path d="M12 8l2.5-4h7L24 8" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
                             </svg>
-                            <span>Включить камеру</span>
+                            <span>@L["Capture_StartCamera"]</span>
                         </div>
                     }
                 </div>
@@ -113,9 +114,9 @@
             else
             {
                 <div class="dc-preview">
-                    <img src="@previewDataUrl" class="dc-preview-img" alt="Снимок" />
+                    <img src="@previewDataUrl" class="dc-preview-img" alt=@(L["Capture_PhotoAlt"]) />
                     <div class="dc-preview-actions">
-                        <button class="dc-btn-secondary" @onclick="ClearCapture">Переснять</button>
+                        <button class="dc-btn-secondary" @onclick="ClearCapture">@L["Capture_Retake"]</button>
                     </div>
                 </div>
             }
@@ -204,7 +205,7 @@
     {
         cameraStarted = await jsModule!.InvokeAsync<bool>("startCamera", videoRef);
         if (!cameraStarted)
-            errorMessage = "Не удалось получить доступ к камере. Проверьте разрешения браузера.";
+            errorMessage = L["Capture_CameraDenied"];
         StateHasChanged();
     }
 

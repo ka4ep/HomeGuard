@@ -21,12 +21,20 @@ public sealed class TimelineInterop : IAsyncDisposable
     /// <summary>Raised when the user clicks "Materialize now" on a Predicted event's card.</summary>
     public event Func<Guid, Task>? MaterializeRequested;
 
-    public async Task CreateAsync(string elementId, IEnumerable<TimelineRow> rows)
+    /// <summary>
+    /// <paramref name="options"/> carries the language across the interop boundary: the
+    /// JS side renders the detail card and formats dates itself, so it needs the same
+    /// strings and the same culture the rest of the app is using.
+    /// </summary>
+    public async Task CreateAsync(
+        string elementId, IEnumerable<TimelineRow> rows, TimelineOptions options)
     {
         _elementId = elementId;
         _selfRef = DotNetObjectReference.Create(this);
-        var rowsJson = JsonSerializer.Serialize(rows, Json.Options);
-        await _js.InvokeVoidAsync("homeGuardTimeline.create", elementId, rowsJson, _selfRef);
+        var rowsJson    = JsonSerializer.Serialize(rows, Json.Options);
+        var optionsJson = JsonSerializer.Serialize(options, Json.Options);
+        await _js.InvokeVoidAsync(
+            "homeGuardTimeline.create", elementId, rowsJson, _selfRef, optionsJson);
     }
 
     public async Task UpdateAsync(IEnumerable<TimelineRow> rows)
@@ -55,6 +63,16 @@ public sealed class TimelineInterop : IAsyncDisposable
 }
 
 // ── Data records ──────────────────────────────────────────────────────────────
+
+/// <summary>
+/// Everything the JS side needs that is not row data: the culture to format dates and
+/// numbers with, the labels on the detail card, and the display names of the service
+/// statuses it receives as raw enum names.
+/// </summary>
+public sealed record TimelineOptions(
+    string Locale,
+    IReadOnlyDictionary<string, string> Labels,
+    IReadOnlyDictionary<string, string> Statuses);
 
 /// <summary>One label row on the timeline — a service cluster or a single warranty.</summary>
 public sealed record TimelineRow(

@@ -3,15 +3,16 @@
    parents open it via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
 @namespace HomeGuard.Client.Common
 @inject WarrantyApiClient Api
+@inject IStringLocalizer<Strings> L
 
 <MudDialog @bind-Visible="_visible">
-    <TitleContent>@(_editId.HasValue ? "Edit warranty" : "Add warranty")</TitleContent>
+    <TitleContent>@(_editId.HasValue ? L["Warranty_DialogEdit"] : L["Warranty_DialogAdd"])</TitleContent>
     <DialogContent>
         <MudGrid>
             @if (FixedEquipmentId is null)
             {
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="_equipmentId" Label="Equipment" Required="true"
+                    <MudSelect @bind-Value="_equipmentId" Label=@(L["Nav_Equipment"]) Required="true"
                                Disabled="_editId.HasValue">
                         @foreach (var e in Equipment)
                         {
@@ -21,32 +22,32 @@
                 </MudItem>
             }
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Name" Label="Name" Required="true" />
+                <MudTextField @bind-Value="_form.Name" Label=@(L["Form_Name"]) Required="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_form.StartDateNullable" Label="Start date"
+                <MudDatePicker @bind-Date="_form.StartDateNullable" Label=@(L["Form_StartDate"])
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_form.EndDateNullable" Label="End date"
+                <MudDatePicker @bind-Date="_form.EndDateNullable" Label=@(L["Form_EndDate"])
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.Provider" Label="Provider" />
+                <MudTextField @bind-Value="_form.Provider" Label=@(L["Warranty_Provider"]) />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_form.ContractNumber" Label="Contract number" />
+                <MudTextField @bind-Value="_form.ContractNumber" Label=@(L["Warranty_ContractNumber"]) />
             </MudItem>
             <MudItem xs="12">
-                <MudTextField @bind-Value="_form.Notes" Label="Notes"
+                <MudTextField @bind-Value="_form.Notes" Label=@(L["Form_Notes"])
                               Lines="3" Sizing="InputSizing.Auto" />
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _visible = false">Cancel</MudButton>
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveAsync" Disabled="_saving">Save</MudButton>
+                   OnClick="SaveAsync" Disabled="_saving">@L["Common_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

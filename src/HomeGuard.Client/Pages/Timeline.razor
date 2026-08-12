@@ -7,24 +7,25 @@
 @inject MeterReadingApiClient MeterApi
 @inject TimelineInterop TimelineInterop
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<Strings> L
 @implements IAsyncDisposable
 
-<PageTitle>Timeline</PageTitle>
+<PageTitle>@L["Nav_Timeline"]</PageTitle>
 
-<MudText Typo="Typo.h5" Class="mb-2">Timeline</MudText>
+<MudText Typo="Typo.h5" Class="mb-2">@L["Nav_Timeline"]</MudText>
 
 <MudStack Row="true" Class="mb-4" Spacing="2">
     <MudButton Variant="Variant.Outlined" Size="Size.Small"
-               OnClick="@(() => TimelineInterop.FocusTodayAsync())">Today</MudButton>
+               OnClick="@(() => TimelineInterop.FocusTodayAsync())">@L["Timeline_Today"]</MudButton>
     <MudButton Variant="Variant.Outlined" Size="Size.Small"
-               OnClick="@(() => TimelineInterop.FitAsync())">Fit all</MudButton>
+               OnClick="@(() => TimelineInterop.FitAsync())">@L["Timeline_FitAll"]</MudButton>
     <MudSpacer />
     <MudChip T="string" Style="@WarrantyChipStyle" Size="Size.Small"
              Icon="@Icons.Material.Filled.VerifiedUser"
-             OnClick="ToggleWarrantiesAsync">Warranties</MudChip>
+             OnClick="ToggleWarrantiesAsync">@L["Nav_Warranties"]</MudChip>
     <MudChip T="string" Style="@ServiceChipStyle" Size="Size.Small"
              Icon="@Icons.Material.Filled.Build"
-             OnClick="ToggleServicesAsync">Service</MudChip>
+             OnClick="ToggleServicesAsync">@L["Nav_Service"]</MudChip>
 </MudStack>
 
 @if (_loading)
@@ -71,7 +72,7 @@
         TimelineInterop.MaterializeRequested += OnMaterializeRequestedAsync;
 
         await LoadDataAsync();
-        await TimelineInterop.CreateAsync(ElementId, BuildRows());
+        await TimelineInterop.CreateAsync(ElementId, BuildRows(), BuildTimelineOptions());
 
         _loading = false;
         StateHasChanged();
@@ -276,6 +277,34 @@
         return d[m, n];
     }
 
+    /// <summary>
+    /// The timeline card is drawn by JavaScript, so its labels have to be handed over
+    /// rather than looked up there — the resources live on this side.
+    /// </summary>
+    private TimelineOptions BuildTimelineOptions() => new(
+        Locale: System.Globalization.CultureInfo.CurrentCulture.Name,
+        Labels: new Dictionary<string, string>
+        {
+            ["date"]            = L["Meter_Date"],
+            ["status"]          = L["Service_Status"],
+            ["predicted"]       = L["Timeline_Predicted"],
+            ["meterReading"]    = L["Service_Meter"],
+            ["cost"]            = L["Service_Cost"],
+            ["provider"]        = L["Service_Provider"],
+            ["event"]           = L["Timeline_Event"],
+            ["warrantyStart"]   = L["Timeline_WarrantyStart"],
+            ["warrantyExpiry"]  = L["Timeline_WarrantyExpiry"],
+            ["notes"]           = L["Form_Notes"],
+            ["materializeNow"]  = L["Timeline_MaterializeNow"],
+            ["openRule"]        = L["Timeline_OpenRule"],
+            ["editRecord"]      = L["Timeline_EditRecord"],
+        },
+        Statuses: new Dictionary<string, string>
+        {
+            ["Completed"] = L["ServiceStatus_Completed"],
+            ["Planned"]   = L["ServiceStatus_Planned"],
+        });
+
     // ── Materialize ("Materialize now" on a Predicted event's card) ───────────
 
     private async Task OnMaterializeRequestedAsync(Guid ruleId)
@@ -283,11 +312,11 @@
         var result = await RuleApi.MaterializeNowAsync(ruleId);
         if (result is null)
         {
-            Snackbar.Add("Couldn't materialize yet — not enough history to predict a date.", Severity.Warning);
+            Snackbar.Add(L["Timeline_CannotMaterialize"], Severity.Warning);
             return;
         }
 
-        Snackbar.Add("Planned record created.", Severity.Success);
+        Snackbar.Add(L["Timeline_PlannedCreated"], Severity.Success);
         await LoadDataAsync();
         await TimelineInterop.UpdateAsync(BuildRows());
         StateHasChanged();

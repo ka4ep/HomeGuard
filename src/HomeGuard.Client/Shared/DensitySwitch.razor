@@ -1,0 +1,54 @@
+@namespace HomeGuard.Client.Common
+@inject DensityPreference Density
+@inject IStringLocalizer<Strings> L
+
+@*
+    Cards / List switch. System-wide by decision — it belongs on every list surface,
+    with the same shape and the same position, so that it reads as one control the app
+    has rather than a feature of one screen.
+
+    The page owns the current mode (it needs it to render), this component owns
+    remembering it.
+*@
+<MudToggleGroup T="DensityMode"
+                Value="@Mode"
+                ValueChanged="OnChangedAsync"
+                SelectionMode="SelectionMode.SingleSelection"
+                Color="Color.Primary"
+                Size="Size.Small"
+                CheckMark="false"
+                FixedContent="false"
+                Class="hg-density-switch"
+                aria-label="@L["Density_Label"]">
+
+    <MudToggleItem Value="@DensityMode.Cards">
+        <MudTooltip Text="@L["Density_Cards"]">
+            <MudIcon Icon="@Icons.Material.Outlined.GridView" Size="Size.Small" />
+        </MudTooltip>
+    </MudToggleItem>
+
+    <MudToggleItem Value="@DensityMode.List">
+        <MudTooltip Text="@L["Density_List"]">
+            <MudIcon Icon="@Icons.Material.Outlined.ViewList" Size="Size.Small" />
+        </MudTooltip>
+    </MudToggleItem>
+
+</MudToggleGroup>
+
+@code {
+    /// <summary>Which surface this switch remembers — use a <see cref="DensitySurface"/> constant.</summary>
+    [Parameter, EditorRequired] public string Surface { get; set; } = string.Empty;
+
+    [Parameter] public DensityMode Mode { get; set; }
+
+    [Parameter] public EventCallback<DensityMode> ModeChanged { get; set; }
+
+    private async Task OnChangedAsync(DensityMode mode)
+    {
+        if (mode == Mode) return;
+
+        Mode = mode;
+        await Density.SetAsync(Surface, mode);
+        await ModeChanged.InvokeAsync(mode);
+    }
+}

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Russian. Keys must stay in step with Strings.resx — a key missing here falls back
+    to English rather than failing, so a gap shows up as an English word on a Russian
+    screen. Russian runs 20–30% longer than English; keep that in mind for anything
+    that has to fit a chip, a column header or a button.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ── Общие слова ───────────────────────────────────────────────────────── -->
+  <data name="Common_Add" xml:space="preserve"><value>Добавить</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Закрыть</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Удалить</value></data>
+  <data name="Common_Edit" xml:space="preserve"><value>Изменить</value></data>
+  <data name="Common_Loading" xml:space="preserve"><value>Загрузка…</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Сохранить</value></data>
+
+  <!-- ── Переключатель плотности ───────────────────────────────────────────── -->
+  <data name="Density_Cards" xml:space="preserve"><value>Карточки</value></data>
+  <data name="Density_List" xml:space="preserve"><value>Список</value></data>
+  <data name="Density_Label" xml:space="preserve"><value>Вид</value></data>
+
+  <!-- ── Язык ──────────────────────────────────────────────────────────────── -->
+  <data name="Language_en" xml:space="preserve"><value>English</value></data>
+  <data name="Language_ru" xml:space="preserve"><value>Русский</value></data>
+  <data name="Common_Search" xml:space="preserve"><value>Поиск</value></data>
+
+  <!-- ── Навигация ─────────────────────────────────────────────────────────── -->
+  <data name="Nav_Dashboard" xml:space="preserve"><value>Сводка</value></data>
+  <data name="Nav_Equipment" xml:space="preserve"><value>Техника</value></data>
+  <data name="Nav_Heading" xml:space="preserve"><value>Разделы</value></data>
+  <data name="Nav_Service" xml:space="preserve"><value>Обслуживание</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Настройки</value></data>
+  <data name="Nav_SignIn" xml:space="preserve"><value>Войти</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Выйти</value></data>
+  <data name="Nav_Timeline" xml:space="preserve"><value>Сроки</value></data>
+  <data name="Nav_Warranties" xml:space="preserve"><value>Гарантии</value></data>
+
+  <!-- ── Техника ───────────────────────────────────────────────────────────── -->
+  <data name="Equipment_AddTitle" xml:space="preserve"><value>Новая техника</value></data>
+  <data name="Equipment_Brand" xml:space="preserve"><value>Марка</value></data>
+  <data name="Equipment_Category" xml:space="preserve"><value>Категория</value></data>
+  <data name="Equipment_Empty" xml:space="preserve"><value>Здесь пока пусто — добавьте первую запись.</value></data>
+  <data name="Equipment_Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Equipment_NoMatch" xml:space="preserve"><value>По запросу «{0}» ничего нет.</value></data>
+  <data name="Equipment_Purchased" xml:space="preserve"><value>Куплено</value></data>
+  <data name="Equipment_Tags" xml:space="preserve"><value>Метки</value></data>
+
+  <!-- ── Категории техники (enum EquipmentCategory) ────────────────────────── -->
+  <data name="Category_Electronics" xml:space="preserve"><value>Электроника</value></data>
+  <data name="Category_Furniture" xml:space="preserve"><value>Мебель</value></data>
+  <data name="Category_Garden" xml:space="preserve"><value>Сад</value></data>
+  <data name="Category_Heating" xml:space="preserve"><value>Отопление</value></data>
+  <data name="Category_HomeAppliance" xml:space="preserve"><value>Бытовая техника</value></data>
+  <data name="Category_Other" xml:space="preserve"><value>Прочее</value></data>
+  <data name="Category_Vehicle" xml:space="preserve"><value>Транспорт</value></data>
+
+  <!-- ── Гарантии ──────────────────────────────────────────────────────────── -->
+  <data name="Warranty_ContractNumber" xml:space="preserve"><value>Номер договора</value></data>
+  <data name="Warranty_Empty" xml:space="preserve"><value>Здесь гарантий нет.</value></data>
+  <data name="Warranty_Name" xml:space="preserve"><value>Гарантия</value></data>
+  <data name="Warranty_Notes" xml:space="preserve"><value>Заметки</value></data>
+  <data name="Warranty_Period" xml:space="preserve"><value>Срок</value></data>
+  <data name="Warranty_Provider" xml:space="preserve"><value>Кто выдал</value></data>
+  <data name="Warranty_Remaining" xml:space="preserve"><value>Осталось</value></data>
+  <data name="Warranty_TabActive" xml:space="preserve"><value>Действующие</value></data>
+  <data name="Warranty_TabExpiring" xml:space="preserve"><value>Скоро истекают</value></data>
+
+  <!-- Сокращения намеренные — у русского три формы множественного числа, а resx их не умеет. -->
+  <data name="Warranty_DaysLeft" xml:space="preserve"><value>{0} дн.</value></data>
+  <data name="Warranty_Expired" xml:space="preserve"><value>Истекла</value></data>
+  <data name="Warranty_MonthsLeft" xml:space="preserve"><value>{0} мес.</value></data>
+  <data name="Warranty_Today" xml:space="preserve"><value>Сегодня</value></data>
+  <data name="Warranty_Tomorrow" xml:space="preserve"><value>Завтра</value></data>
+
+  <!-- ── Обслуживание ──────────────────────────────────────────────────────── -->
+  <data name="Service_Cost" xml:space="preserve"><value>Стоимость</value></data>
+  <data name="Service_Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Service_Empty" xml:space="preserve"><value>Здесь пусто.</value></data>
+  <data name="Service_Meter" xml:space="preserve"><value>Показание</value></data>
+  <data name="Service_Notes" xml:space="preserve"><value>Заметки</value></data>
+  <data name="Service_Overdue" xml:space="preserve"><value>Просрочено</value></data>
+  <data name="Service_Provider" xml:space="preserve"><value>Исполнитель</value></data>
+  <data name="Service_TabDueSoon" xml:space="preserve"><value>Скоро</value></data>
+  <data name="Service_TabOverdue" xml:space="preserve"><value>Просроченные</value></data>
+  <data name="Service_Title" xml:space="preserve"><value>Работа</value></data>
+  <data name="Service_When" xml:space="preserve"><value>Когда</value></data>
+
+  <data name="Service_InDays" xml:space="preserve"><value>Через {0} дн.</value></data>
+  <data name="Service_InMonths" xml:space="preserve"><value>Через {0} мес.</value></data>
+  <data name="Service_Today" xml:space="preserve"><value>Сегодня</value></data>
+  <data name="Service_Tomorrow" xml:space="preserve"><value>Завтра</value></data>
+
+  <data name="Settings_Language" xml:space="preserve"><value>Язык</value></data>
+  <data name="Settings_LanguageHelp" xml:space="preserve"><value>Действует для этой учётной записи везде, включая уведомления и календарь. Страница перезагрузится, чтобы применить.</value></data>
+
+  <!-- ── Повторы и секции на карточке техники ── -->
+  <data name="Rule_Edit" xml:space="preserve"><value>Изменить повтор</value></data>
+  <data name="Rule_Empty" xml:space="preserve"><value>Повторов пока нет — привяжите повтор к записи об обслуживании или добавьте здесь.</value></data>
+  <data name="Rule_Every" xml:space="preserve"><value>каждые {0}</value></data>
+  <data name="Rule_FromHistory" xml:space="preserve"><value>автоматически, по истории</value></data>
+  <data name="Rule_Inactive" xml:space="preserve"><value>Выключен</value></data>
+  <data name="Rule_IntervalDays" xml:space="preserve"><value>~{0} дн.</value></data>
+  <data name="Rule_Repeats" xml:space="preserve"><value>Повтор {0}</value></data>
+  <data name="Rule_Section" xml:space="preserve"><value>Повторы</value></data>
+  <data name="Rule_SetUp" xml:space="preserve"><value>Настроить повтор</value></data>
+  <data name="Rule_SincePurchase" xml:space="preserve"><value>От покупки</value></data>
+  <data name="Service_SectionEmpty" xml:space="preserve"><value>Записей об обслуживании пока нет.</value></data>
+  <data name="Warranty_SectionEmpty" xml:space="preserve"><value>Гарантий не записано.</value></data>
+
+  <!-- ── Поля форм ── -->
+  <data name="Form_EndDate" xml:space="preserve"><value>Окончание</value></data>
+  <data name="Form_MeterUnit" xml:space="preserve"><value>Единица счётчика</value></data>
+  <data name="Form_MeterUnitHelp" xml:space="preserve"><value>например км, mi, m³, кВт·ч, ч</value></data>
+  <data name="Form_Model" xml:space="preserve"><value>Модель</value></data>
+  <data name="Form_Name" xml:space="preserve"><value>Название</value></data>
+  <data name="Form_Notes" xml:space="preserve"><value>Заметки</value></data>
+  <data name="Form_NotesHelp" xml:space="preserve"><value>Поддерживается markdown</value></data>
+  <data name="Form_PurchaseDate" xml:space="preserve"><value>Дата покупки</value></data>
+  <data name="Form_PurchasePrice" xml:space="preserve"><value>Цена покупки</value></data>
+  <data name="Form_SerialNumber" xml:space="preserve"><value>Серийный номер</value></data>
+  <data name="Form_StartDate" xml:space="preserve"><value>Начало</value></data>
+  <data name="Form_Tags" xml:space="preserve"><value>Метки (через запятую)</value></data>
+  <data name="Form_TagsHelp" xml:space="preserve"><value>например кухня, техника, samsung</value></data>
+  <data name="Warranty_DialogAdd" xml:space="preserve"><value>Новая гарантия</value></data>
+  <data name="Warranty_DialogEdit" xml:space="preserve"><value>Изменить гарантию</value></data>
+
+  <!-- ── Диалоги обслуживания и повторов ── -->
+  <data name="Rule_Active" xml:space="preserve"><value>Включён</value></data>
+  <data name="Rule_AnchorToPurchase" xml:space="preserve"><value>Было с покупки</value></data>
+  <data name="Rule_AnchorToPurchaseHelp" xml:space="preserve"><value>Включено: средний интервал считается от даты покупки, поэтому для прогноза хватает одной записи. Выключено: считается только от первого записанного обслуживания этой вещи.</value></data>
+  <data name="Rule_IntervalDaysLabel" xml:space="preserve"><value>Интервал (дни)</value></data>
+  <data name="Rule_IntervalHelp" xml:space="preserve"><value>Оставьте пустым — посчитается по истории</value></data>
+  <data name="Rule_IntervalMeterLabel" xml:space="preserve"><value>Интервал</value></data>
+  <data name="Rule_MaterializeDays" xml:space="preserve"><value>Создавать запись за столько дней</value></data>
+  <data name="Rule_PredictionsAhead" xml:space="preserve"><value>Сколько прогнозов показывать</value></data>
+  <data name="ServiceStatus_Completed" xml:space="preserve"><value>Сделано</value></data>
+  <data name="ServiceStatus_Planned" xml:space="preserve"><value>Запланировано</value></data>
+  <data name="Service_DialogAdd" xml:space="preserve"><value>Новая запись</value></data>
+  <data name="Service_DialogEdit" xml:space="preserve"><value>Изменить запись</value></data>
+  <data name="Service_Status" xml:space="preserve"><value>Статус</value></data>
+
+  <!-- ── Показания счётчиков ── -->
+  <data name="Meter_Date" xml:space="preserve"><value>Дата</value></data>
+  <data name="Meter_DialogTitle" xml:space="preserve"><value>Записать показание</value></data>
+  <data name="Meter_Empty" xml:space="preserve"><value>Показаний пока нет.</value></data>
+  <data name="Meter_FromService" xml:space="preserve"><value>Из обслуживания</value></data>
+  <data name="Meter_LastKnown" xml:space="preserve"><value>Последнее известное: {0} {1} — {2}</value></data>
+  <data name="Meter_LowerThanLast" xml:space="preserve"><value>Это меньше последнего известного показания.</value></data>
+  <data name="Meter_NoMeteredEquipment" xml:space="preserve"><value>Ни у чего пока не задана единица счётчика, поэтому показание записывать некуда. Сначала укажите единицу (км, кВт·ч, ч…) у самой вещи: Техника → открыть → Изменить.</value></data>
+  <data name="Meter_Note" xml:space="preserve"><value>Заметка</value></data>
+  <data name="Meter_Reading" xml:space="preserve"><value>Показание</value></data>
+  <data name="Meter_Section" xml:space="preserve"><value>Показания счётчика</value></data>
+  <data name="Meter_ShowAll" xml:space="preserve"><value>Показать все ({0})</value></data>
+
+  <!-- ── Настройки ── -->
+  <data name="Settings_AddThisDevice" xml:space="preserve"><value>Добавить это устройство</value></data>
+  <data name="Settings_CannotRemoveLast" xml:space="preserve"><value>Это последнее устройство — без него вход будет закрыт</value></data>
+  <data name="Settings_DeviceAdded" xml:space="preserve"><value>Добавлено {0}</value></data>
+  <data name="Settings_DeviceLastUsed" xml:space="preserve"><value>Использовано {0}</value></data>
+  <data name="Settings_DeviceName" xml:space="preserve"><value>Название устройства</value></data>
+  <data name="Settings_DeviceNamePlaceholder" xml:space="preserve"><value>например iPhone 16, рабочий ноутбук</value></data>
+  <data name="Settings_DeviceRegistered" xml:space="preserve"><value>Устройство «{0}» зарегистрировано.</value></data>
+  <data name="Settings_DeviceRemoved" xml:space="preserve"><value>«{0}» удалено.</value></data>
+  <data name="Settings_Devices" xml:space="preserve"><value>Устройства с ключом</value></data>
+  <data name="Settings_NoDevices" xml:space="preserve"><value>Устройств нет.</value></data>
+  <data name="Settings_OfflineSync" xml:space="preserve"><value>Офлайн-синхронизация</value></data>
+  <data name="Settings_PendingOperations" xml:space="preserve"><value>Ждут отправки:</value></data>
+  <data name="Settings_Push" xml:space="preserve"><value>Уведомления</value></data>
+  <data name="Settings_PushDenied" xml:space="preserve"><value>Уведомления заблокированы. Разрешите их в настройках браузера и перезагрузите страницу.</value></data>
+  <data name="Settings_PushEnable" xml:space="preserve"><value>Включить уведомления</value></data>
+  <data name="Settings_PushEnabled" xml:space="preserve"><value>Уведомления включены.</value></data>
+  <data name="Settings_PushExplain" xml:space="preserve"><value>Включите уведомления, чтобы напоминать о гарантиях и сроках обслуживания.</value></data>
+  <data name="Settings_PushGranted" xml:space="preserve"><value>Уведомления включены на этом устройстве.</value></data>
+  <data name="Settings_PushNotConfigured" xml:space="preserve"><value>На сервере не настроен push.</value></data>
+  <data name="Settings_PushPermissionDenied" xml:space="preserve"><value>Разрешение на уведомления не выдано.</value></data>
+  <data name="Settings_RegisterCancelled" xml:space="preserve"><value>Регистрация отменена.</value></data>
+  <data name="Settings_RegisterFailed" xml:space="preserve"><value>Регистрация не удалась.</value></data>
+  <data name="Settings_RegisterPasskey" xml:space="preserve"><value>Зарегистрировать ключ</value></data>
+  <data name="Settings_RegisterStartFailed" xml:space="preserve"><value>Не удалось начать регистрацию устройства.</value></data>
+  <data name="Settings_Registering" xml:space="preserve"><value>Регистрируем…</value></data>
+  <data name="Settings_RevokeDevice" xml:space="preserve"><value>Отозвать это устройство</value></data>
+  <data name="Settings_RevokeFailed" xml:space="preserve"><value>Не удалось отозвать устройство.</value></data>
+  <data name="Settings_RevokeMessage" xml:space="preserve"><value>Удалить «{0}»? Этот ключ перестанет работать сразу же.</value></data>
+  <data name="Settings_RevokeTitle" xml:space="preserve"><value>Отозвать устройство</value></data>
+  <data name="Settings_SyncDone" xml:space="preserve"><value>Всё отправлено ({0}).</value></data>
+  <data name="Settings_SyncNow" xml:space="preserve"><value>Синхронизировать</value></data>
+  <data name="Settings_SyncPartial" xml:space="preserve"><value>Синхронизация закончена — не прошло: {0}.</value></data>
+
+  <!-- ── Сводка ── -->
+  <data name="Common_ViewAll" xml:space="preserve"><value>Все</value></data>
+  <data name="Home_NoServiceDue" xml:space="preserve"><value>В ближайшие 90 дней ничего не нужно.</value></data>
+  <data name="Home_NoWarrantiesExpiring" xml:space="preserve"><value>В ближайшие 90 дней ничего не истекает.</value></data>
+  <data name="Home_PendingSync" xml:space="preserve"><value>Ждут отправки на сервер: {0}.</value></data>
+  <data name="Home_RecordReading" xml:space="preserve"><value>Записать показание</value></data>
+  <data name="Home_ServiceDue" xml:space="preserve"><value>Пора обслужить</value></data>
+  <data name="Home_WarrantiesExpiring" xml:space="preserve"><value>Скоро истекают гарантии</value></data>
+
+  <!-- ── Карточка техники ── -->
+  <data name="Equipment_BrandModel" xml:space="preserve"><value>Марка / модель</value></data>
+  <data name="Equipment_EditTitle" xml:space="preserve"><value>Изменить технику</value></data>
+
+  <!-- ── Вход ── -->
+  <data name="Login_AuthFailed" xml:space="preserve"><value>Войти не получилось.</value></data>
+  <data name="Login_Authenticating" xml:space="preserve"><value>Входим…</value></data>
+  <data name="Login_BackToSignIn" xml:space="preserve"><value>Назад ко входу</value></data>
+  <data name="Login_DefaultDeviceName" xml:space="preserve"><value>Моё устройство</value></data>
+  <data name="Login_FirstTime" xml:space="preserve"><value>Первый раз? Зарегистрируйте ключ.</value></data>
+  <data name="Login_NoPasskeySupport" xml:space="preserve"><value>Этот браузер не поддерживает ключи доступа. Откройте приложение в современном браузере на устройстве с биометрией.</value></data>
+  <data name="Login_Register" xml:space="preserve"><value>Регистрация</value></data>
+  <data name="Login_ServerUnreachable" xml:space="preserve"><value>Не удалось связаться с сервером.</value></data>
+  <data name="Login_SignInWithPasskey" xml:space="preserve"><value>Войти по ключу</value></data>
+  <data name="Login_Subtitle" xml:space="preserve"><value>Вход по ключу доступа</value></data>
+  <data name="Login_ThisDevice" xml:space="preserve"><value>Это устройство (iPhone 16, рабочий ноутбук…)</value></data>
+  <data name="Login_ThisDevicePlaceholder" xml:space="preserve"><value>Чтобы потом узнать его в списке</value></data>
+  <data name="Login_YourName" xml:space="preserve"><value>Ваше имя (Мама, Алекс…)</value></data>
+  <data name="Login_YourNamePlaceholder" xml:space="preserve"><value>Как к вам обращаться?</value></data>
+
+  <!-- ── Сроки и съёмка документов ── -->
+  <data name="Capture_CameraDenied" xml:space="preserve"><value>Не удалось получить доступ к камере. Проверьте разрешения браузера.</value></data>
+  <data name="Capture_PhotoAlt" xml:space="preserve"><value>Снимок</value></data>
+  <data name="Capture_Retake" xml:space="preserve"><value>Переснять</value></data>
+  <data name="Capture_StartCamera" xml:space="preserve"><value>Включить камеру</value></data>
+  <data name="Timeline_CannotMaterialize" xml:space="preserve"><value>Пока мало истории, чтобы предсказать дату для этого.</value></data>
+  <data name="Timeline_FitAll" xml:space="preserve"><value>Всё целиком</value></data>
+  <data name="Timeline_PlannedCreated" xml:space="preserve"><value>Запланированная запись создана.</value></data>
+  <data name="Timeline_Today" xml:space="preserve"><value>Сегодня</value></data>
+
+  <!-- ── Карточка на таймлайне (рисует JS) ── -->
+  <data name="Timeline_EditRecord" xml:space="preserve"><value>Изменить запись</value></data>
+  <data name="Timeline_Event" xml:space="preserve"><value>Событие</value></data>
+  <data name="Timeline_MaterializeNow" xml:space="preserve"><value>Запланировать</value></data>
+  <data name="Timeline_OpenRule" xml:space="preserve"><value>Открыть повтор</value></data>
+  <data name="Timeline_Predicted" xml:space="preserve"><value>Прогноз</value></data>
+  <data name="Timeline_WarrantyExpiry" xml:space="preserve"><value>Конец гарантии</value></data>
+  <data name="Timeline_WarrantyStart" xml:space="preserve"><value>Начало гарантии</value></data>
+
+  <!-- ── Договоры ── -->
+  <data name="ContractKind_Insurance" xml:space="preserve"><value>Страховка</value></data>
+  <data name="ContractKind_Lease" xml:space="preserve"><value>Лизинг</value></data>
+  <data name="ContractKind_Loan" xml:space="preserve"><value>Кредит</value></data>
+  <data name="ContractKind_Other" xml:space="preserve"><value>Прочее</value></data>
+  <data name="ContractKind_Subscription" xml:space="preserve"><value>Подписка</value></data>
+  <data name="ContractStatus_Active" xml:space="preserve"><value>Действует</value></data>
+  <data name="ContractStatus_Cancelled" xml:space="preserve"><value>Расторгнут</value></data>
+  <data name="ContractStatus_Ended" xml:space="preserve"><value>Закончился</value></data>
+  <data name="ContractStatus_Suspended" xml:space="preserve"><value>Приостановлен</value></data>
+  <data name="Contract_CancelBy" xml:space="preserve"><value>Отказаться до {0}</value></data>
+  <data name="Contract_Empty" xml:space="preserve"><value>Договоров пока нет. Сюда попадают страховки, подписки, кредиты и лизинг.</value></data>
+  <data name="Contract_EveryNMonths" xml:space="preserve"><value>раз в {0} мес.</value></data>
+  <data name="Contract_Filter_All" xml:space="preserve"><value>Все</value></data>
+  <data name="Contract_Household" xml:space="preserve"><value>Дом</value></data>
+  <data name="Contract_MonthlyTotal" xml:space="preserve"><value>В месяц, всё вместе</value></data>
+  <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Такого пока нет.</value></data>
+  <data name="Contract_NoPlan" xml:space="preserve"><value>План платежей не задан</value></data>
+  <data name="Contract_OpenEnded" xml:space="preserve"><value>без срока</value></data>
+  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>{0} в другой валюте не учтено — суммы никогда не конвертируются.</value></data>
+  <data name="Contract_Payment" xml:space="preserve"><value>Платёж</value></data>
+  <data name="Contract_PerHalfYear" xml:space="preserve"><value>два раза в год</value></data>
+  <data name="Contract_PerMonth" xml:space="preserve"><value>в месяц</value></data>
+  <data name="Contract_PerQuarter" xml:space="preserve"><value>в квартал</value></data>
+  <data name="Contract_PerYear" xml:space="preserve"><value>в год</value></data>
+  <data name="Contract_Period" xml:space="preserve"><value>Срок</value></data>
+  <data name="Contract_Provider" xml:space="preserve"><value>Кто выдал</value></data>
+  <data name="Markdown_Empty" xml:space="preserve"><value>Краткое описание ещё не написано.</value></data>
+  <data name="Nav_Contracts" xml:space="preserve"><value>Договоры</value></data>
+
+  <!-- ── Карточка договора и график ── -->
+  <data name="Contract_Balance" xml:space="preserve"><value>Остаток долга</value></data>
+  <data name="Contract_Coverage" xml:space="preserve"><value>Страховая сумма</value></data>
+  <data name="Contract_Deductible" xml:space="preserve"><value>Франшиза</value></data>
+  <data name="Contract_FromDate" xml:space="preserve"><value>с {0}</value></data>
+  <data name="Contract_Installments" xml:space="preserve"><value>{0} из {1}</value></data>
+  <data name="Contract_NextPayment" xml:space="preserve"><value>Следующий платёж</value></data>
+  <data name="Contract_NotFound" xml:space="preserve"><value>Такого договора больше нет.</value></data>
+  <data name="Contract_OpeningNote" xml:space="preserve"><value>{0} платежей на {1} до {2} учтены одной записью, а не построчно.</value></data>
+  <data name="Contract_OverdueCount" xml:space="preserve"><value>Просроченных платежей: {0}</value></data>
+  <data name="Contract_PaidSoFar" xml:space="preserve"><value>Выплачено</value></data>
+  <data name="Contract_Revisions" xml:space="preserve"><value>История плана</value></data>
+  <data name="Contract_Summary" xml:space="preserve"><value>Что покрывает</value></data>
+  <data name="RevisionReason_AddOn" xml:space="preserve"><value>Добавка</value></data>
+  <data name="RevisionReason_Correction" xml:space="preserve"><value>Исправление</value></data>
+  <data name="RevisionReason_EarlyPayment" xml:space="preserve"><value>Досрочное погашение</value></data>
+  <data name="RevisionReason_Initial" xml:space="preserve"><value>Первоначальный план</value></data>
+  <data name="RevisionReason_Pause" xml:space="preserve"><value>Пауза</value></data>
+  <data name="RevisionReason_PriceChange" xml:space="preserve"><value>Изменение цены</value></data>
+  <data name="RevisionReason_RateChange" xml:space="preserve"><value>Изменение ставки</value></data>
+  <data name="RevisionReason_TermChange" xml:space="preserve"><value>Изменение срока</value></data>
+  <data name="Schedule_Confirm" xml:space="preserve"><value>Отметить оплату</value></data>
+  <data name="Schedule_ConfirmFailed" xml:space="preserve"><value>Не удалось записать платёж.</value></data>
+  <data name="Schedule_Confirmed" xml:space="preserve"><value>Платёж записан.</value></data>
+  <data name="Schedule_Empty" xml:space="preserve"><value>Платежей пока нет.</value></data>
+  <data name="Schedule_Failed" xml:space="preserve"><value>Не прошёл</value></data>
+  <data name="Schedule_Overdue" xml:space="preserve"><value>Просрочен</value></data>
+  <data name="Schedule_Paid" xml:space="preserve"><value>Оплачен</value></data>
+  <data name="Schedule_Planned" xml:space="preserve"><value>Запланирован</value></data>
+  <data name="Schedule_Projected" xml:space="preserve"><value>Прогноз</value></data>
+  <data name="Schedule_ShowAll" xml:space="preserve"><value>Показать все ({0})</value></data>
+  <data name="Schedule_Skipped" xml:space="preserve"><value>Пропущен</value></data>
+  <data name="Schedule_Title" xml:space="preserve"><value>График</value></data>
+
+  <!-- ── Диалоги договоров ── -->
+  <data name="Contract_AddTitle" xml:space="preserve"><value>Новый договор</value></data>
+  <data name="Contract_Count" xml:space="preserve"><value>Сколько платежей</value></data>
+  <data name="Contract_CountHelp" xml:space="preserve"><value>Пусто — пока не отменят.</value></data>
+  <data name="Contract_Currency" xml:space="preserve"><value>Валюта</value></data>
+  <data name="Contract_EditTitle" xml:space="preserve"><value>Изменить договор</value></data>
+  <data name="Contract_EndOptional" xml:space="preserve"><value>Дата окончания (пусто — без срока)</value></data>
+  <data name="Contract_FirstDue" xml:space="preserve"><value>Первый платёж</value></data>
+  <data name="Contract_HasPlan" xml:space="preserve"><value>Оплачивается по графику</value></data>
+  <data name="Contract_Installment" xml:space="preserve"><value>Взнос</value></data>
+  <data name="Contract_Interval" xml:space="preserve"><value>Как часто</value></data>
+  <data name="Contract_NoticeDays" xml:space="preserve"><value>Срок уведомления, дней</value></data>
+  <data name="Contract_NoticeHelp" xml:space="preserve"><value>За сколько до конца закрывается возможность отказаться.</value></data>
+  <data name="Contract_Renewal" xml:space="preserve"><value>Продление</value></data>
+  <data name="Contract_SaveFailed" xml:space="preserve"><value>Не удалось сохранить договор.</value></data>
+  <data name="Opening_AmountPaid" xml:space="preserve"><value>Сумма, внесённая до этого</value></data>
+  <data name="Opening_AsOf" xml:space="preserve"><value>Учёт начинается</value></data>
+  <data name="Opening_AsOfHelp" xml:space="preserve"><value>Платежи можно вводить только начиная с этой даты.</value></data>
+  <data name="Opening_BalanceHelp" xml:space="preserve"><value>Сколько, по словам банка, осталось. Пусто — если остаток здесь ничего не значит.</value></data>
+  <data name="Opening_Clear" xml:space="preserve"><value>Убрать</value></data>
+  <data name="Opening_Explain" xml:space="preserve"><value>Для договора, который идёт уже годами: вместо ввода каждого прошлого платежа запишите, как обстояли дела на одну дату. Всё, что было раньше, учитывается здесь и больше нигде.</value></data>
+  <data name="Opening_InstallmentsPaid" xml:space="preserve"><value>Платежей внесено до этого</value></data>
+  <data name="Opening_OverlapError" xml:space="preserve"><value>До этой даты уже записан платёж. Сдвиньте дату раньше или удалите тот платёж — иначе одни и те же деньги посчитаются дважды.</value></data>
+  <data name="Opening_RemainingBalance" xml:space="preserve"><value>Остаток долга</value></data>
+  <data name="Opening_Title" xml:space="preserve"><value>Договор шёл и до этого</value></data>
+  <data name="RenewalMode_Auto" xml:space="preserve"><value>Продлевается сам</value></data>
+  <data name="RenewalMode_Manual" xml:space="preserve"><value>Продлевается вручную</value></data>
+  <data name="RenewalMode_None" xml:space="preserve"><value>Не продлевается</value></data>
+  <data name="Revision_After" xml:space="preserve"><value>Станет</value></data>
+  <data name="Revision_Before" xml:space="preserve"><value>Было</value></data>
+  <data name="Revision_Commit" xml:space="preserve"><value>Применить</value></data>
+  <data name="Revision_EffectiveFrom" xml:space="preserve"><value>Действует с</value></data>
+  <data name="Revision_EffectiveHelp" xml:space="preserve"><value>Первый платёж, к которому применяется эта версия.</value></data>
+  <data name="Revision_LastDue" xml:space="preserve"><value>Последний платёж</value></data>
+  <data name="Revision_OpenEndedNote" xml:space="preserve"><value>У плана нет конца, поэтому итоговой суммы нет.</value></data>
+  <data name="Revision_Preview" xml:space="preserve"><value>Было → станет</value></data>
+  <data name="Revision_Reason" xml:space="preserve"><value>Что изменилось</value></data>
+  <data name="Revision_Remaining" xml:space="preserve"><value>Платежей осталось</value></data>
+  <data name="Revision_RemainingTotal" xml:space="preserve"><value>Осталось выплатить</value></data>
+  <data name="Revision_Title" xml:space="preserve"><value>Изменить план</value></data>
+  <data name="Revision_TooEarly" xml:space="preserve"><value>Уже действует более поздняя версия плана. Изменение не может начинаться раньше неё — запишите его как исправление.</value></data>
+
+  <!-- ── Платежи и полоса внимания ── -->
+  <data name="Contract_SectionEmpty" xml:space="preserve"><value>У этой техники договоров нет.</value></data>
+  <data name="Home_Upcoming" xml:space="preserve"><value>Ближайшие платежи</value></data>
+  <data name="PaymentKind_DownPayment" xml:space="preserve"><value>Первый взнос</value></data>
+  <data name="PaymentKind_Extra" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="PaymentKind_Fee" xml:space="preserve"><value>Комиссия</value></data>
+  <data name="PaymentKind_Refund" xml:space="preserve"><value>Возврат</value></data>
+  <data name="PaymentKind_Residual" xml:space="preserve"><value>Выкупной платёж</value></data>
+  <data name="PaymentKind_Scheduled" xml:space="preserve"><value>Взнос</value></data>
+  <data name="Payment_Amount" xml:space="preserve"><value>Сумма</value></data>
+  <data name="Payment_DueDate" xml:space="preserve"><value>Срок</value></data>
+  <data name="Payment_EditTitle" xml:space="preserve"><value>Исправить платёж</value></data>
+  <data name="Payment_Kind" xml:space="preserve"><value>Тип</value></data>
+  <data name="Payment_Reopen" xml:space="preserve"><value>Вернуть в график</value></data>
+  <data name="Payment_ReopenHelp" xml:space="preserve"><value>Если отметили оплату по ошибке — итоги вернутся к прежним.</value></data>
+</root>

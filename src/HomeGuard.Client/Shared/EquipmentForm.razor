@@ -1,49 +1,52 @@
 @* Reusable form for both create and edit. Bind to EquipmentFormModel. *@
 @namespace HomeGuard.Client.Common
+@inject IStringLocalizer<Strings> L
 
+@* Атрибуты пишутся как Label=@(L["..."]) без внешних кавычек — иначе кавычки
+   локализатора закрывают значение атрибута. *@
 <MudGrid>
     <MudItem xs="12">
-        <MudTextField @bind-Value="Model.Name" Label="Name" Required="true" />
+        <MudTextField @bind-Value="Model.Name" Label=@(L["Form_Name"]) Required="true" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudSelect @bind-Value="Model.Category" Label="Category" Required="true">
-            <MudSelectItem Value="@("Vehicle")">Vehicle</MudSelectItem>
-            <MudSelectItem Value="@("HomeAppliance")">Home appliance</MudSelectItem>
-            <MudSelectItem Value="@("Electronics")">Electronics</MudSelectItem>
-            <MudSelectItem Value="@("Heating")">Heating</MudSelectItem>
-            <MudSelectItem Value="@("Garden")">Garden</MudSelectItem>
-            <MudSelectItem Value="@("Furniture")">Furniture</MudSelectItem>
-            <MudSelectItem Value="@("Other")">Other</MudSelectItem>
+        <MudSelect @bind-Value="Model.Category" Label=@(L["Equipment_Category"]) Required="true">
+            <MudSelectItem Value="@("Vehicle")">@L["Category_Vehicle"]</MudSelectItem>
+            <MudSelectItem Value="@("HomeAppliance")">@L["Category_HomeAppliance"]</MudSelectItem>
+            <MudSelectItem Value="@("Electronics")">@L["Category_Electronics"]</MudSelectItem>
+            <MudSelectItem Value="@("Heating")">@L["Category_Heating"]</MudSelectItem>
+            <MudSelectItem Value="@("Garden")">@L["Category_Garden"]</MudSelectItem>
+            <MudSelectItem Value="@("Furniture")">@L["Category_Furniture"]</MudSelectItem>
+            <MudSelectItem Value="@("Other")">@L["Category_Other"]</MudSelectItem>
         </MudSelect>
     </MudItem>
     <MudItem xs="12" sm="6">
         <MudDatePicker @bind-Date="Model.PurchaseDateNullable"
-                       Label="Purchase date" DateFormat="yyyy-MM-dd" />
+                       Label=@(L["Form_PurchaseDate"]) DateFormat="yyyy-MM-dd" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudTextField @bind-Value="Model.Brand" Label="Brand" />
+        <MudTextField @bind-Value="Model.Brand" Label=@(L["Equipment_Brand"]) />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudTextField @bind-Value="Model.Model" Label="Model" />
+        <MudTextField @bind-Value="Model.Model" Label=@(L["Form_Model"]) />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudTextField @bind-Value="Model.SerialNumber" Label="Serial number" />
+        <MudTextField @bind-Value="Model.SerialNumber" Label=@(L["Form_SerialNumber"]) />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudNumericField @bind-Value="Model.PurchasePrice" Label="Purchase price"
+        <MudNumericField @bind-Value="Model.PurchasePrice" Label=@(L["Form_PurchasePrice"])
                          Format="F2" Adornment="Adornment.Start" AdornmentText="€" />
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudTextField @bind-Value="Model.MeterUnit" Label="Meter unit"
-                      HelperText="e.g. km, mi, m³, kWh, h" />
+        <MudTextField @bind-Value="Model.MeterUnit" Label=@(L["Form_MeterUnit"])
+                      HelperText=@(L["Form_MeterUnitHelp"]) />
     </MudItem>
     <MudItem xs="12">
-        <MudTextField @bind-Value="Model.Tags" Label="Tags (comma-separated)"
-                      HelperText="e.g. kitchen, appliance, samsung" />
+        <MudTextField @bind-Value="Model.Tags" Label=@(L["Form_Tags"])
+                      HelperText=@(L["Form_TagsHelp"]) />
     </MudItem>
     <MudItem xs="12">
-        <MudTextField @bind-Value="Model.Notes" Label="Notes" Lines="4"
-                      HelperText="Markdown supported" />
+        <MudTextField @bind-Value="Model.Notes" Label=@(L["Form_Notes"]) Lines="4"
+                      HelperText=@(L["Form_NotesHelp"]) />
     </MudItem>
 </MudGrid>
 

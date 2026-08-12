@@ -1,19 +1,27 @@
 @page "/equipment"
+@using System.Globalization
 @inject EquipmentApiClient Api
 @inject NavigationManager Nav
+@inject DensityPreference Density
+@inject IStringLocalizer<Strings> L
 
-<PageTitle>Equipment</PageTitle>
+<PageTitle>@L["Nav_Equipment"]</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-    <MudText Typo="Typo.h5">Equipment</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.Add"
-               OnClick="OpenAddDialog">
-        Add
-    </MudButton>
+    <MudText Typo="Typo.h5">@L["Nav_Equipment"]</MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <DensitySwitch Surface="@DensitySurface.Equipment"
+                       Mode="_density"
+                       ModeChanged="OnDensityChanged" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddDialog">
+            @L["Common_Add"]
+        </MudButton>
+    </MudStack>
 </MudStack>
 
-<MudTextField @bind-Value="_search" Label="Search" Adornment="Adornment.Start"
+<MudTextField @bind-Value="_search" Label="@SearchLabel" Adornment="Adornment.Start"
               AdornmentIcon="@Icons.Material.Filled.Search"
               Immediate="true" Class="mb-4" />
 
@@ -21,7 +29,13 @@
 {
     <MudProgressLinear Indeterminate="true" />
 }
-else
+else if (!Filtered.Any())
+{
+    <MudText Color="Color.Secondary" Class="mt-4">
+        @(string.IsNullOrWhiteSpace(_search) ? L["Equipment_Empty"] : L["Equipment_NoMatch", _search])
+    </MudText>
+}
+else if (_density == DensityMode.Cards)
 {
     <MudGrid>
         @foreach (var item in Filtered)
@@ -35,14 +49,14 @@ else
                             <div>
                                 <MudText Typo="Typo.h6">@item.Name</MudText>
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    @item.Category
+                                    @CategoryLabel(item.Category)
                                     @if (item.Brand is not null)
                                     {
                                         <span> · @item.Brand</span>
                                     }
                                 </MudText>
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    Purchased @item.PurchaseDate.ToString("yyyy-MM-dd", null)
+                                    @L["Equipment_Purchased"] @ShortDate(item.PurchaseDate)
                                 </MudText>
                             </div>
                             <MudIcon Icon="@CategoryIcon(item.Category)"
@@ -65,26 +79,60 @@ else
             </MudItem>
         }
     </MudGrid>
-
-    @if (!Filtered.Any())
-    {
-        <MudText Color="Color.Secondary" Class="mt-4">
-            No equipment found. Add some!
-        </MudText>
-    }
+}
+else
+{
+    <MudTable T="EquipmentSummary" Items="Filtered" Elevation="1"
+              Dense="true" Hover="true" Striped="false"
+              OnRowClick="OnRowClick">
+        <HeaderContent>
+            <MudTh>@L["Equipment_Name"]</MudTh>
+            <MudTh>@L["Equipment_Category"]</MudTh>
+            <MudTh>@L["Equipment_Purchased"]</MudTh>
+            <MudTh>@L["Equipment_Tags"]</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="item">
+            <MudTd DataLabel="@NameLabel" Style="cursor:pointer">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@CategoryIcon(item.Category)" Size="Size.Small"
+                             Color="Color.Primary" />
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.body2" Style="font-weight:600">@item.Name</MudText>
+                        @if (item.Brand is not null)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@item.Brand</MudText>
+                        }
+                    </MudStack>
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@CategoryColumnLabel">@CategoryLabel(item.Category)</MudTd>
+            <MudTd DataLabel="@PurchasedLabel" Class="hg-tabular">@ShortDate(item.PurchaseDate)</MudTd>
+            <MudTd DataLabel="@TagsLabel">
+                @if (item.Tags.Count > 0)
+                {
+                    <MudStack Row="true" Spacing="1" Style="flex-wrap:wrap">
+                        @foreach (var tag in item.Tags.Take(4))
+                        {
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@tag</MudChip>
+                        }
+                    </MudStack>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
 }
 
 <!-- Add dialog -->
 <MudDialog @bind-Visible="_showAdd">
-    <TitleContent>Add equipment</TitleContent>
+    <TitleContent>@L["Equipment_AddTitle"]</TitleContent>
     <DialogContent>
         <EquipmentForm Model="_form" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _showAdd = false">Cancel</MudButton>
+        <MudButton OnClick="() => _showAdd = false">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
                    OnClick="SaveAsync" Disabled="_saving">
-            Save
+            @L["Common_Save"]
         </MudButton>
     </DialogActions>
 </MudDialog>
@@ -95,6 +143,15 @@ else
     private bool _showAdd;
     private bool _saving;
     private EquipmentFormModel _form = new();
+    private DensityMode _density = DensityMode.Cards;
+
+    // Attribute values cannot nest the localizer's own quotes, so the labels the table
+    // needs in attributes are read once here.
+    private string SearchLabel         => L["Common_Search"];
+    private string NameLabel           => L["Equipment_Name"];
+    private string CategoryColumnLabel => L["Equipment_Category"];
+    private string PurchasedLabel      => L["Equipment_Purchased"];
+    private string TagsLabel           => L["Equipment_Tags"];
 
     private IEnumerable<EquipmentSummary> Filtered
         => _items?.Where(i =>
@@ -105,7 +162,17 @@ else
            ?? [];
 
     protected override async Task OnInitializedAsync()
-        => _items = await Api.GetAllAsync() ?? [];
+    {
+        _density = await Density.GetAsync(DensitySurface.Equipment);
+        _items   = await Api.GetAllAsync() ?? [];
+    }
+
+    private void OnDensityChanged(DensityMode mode) => _density = mode;
+
+    private void OnRowClick(TableRowClickEventArgs<EquipmentSummary> args)
+    {
+        if (args.Item is not null) OpenDetail(args.Item.Id);
+    }
 
     private void OpenAddDialog()
     {
@@ -130,6 +197,12 @@ else
         _saving = false;
         _showAdd = false;
     }
+
+    /// <summary>Category is stored as the enum name; the label it shows comes from resources.</summary>
+    private string CategoryLabel(string category) => L["Category_" + category];
+
+    private static string ShortDate(DateOnly date)
+        => date.ToString("d", CultureInfo.CurrentCulture);
 
     private static string CategoryIcon(string category) => category switch
     {

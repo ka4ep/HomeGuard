@@ -3,21 +3,22 @@
    history (standalone + service-record readings). *@
 @namespace HomeGuard.Client.Common
 @inject MeterReadingApiClient Api
+@inject IStringLocalizer<Strings> L
 
 @if (!string.IsNullOrWhiteSpace(Equipment.MeterUnit))
 {
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2 mt-4">
         <MudIcon Icon="@Icons.Material.Filled.Speed" />
-        <MudText Typo="Typo.h6">Meter readings</MudText>
+        <MudText Typo="Typo.h6">@L["Meter_Section"]</MudText>
         <MudSpacer />
         <MudButton Variant="Variant.Text" Size="Size.Small"
                    StartIcon="@Icons.Material.Filled.Add"
-                   OnClick="() => _showAdd = true">Add</MudButton>
+                   OnClick="() => _showAdd = true">@L["Common_Add"]</MudButton>
     </MudStack>
 
     @if (_readings.Count == 0)
     {
-        <MudText Color="Color.Secondary" Class="mb-4">No readings yet.</MudText>
+        <MudText Color="Color.Secondary" Class="mb-4">@L["Meter_Empty"]</MudText>
     }
     else
     {
@@ -26,16 +27,16 @@
             <MudPaper @key="@r.Id" Elevation="1" Class="mb-1 px-4 py-2"
                       Style="border-radius:var(--hg-radius-md)">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
-                    <MudText Typo="Typo.body1" Style="font-weight:600">
+                    <MudText Typo="Typo.body1" Style="font-weight:600" Class="hg-tabular">
                         @r.Value.ToString("0.###") @Equipment.MeterUnit
                     </MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @r.ReadingDate.ToString("d MMM yyyy", null)
+                        @r.ReadingDate.ToString("d", System.Globalization.CultureInfo.CurrentCulture)
                     </MudText>
                     <MudSpacer />
                     @if (r.Source == "Service")
                     {
-                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@(r.Note ?? "Service")</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@(r.Note ?? L["Meter_FromService"])</MudChip>
                     }
                     else
                     {
@@ -53,7 +54,7 @@
         {
             <MudButton Variant="Variant.Text" Size="Size.Small" Class="mb-4"
                        OnClick="() => _showAll = true">
-                Show all (@_readings.Count)
+                @L["Meter_ShowAll", _readings.Count]
             </MudButton>
         }
     }

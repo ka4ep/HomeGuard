@@ -3,8 +3,9 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
+@inject IStringLocalizer<Strings> L
 
-<PageTitle>HomeGuard — Sign in</PageTitle>
+<PageTitle>HomeGuard — @L["Nav_SignIn"]</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8">
     <MudCard Elevation="3">
@@ -15,15 +16,14 @@
                          Color="Color.Primary" Style="font-size:3rem" />
                 <MudText Typo="Typo.h5">HomeGuard</MudText>
                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                    Sign in with your passkey
+                    @L["Login_Subtitle"]
                 </MudText>
             </MudStack>
 
             @if (!_supported)
             {
                 <MudAlert Severity="Severity.Error">
-                    This browser does not support Passkeys. Use a modern browser on a device
-                    with biometric authentication.
+                    @L["Login_NoPasskeySupport"]
                 </MudAlert>
             }
             else
@@ -36,19 +36,19 @@
                                    FullWidth="true" Size="Size.Large"
                                    StartIcon="@Icons.Material.Filled.Fingerprint"
                                    OnClick="LoginAsync" Disabled="_busy">
-                            @(_busy ? "Authenticating…" : "Sign in with passkey")
+                            @(_busy ? L["Login_Authenticating"] : L["Login_SignInWithPasskey"])
                         </MudButton>
 
                         <MudDivider />
 
                         <MudText Typo="Typo.body2" Align="Align.Center"
                                  Color="Color.Secondary">
-                            First time? Register a new passkey.
+                            @L["Login_FirstTime"]
                         </MudText>
 
                         <MudButton Variant="Variant.Outlined" FullWidth="true"
                                    OnClick="() => _mode = Mode.Register">
-                            Register
+                            @L["Login_Register"]
                         </MudButton>
                     </MudStack>
                 }
@@ -57,14 +57,14 @@
                     <!-- Register -->
                     <MudStack Spacing="3">
                         <MudTextField @bind-Value="_displayName"
-                                      Label="Your name (e.g. Mom, Alex)"
-                                      Placeholder="How should we call you?"
+                                      Label=@(L["Login_YourName"])
+                                      Placeholder=@(L["Login_YourNamePlaceholder"])
                                       Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Person" />
 
                         <MudTextField @bind-Value="_deviceName"
-                                      Label="This device (e.g. iPhone 16, Work laptop)"
-                                      Placeholder="So you recognise it later"
+                                      Label=@(L["Login_ThisDevice"])
+                                      Placeholder=@(L["Login_ThisDevicePlaceholder"])
                                       Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Devices" />
 
@@ -73,12 +73,12 @@
                                    StartIcon="@Icons.Material.Filled.AddCircle"
                                    OnClick="RegisterAsync"
                                    Disabled="_busy || string.IsNullOrWhiteSpace(_displayName)">
-                            @(_busy ? "Registering…" : "Register passkey")
+                            @(_busy ? L["Settings_Registering"] : L["Settings_RegisterPasskey"])
                         </MudButton>
 
                         <MudButton Variant="Variant.Text" FullWidth="true"
                                    OnClick="() => _mode = Mode.Login">
-                            Back to sign in
+                            @L["Login_BackToSignIn"]
                         </MudButton>
                     </MudStack>
                 }
@@ -130,7 +130,7 @@
             var optionsJson = await AuthApi.GetLoginOptionsJsonAsync();
             if (optionsJson is null)
             {
-                _error = "Could not reach the server.";
+                _error = L["Login_ServerUnreachable"];
                 return;
             }
 
@@ -151,7 +151,7 @@
 
             if (!result.Success)
             {
-                _error = result.Error ?? "Authentication failed.";
+                _error = result.Error ?? L["Login_AuthFailed"];
                 return;
             }
 
@@ -178,7 +178,7 @@
         _error = null;
 
         var deviceName = string.IsNullOrWhiteSpace(_deviceName)
-            ? "My device"
+            ? L["Login_DefaultDeviceName"]
             : _deviceName.Trim();
 
         try
@@ -189,7 +189,7 @@
 
             if (optionsJson is null)
             {
-                _error = "Could not reach the server.";
+                _error = L["Login_ServerUnreachable"];
                 return;
             }
 
@@ -210,7 +210,7 @@
 
             if (!result.Success)
             {
-                _error = result.Error ?? "Registration failed.";
+                _error = result.Error ?? L["Settings_RegisterFailed"];
                 return;
             }
 

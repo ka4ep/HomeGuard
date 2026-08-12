@@ -81,6 +81,22 @@ public sealed class AuthApiClient
     public async Task LogoutAsync(CancellationToken ct = default)
         => await _http.PostAsync("api/auth/logout", null, ct);
 
+    /// <summary>
+    /// Persists the interface language on the account. The browser keeps its own copy
+    /// for the next cold start; this one is what push notifications and the calendar
+    /// feed read, since they are rendered without a request to take a header from.
+    /// </summary>
+    public async Task<bool> SetLanguageAsync(string language, CancellationToken ct = default)
+    {
+        try
+        {
+            var resp = await _http.PutAsJsonAsync(
+                "api/auth/me/language", new { Language = language }, ct);
+            return resp.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
+
     // ── Credential (device) management ───────────────────────────────────────
 
     public async Task<List<CredentialDto>> GetCredentialsAsync(CancellationToken ct = default)
@@ -149,4 +165,4 @@ public sealed record CredentialDto(
 
 file sealed record AuthResultDto(string? DisplayName);
 file sealed record SetupRequiredDto(bool Required);
-public sealed record MeDto(string Id, string DisplayName);
+public sealed record MeDto(string Id, string DisplayName, string Language);

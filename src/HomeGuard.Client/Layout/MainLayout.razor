@@ -1,4 +1,7 @@
 @inherits LayoutComponentBase
+@inject SessionService Session
+@inject LanguagePreference Language
+@inject IStringLocalizer<Strings> L
 
 <MudLayout>
     <MudAppBar Elevation="0">
@@ -16,7 +19,7 @@
         <MudDrawerHeader>
             <MudText Typo="Typo.subtitle2"
                      Style="color:var(--hg-text-on-bg-muted);text-transform:uppercase;letter-spacing:.08em;font-size:.7rem">
-                Navigation
+                @L["Nav_Heading"]
             </MudText>
         </MudDrawerHeader>
         <NavMenu />
@@ -32,4 +35,17 @@
 @code {
     private bool _drawerOpen = true;
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    /// <summary>
+    /// The app has already started in whatever language this device remembers. Once the
+    /// session is known, a device that has never chosen adopts the account's language —
+    /// which is what makes signing in on a new phone come up in the right language.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        var me = await Session.GetAsync();
+        await Language.ReconcileWithAccountAsync(me?.Language);
+    }
 }

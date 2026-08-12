@@ -2,6 +2,7 @@ using Fido2NetLib;
 using Fido2NetLib.Objects;
 using HomeGuard.Application.Interfaces.Repositories;
 using HomeGuard.Application.Interfaces;
+using HomeGuard.Common.Localization;
 using HomeGuard.Domain.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -35,6 +36,7 @@ public static class AuthEndpoints
         });
 
         // ── Requires authentication ───────────────────────────────────────────
+        grp.MapPut   ("/me/language",                     SetLanguage)       .RequireAuthorization();
         grp.MapGet   ("/credentials",                     ListCredentials)   .RequireAuthorization();
         grp.MapDelete("/credentials/{id:guid}",           RevokeCredential)  .RequireAuthorization();
         grp.MapPost  ("/credentials/add-device/options",  AddDeviceOptions)  .RequireAuthorization();
@@ -125,7 +127,12 @@ public static class AuthEndpoints
                 await userRepo.FindByCredentialIdAsync(args.CredentialId, ct) is null,
         }, ct);
 
-        var user = AppUser.Create(pending.DisplayName);
+        // No preference exists yet, so the browser is the only evidence of what
+        // language this person reads. They can change it in Settings afterwards.
+        var user = AppUser.Create(
+            pending.DisplayName,
+            AppLanguage.FromAcceptLanguage(ctx.Request.Headers.AcceptLanguage));
+
         var credential = PasskeyCredential.Create(
             user.Id,
             result.Id,
@@ -198,14 +205,43 @@ public static class AuthEndpoints
 
     // ── Session info ──────────────────────────────────────────────────────────
 
-    private static IResult Me(HttpContext ctx)
+    private static async Task<IResult> Me(
+        IAppUserRepository userRepo,
+        HttpContext ctx,
+        CancellationToken ct)
     {
         if (ctx.User.Identity?.IsAuthenticated != true)
             return Results.Unauthorized();
 
-        var id   = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var name = ctx.User.FindFirstValue(ClaimTypes.Name);
-        return Results.Ok(new { Id = id, DisplayName = name });
+        // The language lives on the row, not in the cookie, so that changing it takes
+        // effect without re-issuing the sign-in ticket.
+        var user = await LoadCurrentUserAsync(userRepo, ctx, ct);
+        if (user is null) return Results.Unauthorized();
+
+        return Results.Ok(new MeDto(user.Id, user.DisplayName, user.Language));
+    }
+
+    // ── Language preference ───────────────────────────────────────────────────
+
+    private static async Task<IResult> SetLanguage(
+        [FromBody] SetLanguageRequest req,
+        IAppUserRepository userRepo,
+        IUnitOfWork uow,
+        HttpContext ctx,
+        CancellationToken ct)
+    {
+        if (!AppLanguage.IsSupported(req.Language))
+            return Results.BadRequest(
+                $"'{req.Language}' is not one of the supported languages " +
+                $"({string.Join(", ", AppLanguage.Supported)}).");
+
+        var user = await LoadCurrentUserAsync(userRepo, ctx, ct);
+        if (user is null) return Results.Unauthorized();
+
+        user.SetLanguage(AppLanguage.Normalize(req.Language));
+        await uow.SaveChangesAsync(ct);
+
+        return Results.Ok(new MeDto(user.Id, user.DisplayName, user.Language));
     }
 
     // ── Credential list ───────────────────────────────────────────────────────
@@ -369,6 +405,8 @@ public static class AuthEndpoints
 
 public sealed record RegisterOptionsRequest(string DisplayName, string DeviceName);
 public sealed record AddDeviceRequest(string DeviceName);
+public sealed record SetLanguageRequest(string Language);
+public sealed record MeDto(Guid Id, string DisplayName, string Language);
 public sealed record CredentialDto(
     Guid Id,
     string DeviceName,
