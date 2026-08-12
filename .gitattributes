@@ -1,0 +1,26 @@
+# Line endings are decided here, once, for everyone.
+#
+# Without this file the answer depends on whoever runs the command: Git for Windows
+# defaults to core.autocrlf=true and writes CRLF into the working tree, while git under
+# WSL writes what is stored. Every branch switch or merge from the Windows side then
+# rewrote the whole tree and left a couple of hundred files "modified" with no change in
+# them. text=auto eol=lf makes the stored form LF regardless of who checks out.
+
+* text=auto eol=lf
+
+# Windows script hosts want CRLF and will misbehave without it.
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# Binary: never touched, never diffed as text.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.woff  binary
+*.woff2 binary
+*.dat  binary
+*.db   binary
