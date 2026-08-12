@@ -7,9 +7,20 @@ namespace HomeGuard.Infrastructure;
 
 /// <summary>
 /// Used by `dotnet ef` at design time to create a DbContext instance.
-/// Run from the solution root:
-///   dotnet ef migrations add InitialCreate --project src/HomeGuard.Infrastructure --startup-project src/HomeGuard.Api
-///   dotnet ef database update             --project src/HomeGuard.Infrastructure --startup-project src/HomeGuard.Api
+/// <para>
+/// Run from the solution root. Name the .csproj files, not the directories — the
+/// directory form is not resolved reliably and fails with "Unable to retrieve project
+/// metadata":
+/// </para>
+/// <code>
+/// dotnet ef migrations add Name \
+///   --project src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj \
+///   --startup-project src/HomeGuard.Api/HomeGuard.Api.csproj
+///
+/// dotnet ef database update \
+///   --project src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj \
+///   --startup-project src/HomeGuard.Api/HomeGuard.Api.csproj
+/// </code>
 /// </summary>
 public sealed class HomeGuardDbContextFactory : IDesignTimeDbContextFactory<HomeGuardDbContext>
 {
