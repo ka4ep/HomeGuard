@@ -43,7 +43,8 @@ async function onPush(event) {
     await self.registration.showNotification(payload.title ?? 'HomeGuard', {
         body: payload.body ?? '',
         icon: 'icon-192.png',
-        badge: 'icon-192.png',
+        // badge — монохромный силуэт: Android рисует только альфа-канал, ~24dp
+        badge: 'badge-72.png',
         tag: payload.tag ?? 'homeguard',
         data: { url: payload.url ?? '/' },
     });
