@@ -15,6 +15,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<RecurringRuleService>();
         services.AddScoped<RecurringRuleMaterializationService>();
         services.AddScoped<MeterReadingService>();
+        services.AddScoped<ContractService>();
         return services;
     }
 }

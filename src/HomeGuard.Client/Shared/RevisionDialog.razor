@@ -1,0 +1,267 @@
+@namespace HomeGuard.Client.Common
+@using System.Globalization
+@inject ContractApiClient Api
+@inject IStringLocalizer<Strings> L
+
+@*
+    Corrections append a revision, never edit the plan in place — so this dialog's real
+    job is to show what the change does before it is committed. The diff is computed from
+    the plan itself: instalment, interval, how many are left, when the last one falls.
+
+    What it deliberately does NOT show is interest. Recomputing an amortisation schedule
+    needs a rate, and inventing one would be worse than staying quiet — so a loan's
+    principal split stays untouched until the rate math lands.
+*@
+<MudDialog @bind-Visible="_visible" Options="_options">
+    <TitleContent>@L["Revision_Title"]</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_form.Reason" Label=@(L["Revision_Reason"])>
+                    @foreach (var reason in Reasons)
+                    {
+                        var label = L["RevisionReason_" + reason];
+                        <MudSelectItem Value="@reason">@label</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.EffectiveFromNullable"
+                               Label=@(L["Revision_EffectiveFrom"]) DateFormat="yyyy-MM-dd"
+                               HelperText=@(L["Revision_EffectiveHelp"]) />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudNumericField @bind-Value="_form.InstallmentAmount" Format="F2"
+                                 Label=@(L["Contract_Installment"]) />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudSelect @bind-Value="_form.IntervalMonths" Label=@(L["Contract_Interval"])>
+                    @foreach (var months in Intervals)
+                    {
+                        var label = IntervalLabel(months);
+                        <MudSelectItem Value="@months">@label</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField @bind-Value="_form.InstallmentCount" Min="1"
+                                 Label=@(L["Contract_Count"])
+                                 HelperText=@(L["Contract_CountHelp"]) />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Note" Label=@(L["Form_Notes"]) />
+            </MudItem>
+        </MudGrid>
+
+        @* ── было → станет ────────────────────────────────────────────────── *@
+        <MudPaper Elevation="0" Class="mt-4 pa-3"
+                  Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-md)">
+            <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Revision_Preview"]</MudText>
+
+            <MudSimpleTable Dense="true" Elevation="0" Style="background:transparent">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th style="text-align:right">@L["Revision_Before"]</th>
+                        <th style="text-align:right">@L["Revision_After"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in PreviewRows)
+                    {
+                        <tr>
+                            <td>@row.Label</td>
+                            <td class="hg-tabular" style="text-align:right; color:var(--hg-text-muted)">
+                                @row.Before
+                            </td>
+                            <td class="hg-tabular" style="text-align:right; font-weight:600;
+                                       @(row.Changed ? "color:var(--hg-money)" : "")">
+                                @row.After
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+
+            @if (Current?.InstallmentCount is null && _form.InstallmentCount is null)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+                    @L["Revision_OpenEndedNote"]
+                </MudText>
+            }
+        </MudPaper>
+
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-3">@_error</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync"
+                   Disabled="@(_saving || _form.InstallmentAmount is null)">
+            @L["Revision_Commit"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public Guid ContractId { get; set; }
+    [Parameter, EditorRequired] public string Currency { get; set; } = "EUR";
+
+    /// <summary>The revision in force — the left column of the diff.</summary>
+    [Parameter] public PlanRevisionDto? Current { get; set; }
+
+    /// <summary>How many instalments are already behind us, opening position included.</summary>
+    [Parameter] public int InstallmentsPaid { get; set; }
+
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private static readonly RevisionReason[] Reasons =
+        [RevisionReason.PriceChange, RevisionReason.TermChange, RevisionReason.EarlyPayment,
+         RevisionReason.AddOn, RevisionReason.Pause, RevisionReason.Correction];
+
+    private static readonly int[] Intervals = [1, 3, 6, 12];
+
+    private readonly DialogOptions _options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+    private bool _visible;
+    private bool _saving;
+    private string? _error;
+    private RevisionFormModel _form = new();
+
+    public void Open()
+    {
+        _error = null;
+        _form = new RevisionFormModel
+        {
+            InstallmentAmount = Current?.EffectiveInstallment,
+            IntervalMonths    = Current?.IntervalMonths ?? 1,
+            InstallmentCount  = Current?.InstallmentCount,
+        };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_form.InstallmentAmount is not { } amount) return;
+
+        _saving = true;
+        _error  = null;
+        try
+        {
+            var result = await Api.AddRevisionAsync(ContractId, new AddRevisionDto(
+                EffectiveFrom:     _form.EffectiveFrom,
+                Reason:            _form.Reason,
+                FirstDueDate:      _form.EffectiveFrom,
+                IntervalMonths:    _form.IntervalMonths,
+                InstallmentAmount: amount,
+                InstallmentCount:  _form.InstallmentCount,
+                Note:              _form.Note));
+
+            if (result is null)
+            {
+                // Сервер отказывает, если ревизия начинается раньше действующей.
+                _error = L["Revision_TooEarly"];
+                return;
+            }
+
+            _visible = false;
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    // ── Preview ──────────────────────────────────────────────────────────────
+
+    private sealed record PreviewRow(string Label, string Before, string After, bool Changed);
+
+    private IEnumerable<PreviewRow> PreviewRows
+    {
+        get
+        {
+            var beforeAmount = Current?.EffectiveInstallment;
+            var afterAmount  = _form.InstallmentAmount;
+
+            yield return new PreviewRow(
+                L["Contract_Installment"],
+                beforeAmount is { } b ? Money(b) : "—",
+                afterAmount  is { } a ? Money(a) : "—",
+                beforeAmount != afterAmount);
+
+            yield return new PreviewRow(
+                L["Contract_Interval"],
+                Current is null ? "—" : IntervalLabel(Current.IntervalMonths),
+                IntervalLabel(_form.IntervalMonths),
+                Current?.IntervalMonths != _form.IntervalMonths);
+
+            var beforeLeft = RemainingCount(Current?.InstallmentCount);
+            var afterLeft  = RemainingCount(_form.InstallmentCount);
+
+            yield return new PreviewRow(
+                L["Revision_Remaining"],
+                beforeLeft?.ToString(CultureInfo.CurrentCulture) ?? "∞",
+                afterLeft?.ToString(CultureInfo.CurrentCulture) ?? "∞",
+                beforeLeft != afterLeft);
+
+            yield return new PreviewRow(
+                L["Revision_LastDue"],
+                LastDue(Current?.InstallmentCount, Current?.IntervalMonths ?? 1),
+                LastDue(_form.InstallmentCount, _form.IntervalMonths),
+                true);
+
+            // Итог считается только когда известно и число платежей, и сумма — иначе
+            // это было бы придуманное число.
+            var beforeTotal = beforeLeft is { } bl && beforeAmount is { } ba ? bl * ba : (decimal?)null;
+            var afterTotal  = afterLeft  is { } al && afterAmount  is { } aa ? al * aa : (decimal?)null;
+
+            yield return new PreviewRow(
+                L["Revision_RemainingTotal"],
+                beforeTotal is { } bt ? Money(bt) : "—",
+                afterTotal  is { } at ? Money(at) : "—",
+                beforeTotal != afterTotal);
+        }
+    }
+
+    private int? RemainingCount(int? total)
+        => total is { } t ? Math.Max(t - InstallmentsPaid, 0) : null;
+
+    private string LastDue(int? count, int intervalMonths)
+    {
+        if (count is not { } total) return "—";
+
+        var remaining = Math.Max(total - InstallmentsPaid, 0);
+        if (remaining == 0) return "—";
+
+        var last = _form.EffectiveFrom.AddMonths((remaining - 1) * intervalMonths);
+        return last.ToString("d", CultureInfo.CurrentCulture);
+    }
+
+    private string IntervalLabel(int months) => months switch
+    {
+        1  => L["Contract_PerMonth"],
+        3  => L["Contract_PerQuarter"],
+        6  => L["Contract_PerHalfYear"],
+        12 => L["Contract_PerYear"],
+        _  => L["Contract_EveryNMonths", months],
+    };
+
+    private string Money(decimal amount)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
+
+    private static string CurrencySymbol(string currency) => currency switch
+    {
+        "EUR" => "€",
+        "USD" => "$",
+        "CZK" => "Kč",
+        "GBP" => "£",
+        _     => currency,
+    };
+}

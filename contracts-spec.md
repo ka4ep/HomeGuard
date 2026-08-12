@@ -3,7 +3,10 @@
 Covers insurance policies, subscriptions, loans and leases, and how they surface
 on the home screen. Companion to `timeline-spec.md`.
 
-Status: **design agreed 2026-08-10** (§13), nothing implemented yet.
+Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12:
+domain, schema, API, and the screens. Phase 3 (interest and amortisation) is next —
+until it lands, nothing in the app shows a principal/interest split or recomputes a
+payoff, because that needs a rate and inventing one would be worse than silence.
 
 ---
 
@@ -543,25 +546,44 @@ low-frequency signal.
 **Offline** — the SW stores the last attention payload via the existing
 `homeGuardDb.cacheSet`, so a cold start shows the last known number rather than nothing.
 
-### 10.4 Hard prerequisite: the PWA icons are missing
+### 10.4 Hard prerequisite: the PWA icons — **done 2026-08-10**
 
-`manifest.json` declares `icon-192.png` and `icon-512.png` (including the maskable
-entry), and `service-worker.published.js` passes `icon-192.png` to both `icon:` and
-`badge:`. **Neither file exists in `wwwroot`** — there is only `icon.svg` and
-`favicon.svg`. Consequences today: Android WebAPK installation is unreliable,
-notifications render with a blank or default glyph, and `badge:` is wrong by type
-(on Android it is the small monochrome status-bar icon, not a count).
+The problem was that `manifest.json` declared `icon-192.png` and `icon-512.png` and
+`service-worker.published.js` passed `icon-192.png` to both `icon:` and `badge:`, while
+**neither file existed** — there was only `icon.svg` and `favicon.svg`. So Android
+WebAPK installation was unreliable, notifications rendered with a default glyph, and
+`badge:` was wrong by type (on Android it is the small monochrome status-bar icon).
 
-Fix first, because without it none of §10 works:
+What now sits in `src/HomeGuard.Client/wwwroot/`:
 
-- generate `icon-192.png`, `icon-512.png`, and a maskable 512 with safe-zone padding
-  (`infra/download-fonts.ps1` already establishes the pattern for build-time assets);
-- add a transparent monochrome `badge-72.png` and point `badge:` at it;
-- verify in DevTools → Application → Manifest that the app is installable;
-- add manifest `shortcuts` while the file is open — long-press quick actions
-  "Что срочно", "Внести платёж", "Показания счётчика". Zero cost, immediately useful.
+| File | Source | Purpose |
+|---|---|---|
+| `icon.svg` | — | `purpose: any`, rounded plate on transparent |
+| `icon-192.png`, `icon-512.png` | `icon.svg` | `purpose: any` raster fallbacks |
+| `icon-maskable.svg` | — | full-bleed, opaque, mark inside the 80% safe circle |
+| `icon-maskable-512.png` | `icon-maskable.svg` | `purpose: maskable` — Android crops up to 20% per edge |
+| `apple-touch-icon-180.png` | `icon-maskable.svg` | iOS composites on an opaque ground, so no transparency |
+| `badge.svg` → `badge-72.png` | — | alpha-only silhouette, house knocked out with `fill-rule="evenodd"` |
 
-Roughly half a day.
+Notes for whoever regenerates them: every PNG comes from an SVG next to it, so the SVG
+is the source of truth — re-render with any rasterizer (`rsvg-convert -w N -h N`,
+`magick -background none`, `npx sharp-cli`). The `feDropShadow` filter was removed from
+`icon.svg`: several rasterizers drop the filtered shape entirely, and the platform
+applies its own shadow anyway.
+
+Also corrected while the files were open: `theme_color` was `#7F77DD` (the retired
+warranty purple) and is now `#7a7672`, the actual `.mud-appbar` background, with
+`background_color` `#BAB2AC` so the splash matches the page it becomes. `manifest.json`
+gained `id`, `scope`, `lang` and three `shortcuts` (Сроки / Обслуживание / Техника —
+routes that exist today; add a payments shortcut when the screen lands).
+
+One limitation to know about: **manifest strings are fixed at install time.** The
+name, description and shortcut labels cannot follow the in-app language switcher
+(§13.8), so they stay Russian. If that ever matters, serve `manifest.json` from the API
+and vary it by `Accept-Language` — it does not have to be a static file.
+
+Still to verify on a real device: DevTools → Application → Manifest showing the app as
+installable, and one push notification checked for the badge glyph.
 
 ### 10.5 Calendar as the second channel
 
@@ -614,9 +636,10 @@ changing shape weekly — the passes cost real tokens and get overwritten.
 
 | Phase | Content | Rough size |
 |---|---|---|
-| **0** | ✅ decisions (§13) · ✅ **`/impeccable document`** → `DESIGN.md` + `.impeccable/design.json` · PWA icon fix (§10.4) · migration scaffold | small |
-| **1** | **`/impeccable shape`** for the contracts screens, before any Razor is written | small |
-| **2** | `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; insurance & subscription kinds (no interest math); CRUD endpoints; `MarkdownCard`; list + detail pages built to the shape from phase 1 | large |
+| **0** | ✅ decisions (§13) · ✅ **`/impeccable document`** → `DESIGN.md` + `.impeccable/design.json` · ✅ PWA icons (§10.4) · migration scaffold | small |
+| **1** | ✅ **`/impeccable shape`** → `.impeccable/surfaces/contracts.md`, before any Razor is written | small |
+| **1.5** | Groundwork both later phases depend on, and neither can bolt on afterwards: i18n plumbing (resx + `IStringLocalizer`, culture bootstrap, per-user language, existing screens migrated off literals) and the shared Cards / List density switch (§13.8, §13.9) | medium |
+| **2** | ✅ `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; migration; CRUD endpoints; `MarkdownCard`; list + detail pages, four dialogs, equipment section and the Home strip | large |
 | **3** | Loans & leases: amortization, early-payoff preview + commit, residual, price-history UI | medium |
 | **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration, Home rollups (`/api/finance/*`) | medium |
 | **5** | Attention pipeline (§10): `/api/attention`, service-worker badge + tag-replaced summary notification, offline cache, manifest shortcuts | small–medium |
@@ -660,6 +683,37 @@ that were already running.
    card lift state is pointer-only. The contracts list and detail pages are built to
    that switch from the start, not retrofitted — on desktop, Cards mode is the
    rail-plus-detail workspace, List mode the wide table with totals.
+
+8. **Bilingual from day one — RU and EN — everywhere except what the user typed.**
+   Not a later "i18n pass": every string added from now on goes through resources, and
+   a screen that ships with a hard-coded literal is unfinished. The dividing line is
+   authorship — the app's own words are translated, the household's words are not.
+
+   | Translated | Never translated |
+   |---|---|
+   | labels, buttons, headings, empty states, validation and error text | contract `Name`, `Provider`, `ContractNumber` |
+   | enum display names (`ContractKind`, `PaymentStatus`, `RevisionReason`) | `SummaryMarkdown`, `Notes`, attachment file names |
+   | notification titles and bodies | tag names, equipment names, meter units as entered |
+   | iCal `SUMMARY` / `DESCRIPTION` prefixes | currency codes (ISO, language-neutral) |
+
+   Three consequences that have to be designed in, not retrofitted:
+
+   - **The server needs to know the language too.** Push notifications and the iCal
+     feed are generated with no browser and no `Accept-Language` — so the chosen
+     language is stored per user, not only in `localStorage`, and the notification and
+     calendar builders take it as a parameter.
+   - **Formatting follows the culture, money does not follow the locale.** Dates,
+     numbers and meter readings format per culture; an amount always renders in the
+     contract's own currency (decision 2), never converted, never re-symbolised.
+   - **Layout is sized for the longer language.** Russian runs 20–30% longer than
+     English; column headers, chips and buttons are built to the Russian string and
+     must not depend on a fixed width.
+
+9. **The density switch is a system component, not a contracts feature.** Cards / List
+   lives in `Shared/`, is used by Equipment, Warranties, Service, Contracts and the
+   payment schedule alike, and is built **before** the contracts screens so those are
+   its second consumer rather than its origin. Default List on a phone, Cards on a
+   desktop; the choice is remembered per surface and per device.
 
 Still genuinely open, decide when the code gets there:
 

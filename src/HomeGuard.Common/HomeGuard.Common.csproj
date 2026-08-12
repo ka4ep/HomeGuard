@@ -1,6 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- No external dependencies: only BCL types and records. -->
   <!-- Referenced by both HomeGuard.Api and HomeGuard.Client. -->
+  <!-- One external dependency, deliberately: Markdig, because rendering the household's
+       markdown is pure text processing that both sides may need and that deserves real
+       tests — which it cannot have while it lives inside the Blazor project. -->
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugType>embedded</DebugType>
@@ -8,5 +10,9 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>none</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Markdig" />
+  </ItemGroup>
 
 </Project>

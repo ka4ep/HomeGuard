@@ -1,0 +1,278 @@
+@page "/contracts"
+@using System.Globalization
+@inject ContractApiClient Api
+@inject EquipmentApiClient EquipmentApi
+@inject DensityPreference Density
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+@*
+    One page for insurance, subscriptions, loans and leases, filtered by chips rather
+    than split across four nav entries — the monthly total only means something when
+    they are counted together (contracts-spec §13.5).
+*@
+
+<PageTitle>@L["Nav_Contracts"]</PageTitle>
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+    <MudText Typo="Typo.h5">@L["Nav_Contracts"]</MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <DensitySwitch Surface="@DensitySurface.Contracts"
+                       Mode="_density"
+                       ModeChanged="m => _density = m" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => _dialog.OpenAdd()">
+            @L["Common_Add"]
+        </MudButton>
+    </MudStack>
+</MudStack>
+
+<ContractDialog @ref="_dialog" OnSaved="OnSavedAsync" />
+
+<MudStack Row="true" Spacing="1" Class="mb-4" Style="flex-wrap:wrap">
+    <MudChip T="string" Size="Size.Small"
+             Variant="@(_kind is null ? Variant.Filled : Variant.Outlined)"
+             Color="@(_kind is null ? Color.Primary : Color.Default)"
+             OnClick="@(() => Filter(null))">
+        @L["Contract_Filter_All"]
+    </MudChip>
+    @foreach (var kind in AllKinds)
+    {
+        var current = kind;
+        <MudChip T="string" Size="Size.Small"
+                 Variant="@(_kind == current ? Variant.Filled : Variant.Outlined)"
+                 Color="@(_kind == current ? Color.Primary : Color.Default)"
+                 OnClick="@(() => Filter(current))">
+            @KindLabel(current)
+        </MudChip>
+    }
+</MudStack>
+
+@if (_items is null)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else if (_items.Count == 0)
+{
+    <MudText Color="Color.Secondary" Class="mt-4">
+        @(_kind is null ? L["Contract_Empty"] : L["Contract_NoMatchFilter"])
+    </MudText>
+}
+else
+{
+    @if (_density == DensityMode.List)
+    {
+        <MudTable T="ContractDto" Items="_items" Elevation="1" Dense="true" Hover="true"
+                  OnRowClick="OnRowClick">
+            <HeaderContent>
+                <MudTh>@L["Form_Name"]</MudTh>
+                <MudTh>@L["Equipment_Category"]</MudTh>
+                <MudTh>@L["Contract_Payment"]</MudTh>
+                <MudTh>@L["Contract_Period"]</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="c">
+                <MudTd DataLabel="@NameLabel">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body2" Style="font-weight:600">@c.Name</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(c.Provider ?? OwnerLabel(c))
+                            </MudText>
+                        </MudStack>
+                    </MudStack>
+                </MudTd>
+                <MudTd DataLabel="@KindColumnLabel">@KindLabel(c.Kind)</MudTd>
+                <MudTd DataLabel="@PaymentLabel" Class="hg-tabular">@PaymentLabelFor(c)</MudTd>
+                <MudTd DataLabel="@PeriodLabel" Class="hg-tabular">@PeriodLabelFor(c)</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var c in _items)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="1" Style="cursor:pointer; height:100%"
+                             @onclick="() => OpenDetail(c.Id)">
+                        <MudCardContent>
+                            <MudStack Row="true" AlignItems="AlignItems.Start"
+                                      Justify="Justify.SpaceBetween" Spacing="2">
+                                <MudStack Spacing="0" Style="min-width:0">
+                                    <MudText Typo="Typo.h6" Style="overflow-wrap:anywhere">@c.Name</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @KindLabel(c.Kind)
+                                        @if (c.Provider is not null)
+                                        {
+                                            <span> · @c.Provider</span>
+                                        }
+                                    </MudText>
+                                </MudStack>
+                                <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                            </MudStack>
+
+                            <MudText Typo="Typo.h6" Class="hg-tabular mt-3"
+                                     Style="color:var(--hg-money)">
+                                @PaymentLabelFor(c)
+                            </MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @IntervalLabel(c)
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+                                @PeriodLabelFor(c)
+                            </MudText>
+
+                            @if (c.CancellationDeadline is { } deadline)
+                            {
+                                <MudText Typo="Typo.caption" Class="mt-1 d-block"
+                                         Style="color:var(--hg-today)">
+                                    @L["Contract_CancelBy", ShortDate(deadline)]
+                                </MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    @* Итог за месяц. Валюты не смешиваем — если их несколько, каждая своей строкой. *@
+    <MudPaper Elevation="0" Class="mt-4 pa-3"
+              Style="background:transparent; border-top:1px solid var(--hg-border-card)">
+        @foreach (var (currency, total) in MonthlyTotals)
+        {
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Contract_MonthlyTotal"]</MudText>
+                <MudText Typo="Typo.h6" Class="hg-tabular" Style="color:var(--hg-money)">
+                    @Money(total, currency)
+                </MudText>
+            </MudStack>
+        }
+        @if (WithoutPlanCount > 0)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                @L["Contract_NoPlan"] — @WithoutPlanCount
+            </MudText>
+        }
+    </MudPaper>
+}
+
+@code {
+    private List<ContractDto>? _items;
+    private ContractDialog _dialog = null!;
+    private ContractKind? _kind;
+    private DensityMode _density = DensityMode.Cards;
+
+    private static readonly ContractKind[] AllKinds =
+        [ContractKind.Insurance, ContractKind.Subscription, ContractKind.Loan,
+         ContractKind.Lease, ContractKind.Other];
+
+    private string NameLabel        => L["Form_Name"];
+    private string KindColumnLabel  => L["Equipment_Category"];
+    private string PaymentLabel     => L["Contract_Payment"];
+    private string PeriodLabel      => L["Contract_Period"];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _density = await Density.GetAsync(DensitySurface.Contracts);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+        => _items = await Api.GetAllAsync(_kind) ?? [];
+
+    private async Task Filter(ContractKind? kind)
+    {
+        _kind  = kind;
+        _items = null;
+        await LoadAsync();
+    }
+
+    private async Task OnSavedAsync(ContractDto? saved)
+    {
+        await LoadAsync();
+        if (saved is not null) OpenDetail(saved.Id);   // сразу туда, где вводят остальное
+    }
+
+    private void OpenDetail(Guid id) => Nav.NavigateTo($"/contracts/{id}");
+
+    private void OnRowClick(TableRowClickEventArgs<ContractDto> args)
+    {
+        if (args.Item is not null) OpenDetail(args.Item.Id);
+    }
+
+    // ── Labels ───────────────────────────────────────────────────────────────
+
+    private string KindLabel(ContractKind kind) => L["ContractKind_" + kind];
+
+    private string OwnerLabel(ContractDto c)
+        => c.EquipmentId is null ? L["Contract_Household"] : string.Empty;
+
+    private string PaymentLabelFor(ContractDto c)
+        => c.CurrentInstallment is { } amount
+            ? Money(amount, c.Currency)
+            : "—";
+
+    private string IntervalLabel(ContractDto c) => c.IntervalMonths switch
+    {
+        null  => string.Empty,
+        1     => L["Contract_PerMonth"],
+        3     => L["Contract_PerQuarter"],
+        6     => L["Contract_PerHalfYear"],
+        12    => L["Contract_PerYear"],
+        var n => L["Contract_EveryNMonths", n],
+    };
+
+    private string PeriodLabelFor(ContractDto c)
+        => c.EndDate is { } end
+            ? $"{ShortDate(c.StartDate)} → {ShortDate(end)}"
+            : $"{ShortDate(c.StartDate)} → {L["Contract_OpenEnded"]}";
+
+    /// <summary>
+    /// A 7px dot rather than a coloured edge bar (the brief is explicit about this):
+    /// status is a fact about the row, not a second background.
+    /// </summary>
+    private static string StatusDotStyle(ContractDto c) => c.Status switch
+    {
+        ContractStatus.Active    => "background:var(--hg-success-text)",
+        ContractStatus.Suspended => "background:var(--hg-warning-text)",
+        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
+        _                        => "background:var(--hg-text-subtle)",
+    };
+
+    // ── Totals ───────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Everything reduced to a monthly figure, grouped by currency. Nothing is converted
+    /// — two currencies mean two lines, never one blended number.
+    /// </summary>
+    private IEnumerable<(string Currency, decimal Total)> MonthlyTotals
+        => (_items ?? [])
+            .Where(c => c.Status == ContractStatus.Active
+                     && c.CurrentInstallment is not null
+                     && c.IntervalMonths is > 0)
+            .GroupBy(c => c.Currency)
+            .Select(g => (g.Key, g.Sum(c => c.CurrentInstallment!.Value / c.IntervalMonths!.Value)))
+            .OrderByDescending(x => x.Item2);
+
+    private int WithoutPlanCount
+        => (_items ?? []).Count(c => c.CurrentInstallment is null);
+
+    private static string ShortDate(DateOnly date)
+        => date.ToString("d", CultureInfo.CurrentCulture);
+
+    private static string Money(decimal amount, string currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+
+    private static string CurrencySymbol(string currency) => currency switch
+    {
+        "EUR" => "€",
+        "USD" => "$",
+        "CZK" => "Kč",
+        "GBP" => "£",
+        _     => currency,
+    };
+}

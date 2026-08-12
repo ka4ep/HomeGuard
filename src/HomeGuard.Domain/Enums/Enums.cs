@@ -65,3 +65,74 @@ public enum MeterReadingSource
     Service = 1,
     Auto    = 2,
 }
+
+// ── Contracts, payment plans and payments ────────────────────────────────────
+
+/// <summary>
+/// What kind of agreement a <see cref="Entities.Contract"/> is. One aggregate covers
+/// all four because they differ in vocabulary and in a few optional fields, not in shape:
+/// each is a party, a period, and money on a schedule.
+/// </summary>
+public enum ContractKind
+{
+    Insurance    = 1,
+    Subscription = 2,
+    Loan         = 3,
+    Lease        = 4,
+    Other        = 99,
+}
+
+public enum ContractStatus
+{
+    Active    = 1,
+    Ended     = 2,
+    Cancelled = 3,
+    Suspended = 4,
+}
+
+/// <summary>What happens when the contract reaches its end date.</summary>
+public enum RenewalMode
+{
+    None   = 0,
+    Auto   = 1,
+    Manual = 2,
+}
+
+public enum PaymentKind
+{
+    Scheduled   = 0,
+    Extra       = 1,
+    DownPayment = 2,
+    Residual    = 3,
+    Fee         = 4,
+    Refund      = 5,
+}
+
+/// <summary>
+/// Mirrors the service-record lifecycle: Planned rows are real and feed the calendar,
+/// Paid rows are history. "Projected" is not here — projections are computed from the
+/// active plan revision and never stored.
+/// </summary>
+public enum PaymentStatus
+{
+    Planned = 0,
+    Paid    = 1,
+    Skipped = 2,
+    Failed  = 3,
+}
+
+/// <summary>
+/// Why a new <see cref="Entities.PaymentPlanRevision"/> was appended. The plan is never
+/// edited in place, so this is the audit trail of every correction the household made.
+/// </summary>
+public enum RevisionReason
+{
+    Initial      = 0,
+    PriceChange  = 1,
+    EarlyPayment = 2,
+    TermChange   = 3,
+    RateChange   = 4,
+    Pause        = 5,
+    AddOn        = 6,
+    Correction   = 99,
+}

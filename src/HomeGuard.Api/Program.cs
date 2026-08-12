@@ -144,6 +144,7 @@ try
     app.MapServiceRecordEndpoints();
     app.MapRecurringRuleEndpoints();
     app.MapMeterReadingEndpoints();
+    app.MapContractEndpoints();
     app.MapSyncEndpoints();
     app.MapBlobEndpoints();
     app.MapCalendarFeedEndpoint();

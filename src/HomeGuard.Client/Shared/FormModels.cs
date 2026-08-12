@@ -1,3 +1,5 @@
+using HomeGuard.Client.Services;
+
 namespace HomeGuard.Client.Common;
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
@@ -70,4 +72,73 @@ public class RecurringRuleFormModel
     public int      PredictionsAhead     { get; set; } = 2;
     public bool     AnchorToPurchaseDate { get; set; } = true;
     public bool     IsActive             { get; set; } = true;
+}
+
+// ── Contract ──────────────────────────────────────────────────────────────────
+
+public sealed class ContractFormModel
+{
+    public ContractKind Kind           { get; set; } = ContractKind.Subscription;
+    public string       Name           { get; set; } = string.Empty;
+    public string?      Provider       { get; set; }
+    public string?      ContractNumber { get; set; }
+    public string       Currency       { get; set; } = "EUR";
+    public Guid?        EquipmentId    { get; set; }
+    public RenewalMode  Renewal        { get; set; } = RenewalMode.None;
+    public int?         CancellationNoticeDays { get; set; }
+    public string?      SummaryMarkdown { get; set; }
+    public string?      Notes          { get; set; }
+    public decimal?     CoverageAmount { get; set; }
+    public decimal?     Deductible     { get; set; }
+    public string       Tags           { get; set; } = string.Empty;
+
+    public DateTime?    StartDateNullable { get; set; } = DateTime.Today;
+    public DateTime?    EndDateNullable   { get; set; }
+
+    /// <summary>
+    /// The first plan revision, entered on the same screen as the contract. Splitting it
+    /// into a second dialog would mean a contract can exist with no idea what it costs.
+    /// </summary>
+    public bool     HasPlan           { get; set; } = true;
+    public decimal? InstallmentAmount { get; set; }
+    public int      IntervalMonths    { get; set; } = 1;
+    public int?     InstallmentCount  { get; set; }
+    public DateTime? FirstDueDateNullable { get; set; } = DateTime.Today;
+
+    public DateOnly StartDate
+        => StartDateNullable is { } d ? DateOnly.FromDateTime(d) : DateOnly.FromDateTime(DateTime.Today);
+
+    public DateOnly? EndDate
+        => EndDateNullable is { } d ? DateOnly.FromDateTime(d) : null;
+
+    public DateOnly FirstDueDate
+        => FirstDueDateNullable is { } d ? DateOnly.FromDateTime(d) : StartDate;
+
+    public IReadOnlyList<string> TagList
+        => Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}
+
+public sealed class OpeningFormModel
+{
+    public DateTime? AsOfDateNullable { get; set; } = DateTime.Today;
+    public int       InstallmentsPaid { get; set; }
+    public decimal   AmountPaid       { get; set; }
+    public decimal?  RemainingBalance { get; set; }
+
+    public DateOnly AsOfDate
+        => AsOfDateNullable is { } d ? DateOnly.FromDateTime(d) : DateOnly.FromDateTime(DateTime.Today);
+}
+
+public sealed class RevisionFormModel
+{
+    public RevisionReason Reason         { get; set; } = RevisionReason.PriceChange;
+    public decimal?       InstallmentAmount { get; set; }
+    public int            IntervalMonths { get; set; } = 1;
+    public int?           InstallmentCount { get; set; }
+    public string?        Note           { get; set; }
+
+    public DateTime? EffectiveFromNullable { get; set; } = DateTime.Today;
+
+    public DateOnly EffectiveFrom
+        => EffectiveFromNullable is { } d ? DateOnly.FromDateTime(d) : DateOnly.FromDateTime(DateTime.Today);
 }

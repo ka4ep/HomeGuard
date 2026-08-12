@@ -19,6 +19,12 @@ public static class ClientServiceExtensions
         services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<ContractApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+
+        // Сессия и настройки устройства — singleton: в WASM приложение = один пользователь.
+        services.AddSingleton<SessionService>();
+        services.AddSingleton<LanguagePreference>();
+        services.AddSingleton<DensityPreference>();
 
         // IndexedDB wrapper — singleton в Blazor WASM (один scope на всё приложение).
         services.AddSingleton<HomeGuardDb>();

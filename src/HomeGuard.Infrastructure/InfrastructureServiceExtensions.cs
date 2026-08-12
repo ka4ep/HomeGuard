@@ -38,6 +38,7 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IBlobEntryRepository,    BlobEntryRepository>();
         services.AddScoped<IScheduledJobRepository, ScheduledJobRepository>();
         services.AddScoped<IAppUserRepository,      AppUserRepository>();
+        services.AddScoped<IContractRepository,     ContractRepository>();
         services.AddScoped<IProcessedOperationStore, ProcessedOperationStore>();
 
         // ── Blob storage ──────────────────────────────────────────────────────

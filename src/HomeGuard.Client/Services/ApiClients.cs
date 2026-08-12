@@ -232,3 +232,124 @@ public sealed class NotificationApiClient
 }
 
 file sealed record VapidKeyResponse(string Key);
+
+// ── Contracts ─────────────────────────────────────────────────────────────────
+
+public sealed class ContractApiClient
+{
+    private readonly HttpClient _http;
+    public ContractApiClient(HttpClient http) => _http = http;
+
+    public Task<List<ContractDto>?> GetAllAsync(
+        ContractKind? kind = null, ContractStatus? status = null, CancellationToken ct = default)
+    {
+        var query = new List<string>();
+        if (kind   is { } k) query.Add($"kind={(int)k}");
+        if (status is { } s) query.Add($"status={(int)s}");
+        var suffix = query.Count == 0 ? "" : "?" + string.Join('&', query);
+
+        return _http.GetFromJsonAsync<List<ContractDto>>($"api/contracts{suffix}", ct);
+    }
+
+    public Task<List<ContractDto>?> GetByEquipmentAsync(Guid equipmentId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<ContractDto>>($"api/contracts/by-equipment/{equipmentId}", ct);
+
+    public Task<List<ContractDto>?> GetExpiringAsync(int days, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<ContractDto>>($"api/contracts/expiring?days={days}", ct);
+
+    public Task<ContractDetailDto?> GetAsync(Guid id, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<ContractDetailDto>($"api/contracts/{id}", ct);
+
+    public Task<ContractSummaryDto?> GetSummaryAsync(Guid id, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<ContractSummaryDto>($"api/contracts/{id}/summary", ct);
+
+    public Task<List<ScheduleEntryDto>?> GetScheduleAsync(
+        Guid id, DateOnly? from = null, DateOnly? to = null, CancellationToken ct = default)
+    {
+        var query = new List<string>();
+        if (from is { } f) query.Add($"from={f:yyyy-MM-dd}");
+        if (to   is { } t) query.Add($"to={t:yyyy-MM-dd}");
+        var suffix = query.Count == 0 ? "" : "?" + string.Join('&', query);
+
+        return _http.GetFromJsonAsync<List<ScheduleEntryDto>>($"api/contracts/{id}/schedule{suffix}", ct);
+    }
+
+    public async Task<ContractDto?> CreateAsync(CreateContractDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync("api/contracts", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<ContractDto>(ct)
+            : null;
+    }
+
+    public async Task<ContractDto?> UpdateAsync(Guid id, UpdateContractDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PutAsJsonAsync($"api/contracts/{id}", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<ContractDto>(ct)
+            : null;
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+        => await _http.DeleteAsync($"api/contracts/{id}", ct);
+
+    public async Task<ContractDetailDto?> SetOpeningAsync(
+        Guid id, SetOpeningDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PutAsJsonAsync($"api/contracts/{id}/opening", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<ContractDetailDto>(ct)
+            : null;
+    }
+
+    public async Task<bool> ClearOpeningAsync(Guid id, CancellationToken ct = default)
+    {
+        var resp = await _http.DeleteAsync($"api/contracts/{id}/opening", ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<PlanRevisionDto?> AddRevisionAsync(
+        Guid id, AddRevisionDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync($"api/contracts/{id}/revisions", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<PlanRevisionDto>(ct)
+            : null;
+    }
+
+    public async Task<PaymentDto?> AddPaymentAsync(
+        Guid id, AddPaymentDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync($"api/contracts/{id}/payments", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<PaymentDto>(ct)
+            : null;
+    }
+
+    public Task<List<UpcomingPaymentDto>?> GetUpcomingAsync(int days = 30, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<UpcomingPaymentDto>>($"api/contracts/upcoming?days={days}", ct);
+
+    public async Task<PaymentDto?> UpdatePaymentAsync(
+        Guid paymentId, UpdatePaymentDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PutAsJsonAsync($"api/payments/{paymentId}", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<PaymentDto>(ct)
+            : null;
+    }
+
+    public async Task<bool> DeletePaymentAsync(Guid paymentId, CancellationToken ct = default)
+    {
+        var resp = await _http.DeleteAsync($"api/payments/{paymentId}", ct);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<PaymentDto?> ConfirmPaymentAsync(
+        Guid paymentId, ConfirmPaymentDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync($"api/payments/{paymentId}/confirm", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<PaymentDto>(ct)
+            : null;
+    }
+}
