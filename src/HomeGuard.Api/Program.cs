@@ -107,6 +107,12 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();                   // /openapi/v1.json
+        // Neither branch had an exception handler in Development — a genuine unhandled
+        // exception (not the client-abort cancellations Kestrel already treats as normal
+        // and never logs) fell straight through to Kestrel's bare default response with
+        // no stack trace anywhere. This is what UseExceptionHandler("/error") gives the
+        // production branch below, just the dev-page instead of an unmapped /error route.
+        app.UseDeveloperExceptionPage();
     }
     else
     {

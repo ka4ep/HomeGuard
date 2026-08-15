@@ -1,10 +1,11 @@
 // HomeGuard.Client/Services/ApiAuthHandler.cs
 using System.Net;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 
 namespace HomeGuard.Client.Services;
 
-public sealed class ApiAuthHandler(NavigationManager nav) : DelegatingHandler
+public sealed class ApiAuthHandler(NavigationManager nav, ILogger<ApiAuthHandler> logger) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken ct)
@@ -24,6 +25,14 @@ public sealed class ApiAuthHandler(NavigationManager nav) : DelegatingHandler
             var loginUri = nav.ToAbsoluteUri("/login").ToString();
             if (!string.Equals(nav.Uri, loginUri, StringComparison.OrdinalIgnoreCase))
             {
+                // The log line below is the whole point of this being a message here and
+                // not just a browser Network-tab entry: the request/response timeline alone
+                // does not say *which* 401 triggered the redirect, or from what page — this
+                // does, in one line, every single time it happens.
+                logger.LogWarning(
+                    "401 from {Method} {Url} while on {CurrentUri} — redirecting to /login.",
+                    request.Method, request.RequestUri, nav.Uri);
+
                 // forceLoad: false only *starts* a client-side navigation — it does not stop
                 // this method from returning the 401 straight back to the caller, which then
                 // throws in EnsureSuccessStatusCode() before the navigation has swapped the
@@ -34,6 +43,12 @@ public sealed class ApiAuthHandler(NavigationManager nav) : DelegatingHandler
                 // this WASM instance outright — there is no race to lose.
                 nav.NavigateTo("/login", forceLoad: true);
                 await Task.Delay(Timeout.Infinite, ct);
+            }
+            else
+            {
+                logger.LogDebug(
+                    "401 from {Method} {Url} while already on /login — not redirecting.",
+                    request.Method, request.RequestUri);
             }
         }
 

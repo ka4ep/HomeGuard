@@ -208,15 +208,39 @@ public static class AuthEndpoints
     private static async Task<IResult> Me(
         IAppUserRepository userRepo,
         HttpContext ctx,
+        ILogger<Program> logger,
         CancellationToken ct)
     {
+        // /me is the one place the client treats a 401 as a normal answer ("nobody's
+        // signed in yet"), not an error — which is exactly why a 401 here that actually
+        // means something else (cookie present but the claim or the row behind it is
+        // wrong) is worth distinguishing from the ordinary case instead of collapsing
+        // both into the same silent Unauthorized.
         if (ctx.User.Identity?.IsAuthenticated != true)
+        {
+            logger.LogDebug("GET /api/auth/me: no authenticated principal on the request.");
             return Results.Unauthorized();
+        }
+
+        var idClaim = ctx.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (idClaim is null || !Guid.TryParse(idClaim, out var claimedId))
+        {
+            logger.LogWarning(
+                "GET /api/auth/me: principal is authenticated but its NameIdentifier claim " +
+                "is missing or not a GUID ({Claim}).", idClaim ?? "<null>");
+            return Results.Unauthorized();
+        }
 
         // The language lives on the row, not in the cookie, so that changing it takes
         // effect without re-issuing the sign-in ticket.
         var user = await LoadCurrentUserAsync(userRepo, ctx, ct);
-        if (user is null) return Results.Unauthorized();
+        if (user is null)
+        {
+            logger.LogWarning(
+                "GET /api/auth/me: principal claims user {UserId}, but no such row exists " +
+                "(or was deleted since the cookie was issued).", claimedId);
+            return Results.Unauthorized();
+        }
 
         return Results.Ok(new MeDto(user.Id, user.DisplayName, user.Language));
     }
