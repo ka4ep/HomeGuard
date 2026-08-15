@@ -7,7 +7,10 @@ Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12
 schema, API, and the screens. Phase 3 (interest, amortisation, and — pulled forward
 from Phase 4 — the monthly cash-flow rollup) built as of 2026-08-15: see §14 for what
 shipped, the fallback ladder that replaces the original "stay silent without a rate"
-stance, and what Phase 3 still leaves for later.
+stance, and what Phase 3 still leaves for later. Phases 4–6 built the same day: see
+§15 for what shipped and, importantly, what did not — background badge updates, the
+client half of the offline outbox, and phases 7–8 (`critique`/`polish`/`harden`) all
+need a live, viewable app to do honestly and were left rather than shipped unverified.
 
 ---
 
@@ -642,11 +645,11 @@ changing shape weekly — the passes cost real tokens and get overwritten.
 | **1.5** | Groundwork both later phases depend on, and neither can bolt on afterwards: i18n plumbing (resx + `IStringLocalizer`, culture bootstrap, per-user language, existing screens migrated off literals) and the shared Cards / List density switch (§13.8, §13.9) | medium |
 | **2** | ✅ `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; migration; CRUD endpoints; `MarkdownCard`; list + detail pages, four dialogs, equipment section and the Home strip | large |
 | **3** | ✅ Loans & leases: amortization, early-payoff preview, principal/interest split · ✅ the monthly cash-flow rollup pulled forward from Phase 4 · residual and a price-history sparkline still open (§14) | medium |
-| **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration · ~~Home rollups (`/api/finance/*`)~~ done in Phase 3 | medium |
-| **5** | Attention pipeline (§10): `/api/attention`, service-worker badge + tag-replaced summary notification, offline cache, manifest shortcuts | small–medium |
-| **6** | Offline: outbox operation types, revision-ordering conflict rule | small–medium |
-| **7** | **`/impeccable critique`** → fix → **`polish`**, then **`delight`** on icon + attention strip | small |
-| **8** | **`/impeccable harden`** before the rest of the family gets the link | small |
+| **4** | ✅ Payment materialization background service · ✅ push notifications (contract renewal, cancellation window, payment due) · ✅ iCal feed gains contract/payment events · ✅ timeline integration · ~~Home rollups (`/api/finance/*`)~~ done in Phase 3 | medium |
+| **5** | ✅ `/api/attention` · ✅ foreground icon badge (app open) · background badge-on-push and the tag-replaced summary notification not built — needs a live device, see §15 | small–medium |
+| **6** | ✅ Outbox operation types + server dispatch, revision-ordering conflict rule (free — the domain already throws) · client dialogs still call the API directly, not the outbox — see §15 | small–medium |
+| **7** | **`/impeccable critique`** → fix → **`polish`**, then **`delight`** on icon + attention strip — blocked on a viewable app, see §15 | small |
+| **8** | **`/impeccable harden`** before the rest of the family gets the link — blocked on a viewable app, see §15 | small |
 
 Design passes are phases, not afterthoughts: `document` before anything is drawn,
 `shape` before the new screens exist, and the refine passes only once the screens hold
@@ -797,3 +800,90 @@ Still genuinely open, decide when the code gets there:
    chart is new information architecture in the sense §11 means it — a short `shape`
    pass on it specifically, before it grows a second chart type or a categorical
    palette, is worth doing before it is not a one-screen change anymore.
+
+---
+
+## 15. Decisions taken — 2026-08-15 (Phases 4–6)
+
+Most of what these phases described as new infrastructure already existed — built
+generically for warranties and service records in earlier, unrelated work. The actual
+job was plugging contracts and payments into it, not building it:
+
+1. **Materialization, notifications, and the iCal feed all reused existing patterns
+   line-for-line.** `PaymentMaterializationService` mirrors `RecurringRuleMaterializationService`
+   (and gets idempotency for free from `BuildSchedule` already excluding covered dates —
+   no separate "already pending" check needed, unlike the service it mirrors).
+   `NotificationSchedulerService` gained `ScheduleContractNotificationsAsync` (the
+   household's own `NotificationRules`, already on `Contract` since Phase 2) and
+   `SchedulePaymentNotificationsAsync` (fixed 1w/1d/same-day offsets — nobody wants to
+   configure reminders per instalment). `ICalFeedGenerator` gained contract and payment
+   events the same way. All three ride the pre-existing `ScheduledJob` /
+   `JobRunnerService` / `WebPushNotificationSender` pipeline; none of it is new.
+2. **Timeline: payments are marks on the contract's bar, not a second row.** The literal
+   reading of "payments as markers (like services)" would have meant a full second row
+   per contract using the anchor/interval-bar machinery — but Paid payments becoming
+   "anchors" would fragment the contract's one continuous bar into spurious sub-bars
+   between consecutive payment dates. Reusing the *existing* `TimelineMark` tick
+   mechanism (already built for standalone meter readings) instead needed zero new JS
+   rendering code, keeps one row per contract, and is arguably the more literal reading
+   of "no new timeline concepts needed." Two small, adjacent bugs fixed while in this
+   code: the timeline's `WarrantyColor`/`ServiceColor` constants had drifted from
+   `DESIGN.md` (a stale purple pre-dating the current palette) — now match
+   `--hg-warranty`/`--hg-service`; and the detail card's cost line hard-coded `€` — now
+   takes the event's own currency, defaulting to `€` so existing warranty/service cards
+   are unaffected.
+3. **`GET /api/attention` is genuinely new** — no aggregate endpoint existed to extend.
+   It merges `WarrantyService.GetExpiringAsync`, `ServiceRecordService.GetOverdueAsync`/
+   `GetDueSoonAsync`, and `ContractService.GetUpcomingAsync`/`GetExpiringAsync`
+   (cancellation-window items only) into one `{count, urgent, soon, items}` shape. Only
+   the **foreground** half of §10.3 is built: `MainLayout.razor` calls it once per app
+   open and sets the icon badge (`navigator.setAppBadge`, feature-detected, a no-op
+   where unsupported) plus caches it via the IndexedDB `cache` store that already
+   existed (`HomeGuardDb.CacheSetAsync` — nothing new needed there). The **background**
+   half — a push arriving while the app is closed re-badging the icon, and the
+   tag-replaced summary notification — is not built. Piggybacking it onto the existing
+   per-reminder push (having the service worker re-fetch `/api/attention` on any push
+   delivery) would have been a plausible shortcut, but it conflates two different
+   concerns for a mechanism nobody can watch fire on a real device from here — better
+   built deliberately in the pass that can.
+4. **Offline outbox: server-side dispatch only, not client wiring.** `OutboxSyncService`
+   (client) and `SyncProcessorService` (server) already existed — but adopted by
+   *nothing*: every existing entity dialog (Equipment, Warranty, ServiceRecord,
+   MeterReading) still calls its `*ApiClient` directly, and the server dispatcher itself
+   had gaps predating this work (`DeleteWarranty` and all `ServiceRecord` operation
+   types are declared but unhandled — not touched here, not this feature's regression to
+   fix). `SyncOperationTypes` gained `CreateContract`/`UpdateContract`/`DeleteContract`/
+   `AddPlanRevision`/`CreatePayment`/`ConfirmPayment`/`SetOpeningPosition`, each handled
+   in `SyncProcessorService.DispatchAsync` the same way the existing ones are — bringing
+   contracts to full declared-and-handled parity, ahead of where the entities it mirrors
+   currently sit. The non-commutative `AddPlanRevision` ordering rule from §9 needed no
+   new hook: `Contract.AddRevision` already throws when `EffectiveFrom` precedes the
+   active revision's, and that propagates through the dispatcher's existing generic
+   `catch` into a `Rejected` ack for free. What's *not* done: no Contract dialog
+   actually calls `OutboxSyncService.EnqueueAsync` yet. Doing that for real needs
+   client-generated entity IDs (so a create can navigate immediately without waiting for
+   a flush) — a change that would be the first of its kind in this codebase, worth doing
+   deliberately with a real precedent to follow, not as a side effect of this pass.
+5. **Phases 7–8 were not started.** `/impeccable critique`, `polish`, `delight` and
+   `harden` all work by looking at the rendered app — screenshots, real data, real
+   devices for the PWA-specific pieces. None of that is available mid-session here;
+   running them now would mean guessing at what they'd find, which is worse than
+   waiting.
+
+### Live-verification checklist (once there's a way to look)
+
+- **Materialization** — confirm a Planned payment actually appears 14 days before its
+  due date, and that a second run the next day does not duplicate it.
+- **Notifications** — a payment reminder and a contract renewal/cancellation reminder
+  both actually arrive as push notifications on a subscribed device.
+- **iCal** — subscribe a real calendar app to `/api/calendar/feed.ics`; contract and
+  payment events show up, with the description text and the right all-day date.
+- **Timeline** — contract bars render in the corrected `--hg-money` plum; hovering a
+  payment mark shows the right amount, currency, and status word (paid/planned/
+  projected); clicking a contract's start/expiry button opens the "Open contract" action
+  and lands on the right page; a household-level (no-equipment) contract's row still
+  looks right with no equipment name.
+- **Badge** — `navigator.setAppBadge` actually changes the icon on each platform's own
+  terms (§10.1): a number on iOS 16.4+/Windows/macOS Chrome, a dot on Android, nothing
+  visible on Linux/Firefox (expected, not a bug).
+- **Offline outbox** — not wired to any dialog yet; nothing to verify here until it is.
