@@ -50,39 +50,45 @@ public sealed class AttentionService
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var horizon = today.AddDays(horizonDays);
 
-        var warrantiesTask = _warranties.GetExpiringAsync(today, horizon, ct);
-        var overdueTask    = _services.GetOverdueAsync(ct);
-        var dueSoonTask    = _services.GetDueSoonAsync(horizonDays, ct);
-        var upcomingTask   = _contracts.GetUpcomingAsync(horizonDays, ct);
-        var expiringTask   = _contracts.GetExpiringAsync(horizonDays, ct);
-        await Task.WhenAll(warrantiesTask, overdueTask, dueSoonTask, upcomingTask, expiringTask);
+        // Sequential, not Task.WhenAll: WarrantyService/ServiceRecordService/ContractService
+        // share one Scoped HomeGuardDbContext within this request, and EF Core does not
+        // allow concurrent operations on one context — running these "in parallel" threw
+        // intermittently inside whichever repository call lost the race. The
+        // Task.WhenAll-for-parallel-calls convention in CLAUDE.md is for the client's HTTP
+        // calls, each of which gets its own DbContext server-side; it does not apply here,
+        // inside a single request.
+        var warranties = await _warranties.GetExpiringAsync(today, horizon, ct);
+        var overdue    = await _services.GetOverdueAsync(ct);
+        var dueSoon    = await _services.GetDueSoonAsync(horizonDays, ct);
+        var upcoming   = await _contracts.GetUpcomingAsync(horizonDays, ct);
+        var expiring   = await _contracts.GetExpiringAsync(horizonDays, ct);
 
         var items = new List<AttentionItem>();
 
-        foreach (var w in warrantiesTask.Result)
+        foreach (var w in warranties)
             items.Add(new AttentionItem(
                 "warranty", AttentionSeverity.Soon, w.Name, w.Period.End, $"/equipment/{w.EquipmentId}"));
 
-        foreach (var s in overdueTask.Result)
+        foreach (var s in overdue)
             items.Add(new AttentionItem(
                 "service", AttentionSeverity.Urgent, s.Title, s.ServiceDate,
                 $"/equipment/{s.EquipmentId}?editService={s.Id}"));
 
         // GetDueSoonAsync's window is not exclusive of the past — the overdue ones above
         // already cover that half, so only the still-ahead half belongs here too.
-        foreach (var s in dueSoonTask.Result.Where(s => s.ServiceDate >= today))
+        foreach (var s in dueSoon.Where(s => s.ServiceDate >= today))
             items.Add(new AttentionItem(
                 "service", AttentionSeverity.Soon, s.Title, s.ServiceDate,
                 $"/equipment/{s.EquipmentId}?editService={s.Id}"));
 
-        foreach (var p in upcomingTask.Result)
+        foreach (var p in upcoming)
             items.Add(new AttentionItem(
                 "payment", p.IsOverdue ? AttentionSeverity.Urgent : AttentionSeverity.Soon,
                 p.ContractName, p.DueDate, $"/contracts/{p.ContractId}"));
 
         // The cancellation window, not the end date itself — that is the deadline that
         // actually costs money to miss (contracts-spec.md §6).
-        foreach (var c in expiringTask.Result)
+        foreach (var c in expiring)
         {
             if (c.CancellationDeadline is not { } deadline || deadline > horizon) continue;
             items.Add(new AttentionItem(
