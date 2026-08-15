@@ -97,7 +97,12 @@ public enum ScheduleOrigin
     Stored = 1,
 }
 
-/// <summary>One line of the merged schedule — projections and stored rows in one sequence.</summary>
+/// <summary>
+/// One line of the merged schedule — projections and stored rows in one sequence.
+/// <see cref="PrincipalPart"/>/<see cref="InterestPart"/> are the actual split once paid,
+/// an estimate from the governing revision's rate before that, and null whenever neither
+/// is available — the same fallback-ladder rule as everywhere else in this feature.
+/// </summary>
 public sealed record ScheduleEntry(
     ScheduleOrigin Origin,
     DateOnly DueDate,
@@ -106,7 +111,9 @@ public sealed record ScheduleEntry(
     int? InstallmentNo,
     PaymentKind Kind,
     Guid? PaymentId,
-    bool IsOverdue);
+    bool IsOverdue,
+    decimal? PrincipalPart = null,
+    decimal? InterestPart = null);
 
 /// <summary>
 /// One line of the cross-contract "what is coming" list: enough to name the payment
@@ -134,17 +141,80 @@ public sealed record ContractSummary(
     decimal? CurrentInstallment,
     DateOnly? NextDueDate,
     decimal? NextDueAmount,
-    int OverdueCount);
+    int OverdueCount,
+    decimal InterestPaidToDate,
+    DateOnly? PayoffDate,
+    LoanEstimateGap EstimateGap);
+
+// ── Amortization ─────────────────────────────────────────────────────────────
+
+/// <summary>What to do with a lump sum paid against a loan or lease ahead of schedule.</summary>
+public enum EarlyPaymentEffect
+{
+    /// <summary>Keep the instalment the same; the plan finishes sooner.</summary>
+    ReduceTerm = 0,
+
+    /// <summary>Keep the term the same; every remaining instalment gets smaller.</summary>
+    ReducePayment = 1,
+}
+
+/// <summary>
+/// What is missing to compute a loan/lease figure honestly — the fallback ladder from
+/// contracts-spec.md §6: never block on missing data, say plainly what is missing instead.
+/// </summary>
+public enum LoanEstimateGap
+{
+    /// <summary>Not a loan/lease, or every number the math needs is present.</summary>
+    None = 0,
+
+    /// <summary>Balance is known; the rate is not. Term and balance are exact, interest is not shown.</summary>
+    MissingRate = 1,
+
+    /// <summary>No starting balance recorded at all — nothing here can be estimated yet.</summary>
+    MissingBalance = 2,
+}
+
+/// <summary>
+/// The consequence of paying <c>ExtraAmount</c> against a loan/lease today, before and
+/// after. <see cref="InterestSaved"/> is null exactly when <see cref="Gap"/> is not
+/// <see cref="LoanEstimateGap.None"/> — the term and payment numbers are still shown in
+/// that case, just without a rate-dependent figure attached to them.
+/// </summary>
+public sealed record EarlyPaymentPreview(
+    LoanEstimateGap Gap,
+    int InstallmentsBefore,
+    int InstallmentsAfter,
+    decimal InstallmentAmountBefore,
+    decimal InstallmentAmountAfter,
+    DateOnly? PayoffDateBefore,
+    DateOnly? PayoffDateAfter,
+    decimal? InterestSaved);
+
+// ── Finance rollup ───────────────────────────────────────────────────────────
+
+/// <summary>One contract's contribution to one month's total — the stack a budget-load chart draws.</summary>
+public sealed record MonthlyLoadContribution(
+    Guid ContractId, string ContractName, ContractKind Kind, decimal Amount);
+
+/// <summary>
+/// One month's total obligation in one currency. Currencies are never blended (see
+/// contracts-spec.md decision 2), so a household paying in two currencies gets two
+/// entries for the same month.
+/// </summary>
+public sealed record MonthlyLoadEntry(
+    string Month,           // "2026-09", sorts and parses without a culture
+    string Currency,
+    decimal Total,
+    IReadOnlyList<MonthlyLoadContribution> Contributions);
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
 /// <summary>
-/// Reads and writes contracts, and answers the two questions every screen asks:
-/// what does the schedule look like, and where does this contract stand.
-/// <para>
-/// Deliberately not here yet: amortisation and the early-payoff preview. Those need the
-/// interest math and belong with the loan work, not with the plumbing.
-/// </para>
+/// Reads and writes contracts, and answers the questions every screen asks: what does the
+/// schedule look like, where does this contract stand, and — for loans and leases — what
+/// would an early payment actually change. The loan math (<see cref="AmortizationMath"/>)
+/// only ever runs when a revision carries the numbers it needs; everywhere else the
+/// missing piece is named (<see cref="LoanEstimateGap"/>) instead of guessed at.
 /// </summary>
 public sealed class ContractService
 {
@@ -368,6 +438,21 @@ public sealed class ContractService
         if (payment is null) return null;
 
         payment.MarkPaid(cmd.PaidDate, cmd.AmountPaid, cmd.Note);
+
+        // The principal/interest split only means something for a loan/lease instalment
+        // whose revision carries a starting balance — everything else (insurance,
+        // subscriptions, a hand-entered payment with no InstallmentNo) simply has none.
+        if (payment.PlanRevisionId is { } revisionId && payment.InstallmentNo is { } no)
+        {
+            var contract = await _repo.GetWithDetailsAsync(payment.ContractId, ct);
+            var revision = contract?.Revisions.FirstOrDefault(r => r.Id == revisionId);
+            if (contract is { Kind: ContractKind.Loan or ContractKind.Lease } && revision is not null)
+            {
+                var split = SplitInstallmentAt(revision, no);
+                if (split is { } s) payment.SetLoanSplit(s.Principal, s.Interest);
+            }
+        }
+
         await _uow.SaveChangesAsync(ct);
         return payment;
     }
@@ -449,18 +534,32 @@ public sealed class ContractService
         Contract contract, DateOnly from, DateOnly to)
     {
         var today = Today;
+        var revisionsById = contract.Revisions.ToDictionary(r => r.Id);
 
         var stored = contract.Payments
             .Where(p => p.DueDate >= from && p.DueDate <= to)
-            .Select(p => new ScheduleEntry(
-                ScheduleOrigin.Stored,
-                p.DueDate,
-                p.Status == PaymentStatus.Paid ? p.AmountPaid ?? p.AmountDue : p.AmountDue,
-                p.Status,
-                p.InstallmentNo,
-                p.Kind,
-                p.Id,
-                p.IsOverdue(today)))
+            .Select(p =>
+            {
+                // Actual split once paid; before that, an estimate from the revision that
+                // produced the row — null for anything that is not a loan/lease instalment,
+                // or whose revision never recorded a starting balance.
+                var estimate = p.PrincipalPart is null && p.PlanRevisionId is { } rid
+                             && revisionsById.TryGetValue(rid, out var r) && p.InstallmentNo is { } no
+                    ? SplitInstallmentAt(r, no)
+                    : null;
+
+                return new ScheduleEntry(
+                    ScheduleOrigin.Stored,
+                    p.DueDate,
+                    p.Status == PaymentStatus.Paid ? p.AmountPaid ?? p.AmountDue : p.AmountDue,
+                    p.Status,
+                    p.InstallmentNo,
+                    p.Kind,
+                    p.Id,
+                    p.IsOverdue(today),
+                    PrincipalPart: p.PrincipalPart ?? estimate?.Principal,
+                    InterestPart:  p.InterestPart  ?? estimate?.Interest);
+            })
             .ToList();
 
         var revision = contract.ActiveRevision;
@@ -487,9 +586,12 @@ public sealed class ContractService
             if (contract.Opening is { } opening && due < opening.AsOfDate) continue;
             if (covered.Contains(due)) continue;
 
+            var split = SplitInstallmentAt(revision, n);
+
             projected.Add(new ScheduleEntry(
                 ScheduleOrigin.Projected, due, amount, null, n, PaymentKind.Scheduled, null,
-                IsOverdue: due < today));
+                IsOverdue: due < today,
+                PrincipalPart: split?.Principal, InterestPart: split?.Interest));
 
             // An open-ended plan would otherwise run forever; the window is the limit.
             if (projected.Count > 1000) break;
@@ -538,6 +640,18 @@ public sealed class ContractService
                 .FirstOrDefault(e => e.Origin == ScheduleOrigin.Projected);
         }
 
+        var payoffDate = revision?.InstallmentCount is { } count
+            ? revision.DueDateOf(count)
+            : (DateOnly?)null;
+
+        var gap = contract.Kind is ContractKind.Loan or ContractKind.Lease
+            ? revision?.RemainingPrincipal is null
+                ? LoanEstimateGap.MissingBalance
+                : revision.AnnualInterestRate is null
+                    ? LoanEstimateGap.MissingRate
+                    : LoanEstimateGap.None
+            : LoanEstimateGap.None;
+
         return new ContractSummary(
             ContractId:            contract.Id,
             Currency:              contract.Currency,
@@ -549,6 +663,172 @@ public sealed class ContractService
             CurrentInstallment:    revision?.EffectiveInstallment,
             NextDueDate:           next?.DueDate ?? nextProjected?.DueDate,
             NextDueAmount:         next?.AmountDue ?? nextProjected?.Amount,
-            OverdueCount:          contract.Payments.Count(p => p.IsOverdue(today)));
+            OverdueCount:          contract.Payments.Count(p => p.IsOverdue(today)),
+            InterestPaidToDate:    paidRows.Sum(p => p.InterestPart ?? 0m),
+            PayoffDate:            payoffDate,
+            EstimateGap:           gap);
+    }
+
+    // ── Loan math ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The balance immediately before instalment <paramref name="installmentNo"/> of
+    /// <paramref name="revision"/>, walked forward from <see cref="PaymentPlanRevision.RemainingPrincipal"/>
+    /// — the balance the revision itself recorded at <see cref="PaymentPlanRevision.EffectiveFrom"/>.
+    /// Null when the revision never recorded one; there is nothing to walk forward from, and
+    /// guessing would be exactly the invented number contracts-spec.md §6 rules out.
+    /// An absent rate is treated as 0% — the interest-free ladder used for
+    /// <see cref="LoanEstimateGap.MissingRate"/>.
+    /// </summary>
+    public static decimal? BalanceBeforeInstallment(PaymentPlanRevision revision, int installmentNo)
+    {
+        if (revision.RemainingPrincipal is not { } principal) return null;
+        var monthlyRate = AmortizationMath.MonthlyRate(revision.AnnualInterestRate ?? 0m);
+        return AmortizationMath.BalanceAfter(
+            principal, monthlyRate, revision.EffectiveInstallment, installmentNo - 1);
+    }
+
+    /// <summary>The principal/interest split of one instalment, or null under the same conditions as <see cref="BalanceBeforeInstallment"/>.</summary>
+    public static (decimal Principal, decimal Interest)? SplitInstallmentAt(
+        PaymentPlanRevision revision, int installmentNo)
+    {
+        if (BalanceBeforeInstallment(revision, installmentNo) is not { } balance) return null;
+        var monthlyRate = AmortizationMath.MonthlyRate(revision.AnnualInterestRate ?? 0m);
+        return AmortizationMath.SplitInstallment(balance, monthlyRate, revision.EffectiveInstallment);
+    }
+
+    /// <summary>
+    /// What paying <paramref name="extraAmount"/> against the active revision today would
+    /// change. Pure and side-effect-free — nothing is written until the caller turns the
+    /// result into a real revision via <see cref="AddRevisionAsync"/>, which is what lets
+    /// the dialog show consequences before the household commits to them.
+    /// </summary>
+    public static EarlyPaymentPreview PreviewEarlyPayment(
+        Contract contract, decimal extraAmount, EarlyPaymentEffect effect)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(extraAmount);
+        var revision = contract.ActiveRevision
+            ?? throw new InvalidOperationException("This contract has no active plan to pay against.");
+
+        var paidUnderRevision = contract.Payments.Count(p =>
+            p.PlanRevisionId == revision.Id
+            && p.Status == PaymentStatus.Paid
+            && p.Kind == PaymentKind.Scheduled);
+
+        var installment = revision.EffectiveInstallment;
+        var termLeftBefore = revision.InstallmentCount is { } total
+            ? Math.Max(total - paidUnderRevision, 0)
+            : 0;
+        var payoffBefore = revision.InstallmentCount is { } tot
+            ? revision.DueDateOf(tot)
+            : (DateOnly?)null;
+
+        if (revision.RemainingPrincipal is not { } principal)
+        {
+            // No starting balance recorded at all: term and payment stay whatever they
+            // already were, and there is nothing left to say about the pay-off itself.
+            return new EarlyPaymentPreview(
+                LoanEstimateGap.MissingBalance,
+                termLeftBefore, termLeftBefore,
+                installment, installment,
+                payoffBefore, payoffBefore,
+                InterestSaved: null);
+        }
+
+        var rateKnown = revision.AnnualInterestRate is not null;
+        var monthlyRate = AmortizationMath.MonthlyRate(revision.AnnualInterestRate ?? 0m);
+        var balanceNow = AmortizationMath.BalanceAfter(principal, monthlyRate, installment, paidUnderRevision);
+        var balanceAfter = Math.Max(balanceNow - extraAmount, 0m);
+        var gap = rateKnown ? LoanEstimateGap.None : LoanEstimateGap.MissingRate;
+
+        if (balanceAfter <= 0m || termLeftBefore == 0)
+        {
+            var interestSaved = rateKnown
+                ? AmortizationMath.TotalInterestOverTerm(balanceNow, installment, termLeftBefore)
+                : (decimal?)null;
+
+            return new EarlyPaymentPreview(
+                gap, termLeftBefore, 0, installment, 0m,
+                payoffBefore, PayoffDateAfter: null,
+                InterestSaved: interestSaved);
+        }
+
+        int termLeftAfter;
+        decimal installmentAfter;
+        if (effect == EarlyPaymentEffect.ReducePayment)
+        {
+            termLeftAfter = termLeftBefore;
+            installmentAfter = monthlyRate == 0m
+                ? balanceAfter / termLeftBefore
+                : AmortizationMath.AnnuityInstallment(balanceAfter, monthlyRate, termLeftBefore);
+        }
+        else
+        {
+            installmentAfter = installment;
+            termLeftAfter = AmortizationMath.TermFor(balanceAfter, monthlyRate, installment);
+        }
+
+        var payoffAfter = revision.DueDateOf(paidUnderRevision + termLeftAfter);
+
+        decimal? saved = null;
+        if (rateKnown)
+        {
+            var interestBefore = AmortizationMath.TotalInterestOverTerm(balanceNow, installment, termLeftBefore);
+            var interestAfter  = AmortizationMath.TotalInterestOverTerm(balanceAfter, installmentAfter, termLeftAfter);
+            saved = interestBefore - interestAfter;
+        }
+
+        return new EarlyPaymentPreview(
+            gap, termLeftBefore, termLeftAfter,
+            installment, installmentAfter,
+            payoffBefore, payoffAfter,
+            InterestSaved: saved);
+    }
+
+    // ── Finance rollup ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Every active contract's schedule for the next <paramref name="months"/> months,
+    /// merged into one month-by-month, currency-by-currency total — the numbers a
+    /// budget-load chart needs to show which month several obligations land on at once.
+    /// Currencies are never blended (contracts-spec.md decision 2): a household paying in
+    /// two currencies gets two entries for the same month.
+    /// </summary>
+    public async Task<IReadOnlyList<MonthlyLoadEntry>> GetMonthlyLoadAsync(
+        int months, CancellationToken ct = default)
+    {
+        var today = Today;
+        var from  = new DateOnly(today.Year, today.Month, 1);
+        var to    = from.AddMonths(months).AddDays(-1);
+
+        var contracts = await _repo.GetActiveWithSchedulesAsync(ct);
+        return BuildMonthlyLoad(contracts, from, to);
+    }
+
+    /// <summary>Pure, and public for the same reason as <see cref="BuildSchedule"/>.</summary>
+    public static IReadOnlyList<MonthlyLoadEntry> BuildMonthlyLoad(
+        IEnumerable<Contract> contracts, DateOnly from, DateOnly to)
+    {
+        var buckets = new Dictionary<(string Month, string Currency), List<MonthlyLoadContribution>>();
+
+        foreach (var contract in contracts)
+        {
+            foreach (var entry in BuildSchedule(contract, from, to))
+            {
+                if (entry.Status == PaymentStatus.Skipped) continue;
+
+                var key = (entry.DueDate.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture),
+                           contract.Currency);
+                if (!buckets.TryGetValue(key, out var list))
+                    buckets[key] = list = [];
+
+                list.Add(new MonthlyLoadContribution(contract.Id, contract.Name, contract.Kind, entry.Amount));
+            }
+        }
+
+        return [.. buckets
+            .Select(kv => new MonthlyLoadEntry(
+                kv.Key.Month, kv.Key.Currency, kv.Value.Sum(c => c.Amount), kv.Value))
+            .OrderBy(e => e.Month).ThenBy(e => e.Currency)];
     }
 }

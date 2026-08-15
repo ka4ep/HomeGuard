@@ -367,4 +367,15 @@ public sealed class ContractRepository : RepositoryBase<Contract>, IContractRepo
             .OrderBy(p => p.DueDate)
             .ToList();
     }
+
+    public async Task<IReadOnlyList<Contract>> GetActiveWithSchedulesAsync(CancellationToken ct = default)
+    {
+        var all = await Set
+            .Include(c => c.Revisions).ThenInclude(r => r.Adjustments)
+            .Include(c => c.Payments)
+            .Where(c => c.Status == ContractStatus.Active)
+            .ToListAsync(ct);
+
+        return all.OrderBy(c => c.Name).ToList();
+    }
 }

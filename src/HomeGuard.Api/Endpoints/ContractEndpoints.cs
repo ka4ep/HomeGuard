@@ -30,6 +30,7 @@ public static class ContractEndpoints
 
         grp.MapGet   ("/{id:guid}/revisions",       GetRevisions);
         grp.MapPost  ("/{id:guid}/revisions",       AddRevision);
+        grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
 
         grp.MapGet   ("/{id:guid}/payments",        GetPayments);
         grp.MapPost  ("/{id:guid}/payments",        AddPayment);
@@ -38,6 +39,9 @@ public static class ContractEndpoints
         payments.MapPost  ("/{id:guid}/confirm",    ConfirmPayment);
         payments.MapPut   ("/{id:guid}",            UpdatePayment);
         payments.MapDelete("/{id:guid}",            DeletePayment);
+
+        var finance = app.MapGroup("/api/finance").WithTags("Contracts");
+        finance.MapGet("/monthly", GetMonthlyLoad);
     }
 
     // ── Contracts ─────────────────────────────────────────────────────────────
@@ -238,6 +242,32 @@ public static class ContractEndpoints
         }
     }
 
+    /// <summary>
+    /// A dry run: what paying <c>req.ExtraAmount</c> today would change, without writing
+    /// anything. The dialog turns this into the "было → станет" table before the household
+    /// commits to it via <see cref="AddRevision"/>.
+    /// </summary>
+    private static async Task<IResult> PreviewEarlyPayment(
+        Guid id, [FromBody] EarlyPaymentPreviewRequest req, ContractService svc, CancellationToken ct)
+    {
+        var contract = await svc.GetAsync(id, ct);
+        if (contract is null) return Results.NotFound();
+
+        try
+        {
+            var preview = ContractService.PreviewEarlyPayment(contract, req.ExtraAmount, req.Effect);
+            return Results.Ok(preview);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+    }
+
     // ── Payments ──────────────────────────────────────────────────────────────
 
     private static async Task<IResult> GetPayments(Guid id, ContractService svc, CancellationToken ct)
@@ -291,6 +321,15 @@ public static class ContractEndpoints
 
     private static async Task<IResult> DeletePayment(Guid id, ContractService svc, CancellationToken ct)
         => await svc.DeletePaymentAsync(id, ct) ? Results.NoContent() : Results.NotFound();
+
+    // ── Finance rollup ───────────────────────────────────────────────────────
+
+    private static async Task<IResult> GetMonthlyLoad(
+        ContractService svc, CancellationToken ct, [FromQuery] int months = 12)
+    {
+        var entries = await svc.GetMonthlyLoadAsync(Math.Clamp(months, 1, 36), ct);
+        return Results.Ok(entries);
+    }
 }
 
 // ── Requests ──────────────────────────────────────────────────────────────────
@@ -372,6 +411,10 @@ public sealed record ConfirmPaymentRequest(
     DateOnly PaidDate,
     decimal? AmountPaid = null,
     string? Note = null);
+
+public sealed record EarlyPaymentPreviewRequest(
+    decimal ExtraAmount,
+    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm);
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 
