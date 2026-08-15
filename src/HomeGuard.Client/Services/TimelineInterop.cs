@@ -86,7 +86,11 @@ public sealed record TimelineRow(
     List<TimelineMark>? Marks = null
 );
 
-/// <summary>A small tick on a row: a standalone meter reading, not an event.</summary>
+/// <summary>
+/// A small tick on a row: a standalone meter reading, or (contracts) a payment due date
+/// riding on the contract's bar row rather than getting a row of its own — the app
+/// already had this mechanism, so payments just became its second user.
+/// </summary>
 public sealed record TimelineMark(
     [property: JsonPropertyName("date")] string DateIso,
     decimal Value,
@@ -95,19 +99,25 @@ public sealed record TimelineMark(
     string? Note = null
 );
 
-/// <summary>One button on a row: a service record, a warranty start/expiry point, or a computed prediction.</summary>
+/// <summary>
+/// One button on a row: a service record, a warranty/contract start-or-expiry point, or a
+/// computed prediction. <see cref="EquipmentId"/> is null for a household-level contract
+/// (no equipment to link to); <see cref="ContractId"/> is set only for contract events, and
+/// is what the detail card's "Open contract" action and the start/expiry wording key off.
+/// </summary>
 public sealed record TimelineEvent(
     string Id,
     [property: JsonPropertyName("date")] string DateIso,
     string Title,
     string EquipmentName,
-    Guid EquipmentId,
+    Guid? EquipmentId,
     decimal? MeterReading = null,
     string? MeterUnit = null,
     decimal? Cost = null,
+    string? Currency = null,
     string? ServiceProvider = null,
     string? Notes = null,
-    /// <summary>"Completed" | "Planned" for service events; null for warranty events.</summary>
+    /// <summary>"Completed" | "Planned" for service events; null for warranty/contract events.</summary>
     string? Status = null,
     bool IsStart = false,
     bool IsExpiry = false,
@@ -116,7 +126,9 @@ public sealed record TimelineEvent(
     /// <summary>Set when IsPredicted — lets the "Materialize now" / "Open recurring rule" buttons target the right rule.</summary>
     Guid? RuleId = null,
     /// <summary>Set for real (non-predicted) service records — lets the "Edit record" button deep-link to it.</summary>
-    Guid? RecordId = null
+    Guid? RecordId = null,
+    /// <summary>Set for a contract's start/expiry bar events — deep-links the "Open contract" action.</summary>
+    Guid? ContractId = null
 );
 
 file static class Json

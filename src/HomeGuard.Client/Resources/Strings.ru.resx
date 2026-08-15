@@ -293,6 +293,9 @@
   <data name="Timeline_Predicted" xml:space="preserve"><value>Прогноз</value></data>
   <data name="Timeline_WarrantyExpiry" xml:space="preserve"><value>Конец гарантии</value></data>
   <data name="Timeline_WarrantyStart" xml:space="preserve"><value>Начало гарантии</value></data>
+  <data name="Timeline_ContractEnd" xml:space="preserve"><value>Конец договора</value></data>
+  <data name="Timeline_ContractStart" xml:space="preserve"><value>Начало договора</value></data>
+  <data name="Timeline_OpenContract" xml:space="preserve"><value>Открыть договор</value></data>
 
   <!-- ── Договоры ── -->
   <data name="ContractKind_Insurance" xml:space="preserve"><value>Страховка</value></data>

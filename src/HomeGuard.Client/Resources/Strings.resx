@@ -300,6 +300,9 @@
   <data name="Timeline_Predicted" xml:space="preserve"><value>Predicted</value></data>
   <data name="Timeline_WarrantyExpiry" xml:space="preserve"><value>Warranty ends</value></data>
   <data name="Timeline_WarrantyStart" xml:space="preserve"><value>Warranty starts</value></data>
+  <data name="Timeline_ContractEnd" xml:space="preserve"><value>Contract ends</value></data>
+  <data name="Timeline_ContractStart" xml:space="preserve"><value>Contract starts</value></data>
+  <data name="Timeline_OpenContract" xml:space="preserve"><value>Open the contract</value></data>
 
   <!-- ── Contracts ── -->
   <data name="ContractKind_Insurance" xml:space="preserve"><value>Insurance</value></data>

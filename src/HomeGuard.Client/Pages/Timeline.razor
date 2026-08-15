@@ -5,6 +5,7 @@
 @inject ServiceRecordApiClient ServiceApi
 @inject RecurringRuleApiClient RuleApi
 @inject MeterReadingApiClient MeterApi
+@inject ContractApiClient ContractApi
 @inject TimelineInterop TimelineInterop
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Strings> L
@@ -26,6 +27,9 @@
     <MudChip T="string" Style="@ServiceChipStyle" Size="Size.Small"
              Icon="@Icons.Material.Filled.Build"
              OnClick="ToggleServicesAsync">@L["Nav_Service"]</MudChip>
+    <MudChip T="string" Style="@ContractChipStyle" Size="Size.Small"
+             Icon="@Icons.Material.Filled.Description"
+             OnClick="ToggleContractsAsync">@L["Nav_Contracts"]</MudChip>
 </MudStack>
 
 @if (_loading)
@@ -39,13 +43,20 @@
     private bool _loading = true;
     private bool _showWarranties = true;
     private bool _showServices = true;
+    private bool _showContracts = true;
     private const string ElementId = "hg-timeline";
-    private const string WarrantyColor = "#7F77DD";
-    private const string ServiceColor = "#1D9E75";
+
+    // Matches DESIGN.md's entity colours (variables.css --hg-warranty/--hg-service/--hg-money) —
+    // the JS side alpha-blends these as raw hex, so a CSS var reference will not work here.
+    private const string WarrantyColor = "#6E6BA8";
+    private const string ServiceColor = "#4E8A6B";
+    private const string ContractColor = "#8A5F72";
 
     private List<WarrantyDto> _warranties = [];
     private List<ServiceRecordDto> _services = [];
     private List<RecurringRuleWithPredictionsDto> _rules = [];
+    private List<ContractDto> _contracts = [];
+    private Dictionary<Guid, List<ScheduleEntryDto>> _schedules = [];
     private Dictionary<Guid, string> _equipMap = [];
     private Dictionary<Guid, string?> _equipMeterUnit = [];
     private Dictionary<Guid, List<MeterReadingDto>> _readings = [];
@@ -62,6 +73,10 @@
     private string ServiceChipStyle => _showServices
         ? $"background:{ServiceColor};color:white;cursor:pointer"
         : $"background:transparent;color:{ServiceColor};border:1px solid {ServiceColor};cursor:pointer";
+
+    private string ContractChipStyle => _showContracts
+        ? $"background:{ContractColor};color:white;cursor:pointer"
+        : $"background:transparent;color:{ContractColor};border:1px solid {ContractColor};cursor:pointer";
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -84,7 +99,8 @@
         var warrantyTask = WarrantyApi.GetActiveAsync();
         var serviceTask = ServiceApi.GetAllAsync();
         var rulesTask = RuleApi.GetAllWithPredictionsAsync();
-        await Task.WhenAll(equipTask, warrantyTask, serviceTask, rulesTask);
+        var contractTask = ContractApi.GetAllAsync(status: ContractStatus.Active);
+        await Task.WhenAll(equipTask, warrantyTask, serviceTask, rulesTask, contractTask);
 
         var equipment = equipTask.Result ?? [];
         _equipMap = equipment.ToDictionary(e => e.Id, e => e.Name);
@@ -92,6 +108,13 @@
         _warranties = warrantyTask.Result ?? [];
         _services = serviceTask.Result ?? [];
         _rules = rulesTask.Result ?? [];
+        _contracts = contractTask.Result ?? [];
+
+        // Each contract's own schedule — stored rows plus near-term projections, the
+        // same merged view the detail page shows.
+        var scheduleTasks = _contracts.ToDictionary(c => c.Id, c => ContractApi.GetScheduleAsync(c.Id));
+        await Task.WhenAll(scheduleTasks.Values);
+        _schedules = scheduleTasks.ToDictionary(kv => kv.Key, kv => kv.Value.Result ?? []);
 
         // Standalone meter readings — only equipment with a meter has any
         var metered = equipment.Where(e => !string.IsNullOrEmpty(e.MeterUnit)).Select(e => e.Id).ToList();
@@ -122,6 +145,12 @@
     private async Task ToggleServicesAsync()
     {
         _showServices = !_showServices;
+        await TimelineInterop.UpdateAsync(BuildRows());
+    }
+
+    private async Task ToggleContractsAsync()
+    {
+        _showContracts = !_showContracts;
         await TimelineInterop.UpdateAsync(BuildRows());
     }
 
@@ -241,7 +270,82 @@
             }
         }
 
+        // ── Contracts — one row per contract; payments ride as marks on its bar,
+        // the same tick mechanism standalone meter readings already use ──────────
+        if (_showContracts)
+        {
+            var byEquip = _contracts
+                .Where(c => c.EquipmentId is not null)
+                .GroupBy(c => c.EquipmentId!.Value)
+                .OrderBy(g => _equipMap.GetValueOrDefault(g.Key, ""));
+
+            foreach (var grp in byEquip)
+            {
+                var equipName = _equipMap.GetValueOrDefault(grp.Key, grp.Key.ToString());
+                var first = true;
+                foreach (var c in grp.OrderBy(c => c.StartDate))
+                {
+                    rows.Add(BuildContractRow(c, first ? equipName : null));
+                    first = false;
+                }
+            }
+
+            var householdLabel = L["Contract_Household"].ToString();
+            var firstHousehold = true;
+            foreach (var c in _contracts.Where(c => c.EquipmentId is null).OrderBy(c => c.StartDate))
+            {
+                rows.Add(BuildContractRow(c, firstHousehold ? householdLabel : null));
+                firstHousehold = false;
+            }
+        }
+
         return rows;
+    }
+
+    private TimelineRow BuildContractRow(ContractDto c, string? groupLabel)
+    {
+        var equipName = _equipMap.GetValueOrDefault(c.EquipmentId ?? Guid.Empty, "");
+
+        var events = new List<TimelineEvent>
+        {
+            new(Id: $"{c.Id}-start", DateIso: c.StartDate.ToString("yyyy-MM-dd", null),
+                Title: c.Name, EquipmentName: equipName, EquipmentId: c.EquipmentId,
+                IsStart: true, ContractId: c.Id),
+        };
+        if (c.EndDate is { } end)
+        {
+            events.Add(new(Id: $"{c.Id}-end", DateIso: end.ToString("yyyy-MM-dd", null),
+                Title: c.Name, EquipmentName: equipName, EquipmentId: c.EquipmentId,
+                IsExpiry: true, ContractId: c.Id));
+        }
+
+        var marks = _schedules.GetValueOrDefault(c.Id, [])
+            .Select(e => new TimelineMark(
+                DateIso: e.DueDate.ToString("yyyy-MM-dd", null),
+                Value: e.Amount,
+                Unit: c.Currency,
+                Source: PaymentMarkSource(e)))
+            .ToList();
+
+        return new TimelineRow(
+            Id: $"contract-{c.Id}",
+            Label: c.Name,
+            Group: groupLabel,
+            Color: ContractColor,
+            Events: events,
+            Marks: marks.Count > 0 ? marks : null);
+    }
+
+    private static string PaymentMarkSource(ScheduleEntryDto e)
+    {
+        if (e.Origin == ScheduleOrigin.Projected) return "Projected";
+        return e.Status switch
+        {
+            PaymentStatus.Paid    => "Paid",
+            PaymentStatus.Skipped => "Skipped",
+            PaymentStatus.Failed  => "Failed",
+            _                     => "Planned",
+        };
     }
 
     // ── Fuzzy title clustering (Levenshtein, threshold 25%) ──────────────────
@@ -298,6 +402,9 @@
             ["materializeNow"]  = L["Timeline_MaterializeNow"],
             ["openRule"]        = L["Timeline_OpenRule"],
             ["editRecord"]      = L["Timeline_EditRecord"],
+            ["contractStart"]   = L["Timeline_ContractStart"],
+            ["contractEnd"]     = L["Timeline_ContractEnd"],
+            ["openContract"]    = L["Timeline_OpenContract"],
         },
         Statuses: new Dictionary<string, string>
         {
