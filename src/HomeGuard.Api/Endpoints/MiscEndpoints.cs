@@ -156,3 +156,22 @@ public static class NotificationEndpoints
 
 public sealed record PushSubscribeRequest(string Endpoint, string P256dh, string Auth);
 public sealed record PushUnsubscribeRequest(string Endpoint);
+
+// ── Attention ─────────────────────────────────────────────────────────────────
+
+/// <summary>
+/// The one number the app icon badge and the Home strip agree on — see
+/// contracts-spec.md §10.2. Cheap enough to poll on every app foreground: three
+/// existing service calls merged, nothing recomputed that was not already available.
+/// </summary>
+public static class AttentionEndpoints
+{
+    public static void MapAttentionEndpoint(this WebApplication app)
+    {
+        app.MapGet("/api/attention", async (
+                AttentionService svc, CancellationToken ct, [FromQuery] int days = 7) =>
+            Results.Ok(await svc.GetAsync(days, ct)))
+            .WithTags("Attention")
+            .RequireAuthorization();
+    }
+}

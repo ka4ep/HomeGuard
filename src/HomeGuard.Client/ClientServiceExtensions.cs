@@ -20,6 +20,7 @@ public static class ClientServiceExtensions
         services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<ContractApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        services.AddHttpClient<AttentionApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
 
         // Сессия и настройки устройства — singleton: в WASM приложение = один пользователь.
         services.AddSingleton<SessionService>();

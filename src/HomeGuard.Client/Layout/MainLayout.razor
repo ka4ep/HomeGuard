@@ -1,6 +1,9 @@
 @inherits LayoutComponentBase
 @inject SessionService Session
 @inject LanguagePreference Language
+@inject AttentionApiClient AttentionApi
+@inject HomeGuardDb Db
+@inject IJSRuntime JS
 @inject IStringLocalizer<Strings> L
 
 <MudLayout>
@@ -47,5 +50,30 @@
 
         var me = await Session.GetAsync();
         await Language.ReconcileWithAccountAsync(me?.Language);
+
+        if (me is not null) await RefreshAttentionBadgeAsync();
+    }
+
+    /// <summary>
+    /// The foreground half of the attention pipeline (contracts-spec.md §10.3): recompute
+    /// on every app open and set the icon badge from it. The background half — a push
+    /// arriving while the app is closed re-badging the icon — is not built yet; that path
+    /// needs a live device to verify and is being left for that pass rather than shipped
+    /// unverified.
+    /// </summary>
+    private async Task RefreshAttentionBadgeAsync()
+    {
+        try
+        {
+            var attention = await AttentionApi.GetAsync();
+            if (attention is null) return;
+
+            await Db.CacheSetAsync("attention", attention);
+            await JS.InvokeVoidAsync("homeGuardPush.setBadge", attention.Count);
+        }
+        catch
+        {
+            // Best-effort — a badge that fails to update is not worth surfacing to the user.
+        }
     }
 }

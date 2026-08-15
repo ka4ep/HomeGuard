@@ -211,6 +211,15 @@ public sealed class SyncApiClient
 
 // ── Notification ──────────────────────────────────────────────────────────────
 
+public sealed class AttentionApiClient
+{
+    private readonly HttpClient _http;
+    public AttentionApiClient(HttpClient http) => _http = http;
+
+    public Task<AttentionDto?> GetAsync(int days = 7, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<AttentionDto>($"api/attention?days={days}", ct);
+}
+
 public sealed class NotificationApiClient
 {
     private readonly HttpClient _http;

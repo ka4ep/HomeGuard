@@ -452,3 +452,13 @@ public sealed record MonthlyLoadEntryDto(
     decimal Total,
     IReadOnlyList<MonthlyLoadContributionDto> Contributions
 );
+
+// ── Attention ─────────────────────────────────────────────────────────────────
+
+public enum AttentionSeverity { Soon = 0, Urgent = 1 }
+
+public sealed record AttentionItemDto(
+    string Kind, AttentionSeverity Severity, string Title, DateOnly Date, string Url);
+
+public sealed record AttentionDto(
+    int Count, int Urgent, int Soon, IReadOnlyList<AttentionItemDto> Items);
