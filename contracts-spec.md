@@ -3,10 +3,11 @@
 Covers insurance policies, subscriptions, loans and leases, and how they surface
 on the home screen. Companion to `timeline-spec.md`.
 
-Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12:
-domain, schema, API, and the screens. Phase 3 (interest and amortisation) is next —
-until it lands, nothing in the app shows a principal/interest split or recomputes a
-payoff, because that needs a rate and inventing one would be worse than silence.
+Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12: domain,
+schema, API, and the screens. Phase 3 (interest, amortisation, and — pulled forward
+from Phase 4 — the monthly cash-flow rollup) built as of 2026-08-15: see §14 for what
+shipped, the fallback ladder that replaces the original "stay silent without a rate"
+stance, and what Phase 3 still leaves for later.
 
 ---
 
@@ -640,8 +641,8 @@ changing shape weekly — the passes cost real tokens and get overwritten.
 | **1** | ✅ **`/impeccable shape`** → `.impeccable/surfaces/contracts.md`, before any Razor is written | small |
 | **1.5** | Groundwork both later phases depend on, and neither can bolt on afterwards: i18n plumbing (resx + `IStringLocalizer`, culture bootstrap, per-user language, existing screens migrated off literals) and the shared Cards / List density switch (§13.8, §13.9) | medium |
 | **2** | ✅ `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; migration; CRUD endpoints; `MarkdownCard`; list + detail pages, four dialogs, equipment section and the Home strip | large |
-| **3** | Loans & leases: amortization, early-payoff preview + commit, residual, price-history UI | medium |
-| **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration, Home rollups (`/api/finance/*`) | medium |
+| **3** | ✅ Loans & leases: amortization, early-payoff preview, principal/interest split · ✅ the monthly cash-flow rollup pulled forward from Phase 4 · residual and a price-history sparkline still open (§14) | medium |
+| **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration · ~~Home rollups (`/api/finance/*`)~~ done in Phase 3 | medium |
 | **5** | Attention pipeline (§10): `/api/attention`, service-worker badge + tag-replaced summary notification, offline cache, manifest shortcuts | small–medium |
 | **6** | Offline: outbox operation types, revision-ordering conflict rule | small–medium |
 | **7** | **`/impeccable critique`** → fix → **`polish`**, then **`delight`** on icon + attention strip | small |
@@ -719,3 +720,80 @@ Still genuinely open, decide when the code gets there:
 
 - Whether `PreviousContractId` needs a UI (a "renewal chain" view) or stays a pure link.
 - `AttentionHorizonDays` default — 7 is a guess; adjust after a month of real use.
+
+---
+
+## 14. Decisions taken — 2026-08-15 (Phase 3)
+
+1. **The "stay silent without a rate" stance from §1's original Phase 3 note is
+   replaced by a fallback ladder.** Interest math is genuinely optional data, and a
+   loan with none of it recorded yet is the common case for a contract entered from an
+   old paper file, not the exception. So every loan/lease figure now reports one of
+   three states rather than one:
+
+   | `LoanEstimateGap` | What is missing | What still shows |
+   |---|---|---|
+   | `None` | nothing | exact term, balance, and interest figures |
+   | `MissingRate` | `AnnualInterestRate` | exact term and balance (simple/interest-free math); no interest-saved figure |
+   | `MissingBalance` | `RemainingPrincipal` | nothing new — inventing a balance is exactly the case §1 warned against |
+
+   The UI never blocks on a gap — it shows what it can and names what is missing,
+   with the field to fill sitting in the same dialog rather than behind a link to
+   somewhere else. This is a widening of the original guardrail, not a reversal of it:
+   the app still never invents a number it was not given.
+
+2. **Amortization math lives in `AmortizationMath`** (`HomeGuard.Application/Services`),
+   a pure static class: the standard fixed-rate annuity formulas (instalment,
+   balance-after-k, principal/interest split, term-for-a-balance), each falling back to
+   straight-line arithmetic at a 0% rate. `ContractService.BalanceBeforeInstallment` /
+   `SplitInstallmentAt` adapt it to a `PaymentPlanRevision`, walking forward from
+   `RemainingPrincipal` at that revision's `EffectiveFrom` — never from `Opening`,
+   which is a separate, coarser backfill number and stays exactly as inert as it was
+   in Phase 2 (`ContractSummary.RemainingBalance`'s existing precedence is untouched).
+   `ContractService.ConfirmPaymentAsync` now calls `SetLoanSplit` on a loan/lease
+   instalment when its revision carries a rate; `BuildSchedule` shows the same split as
+   an estimate on projected and not-yet-paid rows, and the real number once paid —
+   `PaymentSchedule.razor` renders it as a small caption under the amount, never
+   competing with it.
+
+3. **Early payoff is a preview, not a new commit endpoint.**
+   `ContractService.PreviewEarlyPayment` (pure, `POST /api/contracts/{id}/early-payment/preview`)
+   answers "what would this lump sum change" — before/after term, instalment, payoff
+   date, and interest saved (`null` under a gap, not zero — zero would claim there is
+   provably nothing to save). `RevisionDialog`'s "Calculate" button folds the result
+   straight into the existing instalment/count fields, so the plain "было → станет"
+   table built in Phase 2 shows the consequence without a second diff view. Committing
+   still goes through the existing `POST /revisions`; the lump sum itself is recorded
+   as a `Payment(Kind=Extra)` via the existing payment endpoints, composed client-side
+   rather than through a new atomic server call — §4.1's "sugar" endpoint was judged
+   not worth a second code path for what two existing calls already do correctly.
+   Not built this pass: `ResidualAmount`/`ResidualDueDate` have no dialog fields yet
+   (domain and API already carry them, from Phase 2), and the price-history sparkline
+   from §4.2 is still just revisions in a list, not a chart.
+
+4. **The monthly cash-flow rollup was pulled forward from Phase 4**, on the household's
+   own request: not just "how much per month" (Phase 2 already answers that from the
+   *current* instalment) but "which future month do several obligations land on at
+   once." `ContractService.BuildMonthlyLoad` (pure) merges every active contract's
+   `BuildSchedule` output into month × currency buckets — cheap, because it is the same
+   engine the detail page's schedule already uses, not new machinery. `GET
+   /api/finance/monthly` and a `BudgetLoadChart` component (on the contracts list page)
+   render it: one bar per month, `--hg-money` for the fill — the app's one established
+   "this is about payments" colour — and the existing `--hg-today` ember for a month
+   running ≥25% above the average, the same token overdue rows already use for
+   "needs attention." Deliberately not a stacked-by-contract-kind chart: HomeGuard has
+   no categorical palette for that yet (§11's warning about a design pass introducing
+   colours that fight `mud-overrides.css` applies here too), so which contracts make up
+   a month lives in a tap-to-expand breakdown instead of five new hues. A real
+   categorical treatment, if it is ever worth it, is `/impeccable shape` work, not a
+   byproduct of this pass.
+
+5. **What §11 flagged in advance held up.** `/impeccable document` and `shape
+   contracts` were both already run before Phase 2 (2026-08-10), so this pass extended
+   an already-recorded look rather than inventing one. The next natural checkpoint is
+   still `critique` → `polish` (§11's table) — better timed now than before, since
+   Phase 3 is what finally produces the long schedules (a 360-row mortgage) and the
+   real interest figures that `polish` needs real data to react to. The budget-load
+   chart is new information architecture in the sense §11 means it — a short `shape`
+   pass on it specifically, before it grows a second chart type or a categorical
+   palette, is worth doing before it is not a one-screen change anymore.
