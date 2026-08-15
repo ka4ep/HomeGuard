@@ -1,0 +1,174 @@
+@namespace HomeGuard.Client.Common
+@using System.Globalization
+@inject IStringLocalizer<Strings> L
+
+@*
+    Which month the household's obligations stack up in — not a ledger, a heads-up. One
+    column per month, one hue: money already means "this is about payments" everywhere
+    else in the app, so there is no new palette to learn here. A month running well above
+    the others gets the same ember used for "needs attention" elsewhere (overdue rows,
+    the cancellation-deadline note) and a value label, so the peak reads without a tap.
+    Tapping any column opens which contracts land there — that is where identity lives,
+    not in a legend of a dozen shifting colours.
+
+    Plain HTML/CSS bars, not SVG: Razor reserves the literal <text> tag for its own
+    markup-transition syntax, which collides with an SVG <text> written inside a @@for
+    loop (RZ1023/RZ1010) — a flex column of divs sidesteps it and keeps @@onclick native.
+*@
+
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Outlined.StackedBarChart" Class="mr-1" />
+                @L["BudgetLoad_Title"]
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (Entries.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@L["BudgetLoad_Empty"]</MudText>
+        }
+        else
+        {
+            @foreach (var currency in Currencies)
+            {
+                var months  = MonthsFor(currency);
+                var max     = months.Count == 0 ? 0m : months.Max(m => m.Total);
+                var average = months.Count == 0 ? 0m : months.Average(m => m.Total);
+
+                @if (Currencies.Count > 1)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-1 d-block">@currency</MudText>
+                }
+
+                <div class="hg-budget-chart" style="position:relative">
+                    @* Половина и полная высота — единственные ориентиры, без подписанных чисел. *@
+                    <div style="position:absolute; left:0; right:0; bottom:@(PlotHeight)px; border-top:1px solid var(--hg-border-card)"></div>
+                    <div style="position:absolute; left:0; right:0; bottom:@(PlotHeight / 2)px; border-top:1px solid var(--hg-border-card)"></div>
+
+                    <div style="display:flex; align-items:flex-end; gap:6px; height:@(ChartHeight)px; position:relative">
+                        @foreach (var m in months)
+                        {
+                            var isPeak      = months.Count > 1 && average > 0 && m.Total >= average * 1.25m;
+                            var barHeight   = max <= 0 ? 0 : (double)(m.Total / max) * PlotHeight;
+                            var selected    = _selectedCurrency == currency && _selectedMonth == m.Month;
+                            var monthCopy   = m.Month;
+                            var tooltip     = MonthLabelLong(m.Month) + " — " + Money(m.Total, currency);
+
+                            <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+                                        width:@(BarWidth)px; height:100%; cursor:pointer"
+                                 title="@tooltip"
+                                 @onclick="() => Toggle(currency, monthCopy)">
+                                @if (isPeak)
+                                {
+                                    <span class="hg-budget-value-label">@MoneyShort(m.Total, currency)</span>
+                                }
+                                else
+                                {
+                                    <span class="hg-budget-value-label" style="visibility:hidden">&nbsp;</span>
+                                }
+                                <div style="width:@(BarWidth)px; height:@(barHeight.ToString(CultureInfo.InvariantCulture))px;
+                                            min-height:2px; border-radius:4px 4px 0 0;
+                                            background:@(isPeak ? "var(--hg-today)" : "var(--hg-money)");
+                                            opacity:@(selected ? "1" : "0.85")"></div>
+                                <span class="hg-budget-axis-label">@MonthLabel(m.Month)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (months.Any(m => months.Count > 1 && average > 0 && m.Total >= average * 1.25m))
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-2">
+                        <span class="hg-status-dot" style="background:var(--hg-today)"></span>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["BudgetLoad_PeakLegend"]</MudText>
+                    </MudStack>
+                }
+
+                @if (GetSelected(currency, months) is { } selectedEntry)
+                {
+                    <MudPaper Elevation="0" Class="pa-3 mt-2 mb-3"
+                              Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-sm)">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-1">
+                            <MudText Typo="Typo.body2" Style="text-transform:capitalize">
+                                @MonthLabelLong(selectedEntry.Month)
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="hg-tabular" style="font-weight:600">
+                                @Money(selectedEntry.Total, currency)
+                            </MudText>
+                        </MudStack>
+                        @foreach (var c in selectedEntry.Contributions.OrderByDescending(c => c.Amount))
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@c.ContractName</MudText>
+                                <MudText Typo="Typo.caption" Class="hg-tabular">@Money(c.Amount, currency)</MudText>
+                            </MudStack>
+                        }
+                    </MudPaper>
+                }
+            }
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<MonthlyLoadEntryDto> Entries { get; set; } = [];
+
+    private const int BarWidth    = 22;   // ≤24px per the mark spec
+    private const int ChartHeight = 140;
+    private const int PlotHeight  = 96;   // leaves room for the value label above and the month label below
+
+    private string? _selectedCurrency;
+    private string? _selectedMonth;
+
+    private IReadOnlyList<string> Currencies
+        => [.. Entries.Select(e => e.Currency).Distinct().OrderBy(c => c, StringComparer.Ordinal)];
+
+    private List<MonthlyLoadEntryDto> MonthsFor(string currency)
+        => [.. Entries.Where(e => e.Currency == currency).OrderBy(e => e.Month, StringComparer.Ordinal)];
+
+    private MonthlyLoadEntryDto? GetSelected(string currency, List<MonthlyLoadEntryDto> months)
+        => _selectedCurrency == currency
+            ? months.FirstOrDefault(m => m.Month == _selectedMonth)
+            : null;
+
+    private void Toggle(string currency, string month)
+    {
+        if (_selectedCurrency == currency && _selectedMonth == month)
+        {
+            _selectedCurrency = null;
+            _selectedMonth    = null;
+        }
+        else
+        {
+            _selectedCurrency = currency;
+            _selectedMonth    = month;
+        }
+    }
+
+    private static string MonthLabel(string yyyyMM)
+        => Parse(yyyyMM).ToString("MMM", CultureInfo.CurrentCulture);
+
+    private static string MonthLabelLong(string yyyyMM)
+        => Parse(yyyyMM).ToString("MMMM yyyy", CultureInfo.CurrentCulture);
+
+    private static DateOnly Parse(string yyyyMM)
+        => DateOnly.ParseExact(yyyyMM + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string Money(decimal amount, string currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+
+    private static string MoneyShort(decimal amount, string currency)
+        => $"{amount.ToString("N0", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+
+    private static string CurrencySymbol(string currency) => currency switch
+    {
+        "EUR" => "€",
+        "USD" => "$",
+        "CZK" => "Kč",
+        "GBP" => "£",
+        _     => currency,
+    };
+}

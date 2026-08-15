@@ -158,10 +158,13 @@ else
             </MudText>
         }
     </MudPaper>
+
+    <BudgetLoadChart Entries="_monthlyLoad" />
 }
 
 @code {
     private List<ContractDto>? _items;
+    private List<MonthlyLoadEntryDto> _monthlyLoad = [];
     private ContractDialog _dialog = null!;
     private ContractKind? _kind;
     private DensityMode _density = DensityMode.Cards;
@@ -179,6 +182,7 @@ else
     {
         _density = await Density.GetAsync(DensitySurface.Contracts);
         await LoadAsync();
+        _monthlyLoad = await Api.GetMonthlyLoadAsync(6) ?? [];
     }
 
     private async Task LoadAsync()

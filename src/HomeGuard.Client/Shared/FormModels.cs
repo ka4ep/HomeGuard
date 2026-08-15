@@ -137,6 +137,17 @@ public sealed class RevisionFormModel
     public int?           InstallmentCount { get; set; }
     public string?        Note           { get; set; }
 
+    /// <summary>Balance owed at <see cref="EffectiveFrom"/> — loans and leases only.</summary>
+    public decimal? RemainingPrincipal { get; set; }
+
+    /// <summary>Nominal annual rate as a whole-number percentage (6.5 for 6.5%), the way a household reads it off a statement.</summary>
+    public decimal? AnnualInterestRatePercent { get; set; }
+
+    /// <summary>A lump sum paid today, ahead of schedule. Zero/empty means "no early payment" — a plain plan edit.</summary>
+    public decimal? ExtraAmount { get; set; }
+
+    public EarlyPaymentEffect Effect { get; set; } = EarlyPaymentEffect.ReduceTerm;
+
     public DateTime? EffectiveFromNullable { get; set; } = DateTime.Today;
 
     public DateOnly EffectiveFrom

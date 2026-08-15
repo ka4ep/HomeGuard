@@ -222,6 +222,8 @@ public enum PaymentStatus  { Planned = 0, Paid = 1, Skipped = 2, Failed = 3 }
 public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, TermChange = 3,
                              RateChange = 4, Pause = 5, AddOn = 6, Correction = 99 }
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
+public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
+public enum LoanEstimateGap    { None = 0, MissingRate = 1, MissingBalance = 2 }
 
 public sealed record ContractDto(
     Guid Id,
@@ -295,7 +297,11 @@ public sealed record ContractDetailDto(
     IReadOnlyList<NotificationRuleDto> NotificationRules
 );
 
-/// <summary>One line of the merged schedule: a stored payment or a computed projection.</summary>
+/// <summary>
+/// One line of the merged schedule: a stored payment or a computed projection.
+/// <c>PrincipalPart</c>/<c>InterestPart</c> are the actual split once paid, an estimate
+/// from the governing revision's rate before that, and null when neither is available.
+/// </summary>
 public sealed record ScheduleEntryDto(
     ScheduleOrigin Origin,
     DateOnly DueDate,
@@ -304,7 +310,9 @@ public sealed record ScheduleEntryDto(
     int? InstallmentNo,
     PaymentKind Kind,
     Guid? PaymentId,
-    bool IsOverdue
+    bool IsOverdue,
+    decimal? PrincipalPart = null,
+    decimal? InterestPart = null
 );
 
 public sealed record ContractSummaryDto(
@@ -318,7 +326,10 @@ public sealed record ContractSummaryDto(
     decimal? CurrentInstallment,
     DateOnly? NextDueDate,
     decimal? NextDueAmount,
-    int OverdueCount
+    int OverdueCount,
+    decimal InterestPaidToDate,
+    DateOnly? PayoffDate,
+    LoanEstimateGap EstimateGap
 );
 
 public sealed record CreateContractDto(
@@ -407,4 +418,37 @@ public sealed record ConfirmPaymentDto(
     DateOnly PaidDate,
     decimal? AmountPaid = null,
     string? Note = null
+);
+
+public sealed record EarlyPaymentPreviewRequestDto(
+    decimal ExtraAmount,
+    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm
+);
+
+/// <summary>
+/// Before/after of paying <c>ExtraAmount</c> today. <c>InterestSaved</c> is null exactly
+/// when <c>Gap</c> is not <see cref="LoanEstimateGap.None"/> — the term and payment numbers
+/// are still real in that case, just without a rate-dependent figure next to them.
+/// </summary>
+public sealed record EarlyPaymentPreviewDto(
+    LoanEstimateGap Gap,
+    int InstallmentsBefore,
+    int InstallmentsAfter,
+    decimal InstallmentAmountBefore,
+    decimal InstallmentAmountAfter,
+    DateOnly? PayoffDateBefore,
+    DateOnly? PayoffDateAfter,
+    decimal? InterestSaved
+);
+
+// ── Finance rollup ───────────────────────────────────────────────────────────
+
+public sealed record MonthlyLoadContributionDto(
+    Guid ContractId, string ContractName, ContractKind Kind, decimal Amount);
+
+public sealed record MonthlyLoadEntryDto(
+    string Month,
+    string Currency,
+    decimal Total,
+    IReadOnlyList<MonthlyLoadContributionDto> Contributions
 );

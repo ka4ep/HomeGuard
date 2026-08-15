@@ -329,12 +329,16 @@
   <data name="Contract_Coverage" xml:space="preserve"><value>Страховая сумма</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Франшиза</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>с {0}</value></data>
+  <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Остаток не указан — нажмите, чтобы заполнить</value></data>
+  <data name="Contract_GapMissingRate" xml:space="preserve"><value>Ставка не указана — без учёта процентов</value></data>
   <data name="Contract_Installments" xml:space="preserve"><value>{0} из {1}</value></data>
+  <data name="Contract_InterestPaid" xml:space="preserve"><value>из них проценты: {0}</value></data>
   <data name="Contract_NextPayment" xml:space="preserve"><value>Следующий платёж</value></data>
   <data name="Contract_NotFound" xml:space="preserve"><value>Такого договора больше нет.</value></data>
   <data name="Contract_OpeningNote" xml:space="preserve"><value>{0} платежей на {1} до {2} учтены одной записью, а не построчно.</value></data>
   <data name="Contract_OverdueCount" xml:space="preserve"><value>Просроченных платежей: {0}</value></data>
   <data name="Contract_PaidSoFar" xml:space="preserve"><value>Выплачено</value></data>
+  <data name="Contract_PayoffBy" xml:space="preserve"><value>Погашение к {0}</value></data>
   <data name="Contract_Revisions" xml:space="preserve"><value>История плана</value></data>
   <data name="Contract_Summary" xml:space="preserve"><value>Что покрывает</value></data>
   <data name="RevisionReason_AddOn" xml:space="preserve"><value>Добавка</value></data>
@@ -356,7 +360,11 @@
   <data name="Schedule_Projected" xml:space="preserve"><value>Прогноз</value></data>
   <data name="Schedule_ShowAll" xml:space="preserve"><value>Показать все ({0})</value></data>
   <data name="Schedule_Skipped" xml:space="preserve"><value>Пропущен</value></data>
+  <data name="Schedule_Split" xml:space="preserve"><value>из них тело {0}, проценты {1}</value></data>
   <data name="Schedule_Title" xml:space="preserve"><value>График</value></data>
+  <data name="BudgetLoad_Title" xml:space="preserve"><value>Нагрузка по месяцам</value></data>
+  <data name="BudgetLoad_Empty" xml:space="preserve"><value>Пока нечего показать — добавьте план платежей.</value></data>
+  <data name="BudgetLoad_PeakLegend" xml:space="preserve"><value>Заметно выше среднего месяца</value></data>
 
   <!-- ── Диалоги договоров ── -->
   <data name="Contract_AddTitle" xml:space="preserve"><value>Новый договор</value></data>
@@ -387,15 +395,30 @@
   <data name="RenewalMode_Manual" xml:space="preserve"><value>Продлевается вручную</value></data>
   <data name="RenewalMode_None" xml:space="preserve"><value>Не продлевается</value></data>
   <data name="Revision_After" xml:space="preserve"><value>Станет</value></data>
+  <data name="Revision_AnnualRate" xml:space="preserve"><value>Годовая ставка</value></data>
+  <data name="Revision_AnnualRateHelp" xml:space="preserve"><value>Как указано в договоре — номинальная ставка, не ПСК.</value></data>
+  <data name="Revision_BalanceAndRate" xml:space="preserve"><value>Остаток и ставка</value></data>
   <data name="Revision_Before" xml:space="preserve"><value>Было</value></data>
+  <data name="Revision_Calculate" xml:space="preserve"><value>Рассчитать</value></data>
   <data name="Revision_Commit" xml:space="preserve"><value>Применить</value></data>
+  <data name="Revision_EarlyPaymentAssist" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="Revision_EffectReducePayment" xml:space="preserve"><value>Уменьшить платёж</value></data>
+  <data name="Revision_EffectReduceTerm" xml:space="preserve"><value>Сократить срок</value></data>
   <data name="Revision_EffectiveFrom" xml:space="preserve"><value>Действует с</value></data>
   <data name="Revision_EffectiveHelp" xml:space="preserve"><value>Первый платёж, к которому применяется эта версия.</value></data>
+  <data name="Revision_ExtraAmount" xml:space="preserve"><value>Сумма платежа</value></data>
+  <data name="Revision_ExtraPaymentNote" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="Revision_GapMissingBalance" xml:space="preserve"><value>Остаток долга не указан — заполните его выше, чтобы увидеть оценку.</value></data>
+  <data name="Revision_GapMissingRate" xml:space="preserve"><value>Ставка не указана — срок посчитан точно, а экономия на процентах — нет.</value></data>
+  <data name="Revision_InstallmentsLeft" xml:space="preserve"><value>Осталось платежей: {0} → {1}</value></data>
+  <data name="Revision_InterestSaved" xml:space="preserve"><value>Экономия на процентах: {0}</value></data>
   <data name="Revision_LastDue" xml:space="preserve"><value>Последний платёж</value></data>
   <data name="Revision_OpenEndedNote" xml:space="preserve"><value>У плана нет конца, поэтому итоговой суммы нет.</value></data>
   <data name="Revision_Preview" xml:space="preserve"><value>Было → станет</value></data>
   <data name="Revision_Reason" xml:space="preserve"><value>Что изменилось</value></data>
   <data name="Revision_Remaining" xml:space="preserve"><value>Платежей осталось</value></data>
+  <data name="Revision_RemainingPrincipal" xml:space="preserve"><value>Остаток долга</value></data>
+  <data name="Revision_RemainingPrincipalHelp" xml:space="preserve"><value>Сколько осталось выплатить прямо сейчас, до этого изменения.</value></data>
   <data name="Revision_RemainingTotal" xml:space="preserve"><value>Осталось выплатить</value></data>
   <data name="Revision_Title" xml:space="preserve"><value>Изменить план</value></data>
   <data name="Revision_TooEarly" xml:space="preserve"><value>Уже действует более поздняя версия плана. Изменение не может начинаться раньше неё — запишите его как исправление.</value></data>

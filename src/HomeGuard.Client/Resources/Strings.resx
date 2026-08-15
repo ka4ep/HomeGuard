@@ -336,12 +336,16 @@
   <data name="Contract_Coverage" xml:space="preserve"><value>Cover</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Deductible</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>from {0}</value></data>
+  <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Balance unknown — tap to add it</value></data>
+  <data name="Contract_GapMissingRate" xml:space="preserve"><value>Rate unknown — shown without interest</value></data>
   <data name="Contract_Installments" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Contract_InterestPaid" xml:space="preserve"><value>of which interest: {0}</value></data>
   <data name="Contract_NextPayment" xml:space="preserve"><value>Next payment</value></data>
   <data name="Contract_NotFound" xml:space="preserve"><value>This contract no longer exists.</value></data>
   <data name="Contract_OpeningNote" xml:space="preserve"><value>{0} instalments totalling {1} before {2} are recorded as one entry, not row by row.</value></data>
   <data name="Contract_OverdueCount" xml:space="preserve"><value>Overdue payments: {0}</value></data>
   <data name="Contract_PaidSoFar" xml:space="preserve"><value>Paid so far</value></data>
+  <data name="Contract_PayoffBy" xml:space="preserve"><value>Paid off by {0}</value></data>
   <data name="Contract_Revisions" xml:space="preserve"><value>Plan history</value></data>
   <data name="Contract_Summary" xml:space="preserve"><value>What it covers</value></data>
   <data name="RevisionReason_AddOn" xml:space="preserve"><value>Add-on</value></data>
@@ -363,7 +367,11 @@
   <data name="Schedule_Projected" xml:space="preserve"><value>Projected</value></data>
   <data name="Schedule_ShowAll" xml:space="preserve"><value>Show all ({0})</value></data>
   <data name="Schedule_Skipped" xml:space="preserve"><value>Skipped</value></data>
+  <data name="Schedule_Split" xml:space="preserve"><value>of which principal {0}, interest {1}</value></data>
   <data name="Schedule_Title" xml:space="preserve"><value>Schedule</value></data>
+  <data name="BudgetLoad_Title" xml:space="preserve"><value>Monthly load</value></data>
+  <data name="BudgetLoad_Empty" xml:space="preserve"><value>Nothing due yet — add a payment plan to see it here.</value></data>
+  <data name="BudgetLoad_PeakLegend" xml:space="preserve"><value>Noticeably above the average month</value></data>
 
   <!-- ── Contract dialogs ── -->
   <data name="Contract_AddTitle" xml:space="preserve"><value>New contract</value></data>
@@ -394,15 +402,30 @@
   <data name="RenewalMode_Manual" xml:space="preserve"><value>Renewed by hand</value></data>
   <data name="RenewalMode_None" xml:space="preserve"><value>Does not renew</value></data>
   <data name="Revision_After" xml:space="preserve"><value>After</value></data>
+  <data name="Revision_AnnualRate" xml:space="preserve"><value>Annual rate</value></data>
+  <data name="Revision_AnnualRateHelp" xml:space="preserve"><value>As stated in the agreement — a nominal rate, not APR.</value></data>
+  <data name="Revision_BalanceAndRate" xml:space="preserve"><value>Balance &amp; rate</value></data>
   <data name="Revision_Before" xml:space="preserve"><value>Before</value></data>
+  <data name="Revision_Calculate" xml:space="preserve"><value>Calculate</value></data>
   <data name="Revision_Commit" xml:space="preserve"><value>Apply</value></data>
+  <data name="Revision_EarlyPaymentAssist" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Revision_EffectReducePayment" xml:space="preserve"><value>Lower the instalment</value></data>
+  <data name="Revision_EffectReduceTerm" xml:space="preserve"><value>Shorten the term</value></data>
   <data name="Revision_EffectiveFrom" xml:space="preserve"><value>In force from</value></data>
   <data name="Revision_EffectiveHelp" xml:space="preserve"><value>The first payment this version governs.</value></data>
+  <data name="Revision_ExtraAmount" xml:space="preserve"><value>Extra amount</value></data>
+  <data name="Revision_ExtraPaymentNote" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Revision_GapMissingBalance" xml:space="preserve"><value>No starting balance recorded — add one above to estimate this.</value></data>
+  <data name="Revision_GapMissingRate" xml:space="preserve"><value>No rate recorded — the term is exact, the interest saved is not.</value></data>
+  <data name="Revision_InstallmentsLeft" xml:space="preserve"><value>Payments left: {0} → {1}</value></data>
+  <data name="Revision_InterestSaved" xml:space="preserve"><value>Interest saved: {0}</value></data>
   <data name="Revision_LastDue" xml:space="preserve"><value>Last payment</value></data>
   <data name="Revision_OpenEndedNote" xml:space="preserve"><value>The plan has no end, so there is no total to show.</value></data>
   <data name="Revision_Preview" xml:space="preserve"><value>Before → after</value></data>
   <data name="Revision_Reason" xml:space="preserve"><value>What changed</value></data>
   <data name="Revision_Remaining" xml:space="preserve"><value>Payments left</value></data>
+  <data name="Revision_RemainingPrincipal" xml:space="preserve"><value>Balance owed</value></data>
+  <data name="Revision_RemainingPrincipalHelp" xml:space="preserve"><value>What is left to pay right now, before this change.</value></data>
   <data name="Revision_RemainingTotal" xml:space="preserve"><value>Left to pay</value></data>
   <data name="Revision_Title" xml:space="preserve"><value>Change the plan</value></data>
   <data name="Revision_TooEarly" xml:space="preserve"><value>A later version of the plan is already in force. A change cannot start before it — record it as a correction instead.</value></data>

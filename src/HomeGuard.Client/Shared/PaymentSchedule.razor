@@ -45,6 +45,12 @@ else
                                  Style="@AmountStyle(entry)">
                             @Money(entry.Amount)
                         </MudText>
+                        @if (entry.PrincipalPart is { } p && entry.InterestPart is { } i)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                @L["Schedule_Split", Money(p), Money(i)]
+                            </MudText>
+                        }
                     </td>
                     <td style="width:1%; text-align:right">
                         @if (CanEdit(entry))

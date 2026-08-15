@@ -5,12 +5,17 @@
 
 @*
     Corrections append a revision, never edit the plan in place — so this dialog's real
-    job is to show what the change does before it is committed. The diff is computed from
-    the plan itself: instalment, interval, how many are left, when the last one falls.
+    job is to show what the change does before it is committed. The generic diff (below)
+    is computed from the plan itself: instalment, interval, how many are left, when the
+    last one falls.
 
-    What it deliberately does NOT show is interest. Recomputing an amortisation schedule
-    needs a rate, and inventing one would be worse than staying quiet — so a loan's
-    principal split stays untouched until the rate math lands.
+    For a loan or lease, "Balance & rate" lets the household record what a plain price
+    change never needed — and when Reason is EarlyPayment, the assist panel underneath
+    turns a lump sum into the resulting instalment/term via the server's amortisation
+    math (contracts-spec.md §4.1), pre-filling the fields above so the same diff table
+    shows the consequence. Missing a rate or a balance never blocks this — the assist
+    still returns a term/payment estimate, just without an interest-saved figure, per the
+    fallback ladder in §6.
 *@
 <MudDialog @bind-Visible="_visible" Options="_options">
     <TitleContent>@L["Revision_Title"]</TitleContent>
@@ -54,6 +59,77 @@
                 <MudTextField @bind-Value="_form.Note" Label=@(L["Form_Notes"]) />
             </MudItem>
         </MudGrid>
+
+        @if (IsLoanLike)
+        {
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">@L["Revision_BalanceAndRate"]</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.RemainingPrincipal" Format="F2"
+                                     Label=@(L["Revision_RemainingPrincipal"])
+                                     HelperText=@(L["Revision_RemainingPrincipalHelp"]) />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.AnnualInterestRatePercent" Format="F2"
+                                     Label=@(L["Revision_AnnualRate"])
+                                     Adornment="Adornment.End" AdornmentText="%"
+                                     HelperText=@(L["Revision_AnnualRateHelp"]) />
+                </MudItem>
+            </MudGrid>
+        }
+
+        @if (_form.Reason == RevisionReason.EarlyPayment)
+        {
+            <MudPaper Elevation="0" Class="mt-4 pa-3"
+                      Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-md)">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Revision_EarlyPaymentAssist"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="5">
+                        <MudNumericField @bind-Value="_form.ExtraAmount" Format="F2"
+                                         Label=@(L["Revision_ExtraAmount"]) />
+                    </MudItem>
+                    <MudItem xs="12" sm="7">
+                        <MudRadioGroup @bind-Value="_form.Effect">
+                            <MudRadio Value="EarlyPaymentEffect.ReduceTerm" Dense="true">
+                                @L["Revision_EffectReduceTerm"]
+                            </MudRadio>
+                            <MudRadio Value="EarlyPaymentEffect.ReducePayment" Dense="true">
+                                @L["Revision_EffectReducePayment"]
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                </MudGrid>
+
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="mt-2"
+                           OnClick="CalculateEarlyPaymentAsync"
+                           Disabled="@(_calculating || _form.ExtraAmount is not > 0)">
+                    @L["Revision_Calculate"]
+                </MudButton>
+
+                @if (_earlyPreview is { } preview)
+                {
+                    <MudStack Spacing="1" Class="mt-3">
+                        <MudText Typo="Typo.body2">
+                            @L["Revision_InstallmentsLeft", preview.InstallmentsBefore, preview.InstallmentsAfter]
+                        </MudText>
+                        @if (preview.InterestSaved is { } saved)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--hg-money); font-weight:600">
+                                @L["Revision_InterestSaved", Money(saved)]
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(preview.Gap == LoanEstimateGap.MissingBalance
+                                    ? L["Revision_GapMissingBalance"]
+                                    : L["Revision_GapMissingRate"])
+                            </MudText>
+                        }
+                    </MudStack>
+                }
+            </MudPaper>
+        }
 
         @* ── было → станет ────────────────────────────────────────────────── *@
         <MudPaper Elevation="0" Class="mt-4 pa-3"
@@ -111,6 +187,7 @@
 @code {
     [Parameter, EditorRequired] public Guid ContractId { get; set; }
     [Parameter, EditorRequired] public string Currency { get; set; } = "EUR";
+    [Parameter] public ContractKind Kind { get; set; }
 
     /// <summary>The revision in force — the left column of the diff.</summary>
     [Parameter] public PlanRevisionDto? Current { get; set; }
@@ -119,6 +196,8 @@
     [Parameter] public int InstallmentsPaid { get; set; }
 
     [Parameter] public EventCallback OnSaved { get; set; }
+
+    private bool IsLoanLike => Kind is ContractKind.Loan or ContractKind.Lease;
 
     private static readonly RevisionReason[] Reasons =
         [RevisionReason.PriceChange, RevisionReason.TermChange, RevisionReason.EarlyPayment,
@@ -130,20 +209,54 @@
 
     private bool _visible;
     private bool _saving;
+    private bool _calculating;
     private string? _error;
     private RevisionFormModel _form = new();
+    private EarlyPaymentPreviewDto? _earlyPreview;
 
     public void Open()
     {
         _error = null;
+        _earlyPreview = null;
         _form = new RevisionFormModel
         {
-            InstallmentAmount = Current?.EffectiveInstallment,
-            IntervalMonths    = Current?.IntervalMonths ?? 1,
-            InstallmentCount  = Current?.InstallmentCount,
+            InstallmentAmount        = Current?.EffectiveInstallment,
+            IntervalMonths           = Current?.IntervalMonths ?? 1,
+            InstallmentCount         = Current?.InstallmentCount,
+            RemainingPrincipal       = Current?.RemainingPrincipal,
+            AnnualInterestRatePercent = Current?.AnnualInterestRate * 100m,
         };
         _visible = true;
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Turns the extra amount into a term/payment estimate via the server's amortisation
+    /// math, then folds the result straight into the plan fields above — the existing
+    /// "было → станет" table is what actually shows it, so this button does not need its
+    /// own diff view.
+    /// </summary>
+    private async Task CalculateEarlyPaymentAsync()
+    {
+        if (_form.ExtraAmount is not { } extra || extra <= 0) return;
+
+        _calculating = true;
+        try
+        {
+            var preview = await Api.PreviewEarlyPaymentAsync(
+                ContractId, new EarlyPaymentPreviewRequestDto(extra, _form.Effect));
+
+            _earlyPreview = preview;
+            if (preview is { InstallmentsAfter: > 0 })
+            {
+                _form.InstallmentCount   = preview.InstallmentsAfter;
+                _form.InstallmentAmount  = preview.InstallmentAmountAfter;
+            }
+        }
+        finally
+        {
+            _calculating = false;
+        }
     }
 
     private async Task SaveAsync()
@@ -155,19 +268,33 @@
         try
         {
             var result = await Api.AddRevisionAsync(ContractId, new AddRevisionDto(
-                EffectiveFrom:     _form.EffectiveFrom,
-                Reason:            _form.Reason,
-                FirstDueDate:      _form.EffectiveFrom,
-                IntervalMonths:    _form.IntervalMonths,
-                InstallmentAmount: amount,
-                InstallmentCount:  _form.InstallmentCount,
-                Note:              _form.Note));
+                EffectiveFrom:      _form.EffectiveFrom,
+                Reason:             _form.Reason,
+                FirstDueDate:       _form.EffectiveFrom,
+                IntervalMonths:     _form.IntervalMonths,
+                InstallmentAmount:  amount,
+                InstallmentCount:   _form.InstallmentCount,
+                RemainingPrincipal: IsLoanLike ? _form.RemainingPrincipal : null,
+                AnnualInterestRate: IsLoanLike ? _form.AnnualInterestRatePercent / 100m : null,
+                Note:               _form.Note));
 
             if (result is null)
             {
                 // Сервер отказывает, если ревизия начинается раньше действующей.
                 _error = L["Revision_TooEarly"];
                 return;
+            }
+
+            // Записываем сам досрочный платёж отдельной строкой — иначе деньги ушли,
+            // а в истории и в итогах контракта это никак не отразится.
+            if (_form.Reason == RevisionReason.EarlyPayment && _form.ExtraAmount is { } extra && extra > 0)
+            {
+                var payment = await Api.AddPaymentAsync(ContractId, new AddPaymentDto(
+                    DueDate: _form.EffectiveFrom, AmountDue: extra, Kind: PaymentKind.Extra,
+                    Note: L["Revision_ExtraPaymentNote"]));
+
+                if (payment is not null)
+                    await Api.ConfirmPaymentAsync(payment.Id, new ConfirmPaymentDto(_form.EffectiveFrom, extra));
             }
 
             _visible = false;

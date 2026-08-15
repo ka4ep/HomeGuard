@@ -194,3 +194,22 @@ html, body {
     height: 7px;
     border-radius: 50%;
 }
+
+/*
+   The budget-load chart's month/value micro-labels — repeated once per column, so they
+   live here rather than as inline styles on every column.
+*/
+.hg-budget-axis-label {
+    font-family: var(--hg-font);
+    font-size: 9.5px; /* DESIGN.md "label" step */
+    color: var(--hg-text-subtle);
+}
+
+.hg-budget-value-label {
+    font-family: var(--hg-font);
+    font-size: 9.5px; /* DESIGN.md "label" step */
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--hg-text);
+    white-space: nowrap;
+}

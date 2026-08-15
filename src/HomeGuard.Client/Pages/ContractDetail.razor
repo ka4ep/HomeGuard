@@ -82,6 +82,12 @@ else
                         ? L["Contract_Installments", _summary.InstallmentsPaid, total]
                         : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
                 </MudText>
+                @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                        @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
+                    </MudText>
+                }
             </MudItem>
 
             <MudItem xs="6" md="3">
@@ -89,6 +95,15 @@ else
                 <MudText Typo="Typo.h6" Class="hg-tabular">
                     @(_summary.RemainingBalance is { } balance ? Money(balance) : "—")
                 </MudText>
+                @if (IsLoanLike(c.Kind) && _summary.EstimateGap != LoanEstimateGap.None)
+                {
+                    <MudText Typo="Typo.caption" Class="d-block" Style="color:var(--hg-today); cursor:pointer"
+                             @onclick="@(() => _revisionDialog.Open())">
+                        @(_summary.EstimateGap == LoanEstimateGap.MissingBalance
+                            ? L["Contract_GapMissingBalance"]
+                            : L["Contract_GapMissingRate"])
+                    </MudText>
+                }
             </MudItem>
 
             <MudItem xs="6" md="3">
@@ -98,6 +113,12 @@ else
                 {
                     <MudText Typo="Typo.caption" Style="color:var(--hg-today)">
                         @L["Contract_CancelBy", ShortDate(deadline)]
+                    </MudText>
+                }
+                else if (IsLoanLike(c.Kind) && _summary.PayoffDate is { } payoff)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @L["Contract_PayoffBy", ShortDate(payoff)]
                     </MudText>
                 }
             </MudItem>
@@ -209,6 +230,7 @@ else
     <OpeningPositionDialog @ref="_openingDialog" ContractId="Id" OnSaved="LoadAsync" />
     <RevisionDialog @ref="_revisionDialog"
                     ContractId="Id"
+                    Kind="c.Kind"
                     Currency="@c.Currency"
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
                     InstallmentsPaid="@(_summary?.InstallmentsPaid ?? 0)"
@@ -280,6 +302,8 @@ else
     }
 
     // ── Labels ───────────────────────────────────────────────────────────────
+
+    private static bool IsLoanLike(ContractKind kind) => kind is ContractKind.Loan or ContractKind.Lease;
 
     private string KindLabel(ContractKind kind)     => L["ContractKind_" + kind];
     private string StatusLabel(ContractStatus s)    => L["ContractStatus_" + s];
