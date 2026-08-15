@@ -10,7 +10,7 @@ public static class ServiceRecordEndpoints
     {
         var grp = app.MapGroup("/api/service-records")
             .WithTags("ServiceRecords")
-            ;
+            .RequireAuthorization();
 
         grp.MapGet("/overdue",                     GetOverdue);
         grp.MapGet("/due-soon",                    GetDueSoon);

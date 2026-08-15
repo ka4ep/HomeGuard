@@ -12,7 +12,7 @@ public static class SyncEndpoints
 {
     public static void MapSyncEndpoints(this WebApplication app)
     {
-        var grp = app.MapGroup("/api/sync").WithTags("Sync");
+        var grp = app.MapGroup("/api/sync").WithTags("Sync").RequireAuthorization();
 
         grp.MapPost("/batch", async (
             [FromBody] SyncBatchRequest req,
@@ -34,7 +34,7 @@ public static class BlobEndpoints
 {
     public static void MapBlobEndpoints(this WebApplication app)
     {
-        var grp = app.MapGroup("/api/blobs").WithTags("Blobs");
+        var grp = app.MapGroup("/api/blobs").WithTags("Blobs").RequireAuthorization();
 
         grp.MapPost("/upload", Upload).DisableAntiforgery();
         grp.MapGet("/{id:guid}", Download);
@@ -121,7 +121,7 @@ public static class NotificationEndpoints
     {
         var grp = app.MapGroup("/api/notifications")
             .WithTags("Notifications")
-            ;
+            .RequireAuthorization();
 
         grp.MapPost("/subscribe", Subscribe);
         grp.MapDelete("/subscribe", Unsubscribe);

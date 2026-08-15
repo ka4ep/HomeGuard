@@ -9,7 +9,7 @@ public static class ContractEndpoints
 {
     public static void MapContractEndpoints(this WebApplication app)
     {
-        var grp = app.MapGroup("/api/contracts").WithTags("Contracts");
+        var grp = app.MapGroup("/api/contracts").WithTags("Contracts").RequireAuthorization();
 
         grp.MapGet   ("/",                          GetAll);
         grp.MapGet   ("/expiring",                  GetExpiring);
@@ -35,12 +35,12 @@ public static class ContractEndpoints
         grp.MapGet   ("/{id:guid}/payments",        GetPayments);
         grp.MapPost  ("/{id:guid}/payments",        AddPayment);
 
-        var payments = app.MapGroup("/api/payments").WithTags("Contracts");
+        var payments = app.MapGroup("/api/payments").WithTags("Contracts").RequireAuthorization();
         payments.MapPost  ("/{id:guid}/confirm",    ConfirmPayment);
         payments.MapPut   ("/{id:guid}",            UpdatePayment);
         payments.MapDelete("/{id:guid}",            DeletePayment);
 
-        var finance = app.MapGroup("/api/finance").WithTags("Contracts");
+        var finance = app.MapGroup("/api/finance").WithTags("Contracts").RequireAuthorization();
         finance.MapGet("/monthly", GetMonthlyLoad);
     }
 
