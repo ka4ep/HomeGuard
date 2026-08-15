@@ -4,6 +4,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
+@inject ILogger<Login> Logger
 @inject IStringLocalizer<Strings> L
 
 <PageTitle>HomeGuard — @L["Nav_SignIn"]</PageTitle>
@@ -141,7 +142,7 @@
 
             if (assertionElement.TryGetProperty("error", out var err))
             {
-                _error = err.GetString();
+                _error = WebAuthnErrorMessage(assertionElement, err);
                 return;
             }
 
@@ -205,7 +206,7 @@
 
             if (attestationElement.TryGetProperty("error", out var err))
             {
-                _error = err.GetString();
+                _error = WebAuthnErrorMessage(attestationElement, err);
                 return;
             }
 
@@ -233,5 +234,32 @@
         {
             _busy = false;
         }
+    }
+
+    // ── WebAuthn error mapping ───────────────────────────────────────────────
+
+    /// <summary>
+    /// homeguard-auth.js returns the browser's DOMException name in "error" (stable
+    /// across browsers) and its free-text message in "detail" (varies by vendor, often
+    /// as unhelpful as "The operation is not supported."). This turns the name into
+    /// something the household can act on; the raw detail still goes to the console for
+    /// whoever ends up diagnosing it.
+    /// </summary>
+    private string WebAuthnErrorMessage(System.Text.Json.JsonElement result, System.Text.Json.JsonElement errorName)
+    {
+        var name   = errorName.GetString();
+        var detail = result.TryGetProperty("detail", out var d) ? d.GetString() : null;
+
+        Logger.LogWarning("WebAuthn ceremony failed: {Name} — {Detail}", name, detail);
+
+        return name switch
+        {
+            "NotSupportedError"  => L["Login_ErrorNotSupported"],
+            "NotAllowedError"    => L["Login_ErrorNotAllowed"],
+            "SecurityError"      => L["Login_ErrorSecurity"],
+            "InvalidStateError"  => L["Login_ErrorInvalidState"],
+            "AbortError"         => L["Login_ErrorAbort"],
+            _                    => detail ?? name ?? L["Login_AuthFailed"],
+        };
     }
 }
