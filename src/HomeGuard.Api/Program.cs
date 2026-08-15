@@ -60,6 +60,7 @@ try
     // ── Background services ───────────────────────────────────────────────
     builder.Services.AddHostedService<JobRunnerService>();
     builder.Services.AddHostedService<RecurringRuleMaterializationHostedService>();
+    builder.Services.AddHostedService<PaymentMaterializationHostedService>();
     builder.Services.AddHostedService<NotificationSchedulerHostedService>();
     builder.Services.AddHostedService<BlobSyncHostedService>();
 
@@ -149,6 +150,7 @@ try
     app.MapBlobEndpoints();
     app.MapCalendarFeedEndpoint();
     app.MapNotificationEndpoints();
+    app.MapAttentionEndpoint();
 
     // ── SPA fallback — any unmatched GET → Blazor WASM index.html ────────
     // Handles client-side routing (e.g. /equipment/123 on hard refresh).

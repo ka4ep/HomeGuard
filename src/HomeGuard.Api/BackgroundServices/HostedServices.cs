@@ -217,6 +217,54 @@ public sealed class RecurringRuleMaterializationHostedService : BackgroundServic
     }
 }
 
+// ── Payment materialization ─────────────────────────────────────────────────────
+
+/// <summary>
+/// Runs <see cref="PaymentMaterializationService"/> once per day at midnight UTC, right
+/// alongside the recurring-rule one it mirrors, so freshly materialized Planned payments
+/// get picked up by the same day's notification scheduler and iCal feed.
+/// </summary>
+public sealed class PaymentMaterializationHostedService : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<PaymentMaterializationHostedService> _logger;
+
+    public PaymentMaterializationHostedService(
+        IServiceScopeFactory scopeFactory,
+        ILogger<PaymentMaterializationHostedService> logger)
+    {
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            await RunOnceAsync(ct);
+
+            var nextMidnightUtc = DateTime.UtcNow.Date.AddDays(1);
+            var delay = nextMidnightUtc - DateTime.UtcNow;
+            await Task.Delay(delay, ct);
+        }
+    }
+
+    private async Task RunOnceAsync(CancellationToken ct)
+    {
+        try
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var materializer = scope.ServiceProvider.GetRequiredService<PaymentMaterializationService>();
+            await materializer.RunAsync(ct);
+            _logger.LogInformation("Payment materialization completed.");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Payment materialization failed.");
+        }
+    }
+}
+
 // ── Blob sync ─────────────────────────────────────────────────────────────────
 
 /// <summary>
