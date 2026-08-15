@@ -14,14 +14,21 @@ public sealed class ApiAuthHandler(NavigationManager nav, ILogger<ApiAuthHandler
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            // MainLayout calls /api/auth/me on every render to find out who's signed in,
-            // and that endpoint answers 401 *by design* when nobody is — AuthApiClient.
-            // GetMeAsync already expects and swallows that. Redirecting on it anyway is
-            // where the loop comes from: already-on-/login gets "redirected" to /login,
-            // forceLoad reloads for real (unlike a same-URL SPA nav, which no-ops), the
-            // fresh MainLayout instance asks /api/auth/me again, 401 again — forever.
-            // Skipping the redirect when we're already there breaks that without touching
-            // the many call sites that never expected a 401 to be a normal answer.
+            // /api/auth/me answers 401 *by design* when nobody is signed in — that is its
+            // answer to "who is this?", not a failure. AuthApiClient.GetMeAsync expects it
+            // and returns null; MainLayout's gate then redirects once, deliberately.
+            // Redirecting from here as well means a forceLoad reload fires *underneath*
+            // that check, which is where the second 0-100% progress bar came from.
+            if (request.RequestUri?.AbsolutePath.EndsWith("/api/auth/me", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                logger.LogDebug("401 from /api/auth/me — nobody signed in; leaving the redirect to the layout.");
+                return response;
+            }
+
+            // Everything else: a 401 means the session went away mid-use (or a page reached
+            // for data it is not allowed to have). Bounce to /login — unless already there,
+            // which would reload forever, since forceLoad does not no-op on a same-URL nav
+            // the way an SPA navigation does.
             var loginUri = nav.ToAbsoluteUri("/login").ToString();
             if (!string.Equals(nav.Uri, loginUri, StringComparison.OrdinalIgnoreCase))
             {

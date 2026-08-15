@@ -1,5 +1,6 @@
 @page "/login"
 @inject AuthApiClient AuthApi
+@inject SessionService Session
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
@@ -155,6 +156,11 @@
                 return;
             }
 
+            // SessionService is a singleton that caches the first answer it gets. Without
+            // dropping it here, the layout's auth gate would still be holding the "nobody
+            // is signed in" from a moment ago and bounce straight back to /login.
+            Session.Invalidate();
+
             Snackbar.Add($"Welcome back, {result.DisplayName}!", Severity.Success);
             Nav.NavigateTo("/");
         }
@@ -213,6 +219,8 @@
                 _error = result.Error ?? L["Settings_RegisterFailed"];
                 return;
             }
+
+            Session.Invalidate();   // same reason as in LoginAsync above
 
             Snackbar.Add($"Welcome, {result.DisplayName}! Passkey registered.", Severity.Success);
             Nav.NavigateTo("/");
