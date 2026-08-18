@@ -1,6 +1,13 @@
 /* DocumentCapture.razor.css
    Все цвета — через переменные из variables.css
    Никаких хардкодных hex здесь.
+
+   Аудит: этот файл почти целиком написан на "-on-bg" токенах (тёмный фон, светлый
+   текст) — очевидно, компонент задумывался поверх Clay Deep. Но единственное место,
+   где он реально используется (ContractDetail.razor, карточка "Документы"), сидит на
+   светлой Paper-карточке: белый текст на кремовом фоне давал контраст ~1.1:1.
+   Единственная часть, где тёмный фон настоящий — сам блок камеры (.dc-camera-wrap
+   ставит --hg-bg-deep явно), и там "-on-bg" токены остаются.
 */
 
 /* ── Root ─────────────────────────────────────────────────── */
@@ -39,7 +46,7 @@
     border:           none;
     border-radius:    calc(var(--hg-radius-md) - 2px);
     background:       transparent;
-    color:            var(--hg-text-on-bg-muted);
+    color:            var(--hg-text-muted);
     font-family:      var(--hg-font);
     font-size:        .8125rem;
     font-weight:      500;
@@ -48,8 +55,8 @@
 }
 
 .dc-tab:hover:not(.is-active) {
-    background: rgba(255,255,255,.1);
-    color:      var(--hg-text-on-bg);
+    background: var(--hg-card-top);
+    color:      var(--hg-text);
 }
 
 .dc-tab.is-active {
@@ -85,10 +92,10 @@
     justify-content: center;
     gap:            .35rem;
     padding:        2rem 1.5rem;
-    border:         1.5px dashed var(--hg-border-on-bg);
+    border:         1.5px dashed var(--hg-border-strong);
     border-radius:  var(--hg-radius-lg);
-    background:     rgba(255,255,255,.06);
-    color:          var(--hg-text-on-bg-muted);
+    background:     var(--hg-card-top);
+    color:          var(--hg-text-muted);
     cursor:         pointer;
     transition:     border-color var(--hg-transition),
                     background   var(--hg-transition),
@@ -98,9 +105,9 @@
 
 .dc-drop-zone:hover,
 .dc-drop-zone.is-dragging {
-    border-color: var(--hg-accent-on-bg);
-    background:   rgba(79,111,160,.15);
-    color:        var(--hg-text-on-bg);
+    border-color: var(--hg-accent);
+    background:   var(--hg-accent-on-card);
+    color:        var(--hg-text);
 }
 
 .dc-drop-zone.is-dragging {
@@ -108,7 +115,7 @@
 }
 
 .dc-drop-icon {
-    color:      var(--hg-accent-on-bg);
+    color:      var(--hg-accent);
     opacity:    .8;
     margin-bottom: .25rem;
     transition: transform var(--hg-transition);
@@ -123,19 +130,19 @@
 .dc-drop-title {
     font-size:   .9375rem;
     font-weight: 500;
-    color:       var(--hg-text-on-bg);
+    color:       var(--hg-text);
     margin:      0;
 }
 
 .dc-drop-sub {
     font-size:   .8125rem;
-    color:       var(--hg-text-on-bg-muted);
+    color:       var(--hg-text-muted);
     margin:      0;
 }
 
 .dc-drop-formats {
     font-size:   .75rem;
-    color:       var(--hg-text-on-bg-subtle);
+    color:       var(--hg-text-subtle);
     margin:      .25rem 0 0;
     letter-spacing: .04em;
 }
@@ -178,12 +185,16 @@
     justify-content: center;
     gap:            .75rem;
     cursor:         pointer;
-    color:          var(--hg-text-on-bg-muted);
+    /* white-65% only reaches 2.9:1 on this dark camera background — short of AA even
+       here, where the dark background is genuinely intentional. */
+    color:          var(--hg-text-on-bg-strong);
     transition:     color var(--hg-transition);
 }
 
 .dc-camera-overlay:hover {
-    color: var(--hg-text-on-bg);
+    /* Was --hg-text-on-bg (#5E5B58) — same dark-ink-on-dark-background bug as the
+       AppBar/nav-link fixes elsewhere in this pass, just inside the camera viewfinder. */
+    color: var(--hg-text-on-bg-strong);
 }
 
 .dc-camera-overlay span {
@@ -196,7 +207,7 @@
     width:          56px;
     height:         56px;
     border-radius:  50%;
-    border:         2.5px solid var(--hg-text-on-bg);
+    border:         2.5px solid var(--hg-text-on-bg-strong);
     background:     transparent;
     cursor:         pointer;
     display:        flex;
@@ -215,7 +226,7 @@
     width:          42px;
     height:         42px;
     border-radius:  50%;
-    background:     var(--hg-text-on-bg);
+    background:     var(--hg-text-on-bg-strong);
     transition:     background var(--hg-transition);
 }
 
@@ -245,9 +256,9 @@
     align-items:    center;
     gap:            .6rem;
     padding:        .75rem 1rem;
-    background:     rgba(255,255,255,.1);
+    background:     var(--hg-card-top);
     border-radius:  var(--hg-radius-md);
-    color:          var(--hg-text-on-bg);
+    color:          var(--hg-text);
     font-size:      .875rem;
     font-weight:    500;
     width:          100%;
@@ -263,9 +274,9 @@
 .dc-btn-secondary {
     padding:        6px 14px;
     border-radius:  var(--hg-radius-sm);
-    border:         1px solid var(--hg-border-on-bg);
+    border:         1px solid var(--hg-border-card);
     background:     transparent;
-    color:          var(--hg-text-on-bg-muted);
+    color:          var(--hg-text-muted);
     font-family:    var(--hg-font);
     font-size:      .8125rem;
     cursor:         pointer;
@@ -274,9 +285,9 @@
 }
 
 .dc-btn-secondary:hover {
-    border-color: var(--hg-text-on-bg);
-    color:        var(--hg-text-on-bg);
-    background:   rgba(255,255,255,.08);
+    border-color: var(--hg-text);
+    color:        var(--hg-text);
+    background:   var(--hg-card-top);
 }
 
 /* ── Error ────────────────────────────────────────────────── */
