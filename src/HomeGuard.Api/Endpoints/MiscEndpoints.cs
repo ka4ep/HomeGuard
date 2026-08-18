@@ -48,15 +48,28 @@ public static class BlobEndpoints
         HomeGuard.Application.Interfaces.IBlobStorage storage,
         HomeGuard.Application.Interfaces.Repositories.IBlobEntryRepository repo,
         HomeGuard.Application.Interfaces.IUnitOfWork uow,
-        CancellationToken ct)
+        CancellationToken ct,
+        [FromQuery] Guid? clientOperationId = null)
     {
+        // The offline outbox retries an upload it never got an ack for. Without this,
+        // a retried upload after a flaky connection would create a second BlobEntry for
+        // the same file every time — the same idempotency guarantee the JSON outbox gets
+        // from ClientOperationId, applied here since blobs bypass that batch entirely.
+        if (clientOperationId is { } existingId)
+        {
+            var existing = await repo.GetByIdAsync(existingId, ct);
+            if (existing is not null)
+                return Results.Ok(new { existing.Id, existing.SyncStatus });
+        }
+
         await using var stream = file.OpenReadStream();
         var localPath = await storage.SaveLocallyAsync(stream, file.FileName, file.ContentType, ct);
 
         var entry = Domain.Entities.BlobEntry.CreateLocal(
             ownerEntityId, ownerEntityType,
             file.FileName, file.ContentType,
-            file.Length, localPath);
+            file.Length, localPath,
+            id: clientOperationId);
 
         await repo.AddAsync(entry, ct);
         await uow.SaveChangesAsync(ct);
@@ -92,6 +105,18 @@ public static class BlobEndpoints
         await uow.SaveChangesAsync(ct);
         return Results.NoContent();
     }
+}
+
+public sealed record BlobDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    long SizeBytes,
+    Domain.Enums.BlobSyncStatus SyncStatus,
+    DateTimeOffset CreatedAt)
+{
+    public static BlobDto From(Domain.Entities.BlobEntry b) => new(
+        b.Id, b.FileName, b.ContentType, b.SizeBytes, b.SyncStatus, b.CreatedAt);
 }
 
 // ── iCal feed ─────────────────────────────────────────────────────────────────

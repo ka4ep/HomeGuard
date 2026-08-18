@@ -1,3 +1,4 @@
+using HomeGuard.Application.Interfaces.Repositories;
 using HomeGuard.Application.Services;
 using HomeGuard.Domain.Entities;
 using HomeGuard.Domain.Enums;
@@ -78,10 +79,17 @@ public static class ContractEndpoints
         return Results.Ok(list.Select(ContractDto.From));
     }
 
-    private static async Task<IResult> Get(Guid id, ContractService svc, CancellationToken ct)
+    private static async Task<IResult> Get(
+        Guid id, ContractService svc, IBlobEntryRepository blobs, CancellationToken ct)
     {
         var contract = await svc.GetAsync(id, ct);
-        return contract is null ? Results.NotFound() : Results.Ok(ContractDetailDto.From(contract));
+        if (contract is null) return Results.NotFound();
+
+        // Contract.Attachments is intentionally unmapped in EF (see the comment on
+        // HomeGuardDbContext's Contract config) — resolved here instead.
+        var attachments = await blobs.GetByOwnerAsync(id, ct);
+        return Results.Ok(ContractDetailDto.From(
+            contract, [.. attachments.Select(BlobDto.From)]));
     }
 
     private static async Task<IResult> Create(
@@ -454,9 +462,13 @@ public sealed record ContractDetailDto(
     OpeningPositionDto? Opening,
     IReadOnlyList<PlanRevisionDto> Revisions,
     IReadOnlyList<PaymentDto> Payments,
-    IReadOnlyList<ContractNotificationRuleRequest> NotificationRules)
+    IReadOnlyList<ContractNotificationRuleRequest> NotificationRules,
+    IReadOnlyList<BlobDto> Attachments)
 {
-    public static ContractDetailDto From(Contract c) => new(
+    // attachments defaults to empty for the handful of write endpoints (SetOpening,
+    // ClearOpening) that return a ContractDetailDto without re-querying blobs — the
+    // client always follows those with a full reload, so the field is never read stale.
+    public static ContractDetailDto From(Contract c, IReadOnlyList<BlobDto>? attachments = null) => new(
         ContractDto.From(c),
         c.SummaryMarkdown,
         c.Notes,
@@ -467,7 +479,8 @@ public sealed record ContractDetailDto(
             c.Opening.AmountPaid, c.Opening.RemainingBalance),
         [.. c.Revisions.OrderBy(r => r.Version).Select(PlanRevisionDto.From)],
         [.. c.Payments.OrderBy(p => p.DueDate).Select(PaymentDto.From)],
-        [.. c.NotificationRules.Select(r => new ContractNotificationRuleRequest(r.Offset, r.IsEnabled))]);
+        [.. c.NotificationRules.Select(r => new ContractNotificationRuleRequest(r.Offset, r.IsEnabled))],
+        attachments ?? []);
 }
 
 public sealed record OpeningPositionDto(
