@@ -66,6 +66,7 @@
 
   <!-- ── Common vocabulary ─────────────────────────────────────────────────── -->
   <data name="Common_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Common_Back" xml:space="preserve"><value>Back</value></data>
   <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
   <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>

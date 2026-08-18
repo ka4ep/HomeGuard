@@ -95,8 +95,10 @@ else
             @foreach (var c in _items)
             {
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard Elevation="1" Style="cursor:pointer; height:100%"
-                             @onclick="() => OpenDetail(c.Id)">
+                    <MudCard Elevation="1" Class="hg-clickable-card" Style="cursor:pointer; height:100%"
+                             tabindex="0" role="button" aria-label="@c.Name"
+                             @onclick="() => OpenDetail(c.Id)"
+                             @onkeydown="@(e => OnCardKeyDown(e, c.Id))">
                         <MudCardContent>
                             <MudStack Row="true" AlignItems="AlignItems.Start"
                                       Justify="Justify.SpaceBetween" Spacing="2">
@@ -128,7 +130,7 @@ else
                             @if (c.CancellationDeadline is { } deadline)
                             {
                                 <MudText Typo="Typo.caption" Class="mt-1 d-block"
-                                         Style="color:var(--hg-today)">
+                                         Style="color:var(--hg-today-text)">
                                     @L["Contract_CancelBy", ShortDate(deadline)]
                                 </MudText>
                             }
@@ -202,6 +204,12 @@ else
     }
 
     private void OpenDetail(Guid id) => Nav.NavigateTo($"/contracts/{id}");
+
+    /// <summary>Cards mode has no native button under the click handler — Enter/Space stand in.</summary>
+    private void OnCardKeyDown(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ") OpenDetail(id);
+    }
 
     private void OnRowClick(TableRowClickEventArgs<ContractDto> args)
     {

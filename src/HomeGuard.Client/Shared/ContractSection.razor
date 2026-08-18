@@ -28,9 +28,11 @@ else
 {
     @foreach (var c in _contracts)
     {
-        <MudPaper @key="@c.Id" Elevation="1" Class="mb-1 px-4 py-2"
+        <MudPaper @key="@c.Id" Elevation="1" Class="mb-1 px-4 py-2 hg-clickable-card"
                   Style="border-radius:var(--hg-radius-md); cursor:pointer"
-                  @onclick="() => OpenContract(c.Id)">
+                  tabindex="0" role="button" aria-label="@c.Name"
+                  @onclick="() => OpenContract(c.Id)"
+                  @onkeydown="@(e => OnRowKeyDown(e, c.Id))">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
                 <ContractStatusChip Status="c.Status" />
                 <MudStack Spacing="0" Style="flex:1; min-width:140px">
@@ -82,6 +84,11 @@ else
     private Task OnSavedAsync(ContractDto? _) => LoadAsync();
 
     private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
+
+    private void OnRowKeyDown(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ") OpenContract(id);
+    }
 
     private IEnumerable<(string Currency, decimal Total)> MonthlyTotals
         => _contracts

@@ -23,7 +23,10 @@ else
             @foreach (var entry in Visible)
             {
                 <tr style="@(RowStyle(entry));@(OnRowClick.HasDelegate ? "cursor:pointer" : "")"
-                    @onclick="@(() => OnRowClick.InvokeAsync(entry))">
+                    tabindex="@(OnRowClick.HasDelegate ? "0" : null)"
+                    role="@(OnRowClick.HasDelegate ? "button" : null)"
+                    @onclick="@(() => OnRowClick.InvokeAsync(entry))"
+                    @onkeydown="@(e => OnTrKeyDown(e, entry))">
                     <td style="width:1%; padding-right:0">
                         <span class="hg-status-dot" style="@DotStyle(entry)"></span>
                     </td>
@@ -71,15 +74,19 @@ else
                     <td style="width:1%; text-align:right">
                         @if (CanEdit(entry))
                         {
-                            <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                           Size="Size.Small"
-                                           OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
+                            <MudTooltip Text="@L["Common_Edit"]">
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                               Size="Size.Small"
+                                               aria-label="@L["Common_Edit"]"
+                                               OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
+                            </MudTooltip>
                         }
                         @if (CanConfirm(entry))
                         {
                             <MudTooltip Text="@ConfirmLabel">
                                 <MudIconButton Icon="@Icons.Material.Outlined.CheckCircle"
                                                Size="Size.Small"
+                                               aria-label="@ConfirmLabel"
                                                Disabled="@(_confirming == entry.PaymentId)"
                                                OnClick="@(() => ConfirmAsync(entry))" />
                             </MudTooltip>
@@ -147,6 +154,13 @@ else
         _confirming = entry.PaymentId;
         await OnConfirmPayment.InvokeAsync(entry);
         _confirming = null;
+    }
+
+    /// <summary>Only the cross-contract list wires OnRowClick — that is the only row that is a keyboard target.</summary>
+    private async Task OnTrKeyDown(KeyboardEventArgs e, ScheduleEntryDto entry)
+    {
+        if (OnRowClick.HasDelegate && e.Key is "Enter" or " ")
+            await OnRowClick.InvokeAsync(entry);
     }
 
     // ── Presentation ─────────────────────────────────────────────────────────

@@ -67,6 +67,7 @@
 
   <!-- ── Общие слова ───────────────────────────────────────────────────────── -->
   <data name="Common_Add" xml:space="preserve"><value>Добавить</value></data>
+  <data name="Common_Back" xml:space="preserve"><value>Назад</value></data>
   <data name="Common_Cancel" xml:space="preserve"><value>Отмена</value></data>
   <data name="Common_Close" xml:space="preserve"><value>Закрыть</value></data>
   <data name="Common_Delete" xml:space="preserve"><value>Удалить</value></data>
