@@ -203,8 +203,12 @@ none of them jumps out of the page. Each clears 3:1 against cream paper.
 - **Muted Plum** (#8A5F72): money — contracts, insurance, subscriptions, payments.
 
 ### Tertiary
-- **Ember** (#D85A30): the "today" line on the timeline, and nothing else. Its whole
-  job is to be the one warm vertical the eye finds instantly.
+- **Ember** (#D85A30): time-urgency — the one thing that needs the eye first because
+  of *when* it is, not *what* it is. The timeline's "today" line, an overdue payment's
+  dot and label, a cancellation deadline, the month a budget chart spikes well above
+  the rest. Never a stand-in for the semantic pairs below: a validation error or a
+  status chip is never Ember, whatever its severity — that distinction is what keeps
+  Ember legible as "this is about time" rather than "something is wrong."
 
 ### Neutral
 - **Clay** (#BAB2AC): the page ground. Everything else floats on it.
@@ -231,8 +235,11 @@ slate element is a bug.
 *what kind of thing is this* (entity hues) or *what state is it in* (semantic pairs).
 No colour exists to make a screen livelier.
 
-**The Ember Reserve.** #D85A30 belongs to "today". Never reuse it for errors,
-warnings, or highlights — its value is that it appears exactly once per timeline.
+**The Ember Reserve.** #D85A30 marks time-urgency, not severity: the "today" line,
+an overdue payment, a cancellation deadline, a budget month spiking well above the
+rest — the handful of places something demands attention because of when it falls,
+not because it is wrong. It never substitutes for the semantic danger/warning pairs
+— a form error or a status chip is never Ember, however severe.
 
 ## Typography
 
