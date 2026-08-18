@@ -182,16 +182,7 @@
     private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
     private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 
     private async Task LoadWarrantiesAsync()
         => _expiring = await WarrantyApi.GetExpiringAsync(90) ?? [];

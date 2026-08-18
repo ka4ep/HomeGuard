@@ -537,15 +537,6 @@
     private string Money(decimal amount)
     {
         var currency = _detail?.Contract.Currency ?? "EUR";
-        return $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+        return $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
     }
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
 }

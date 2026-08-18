@@ -319,6 +319,7 @@
   <data name="Contract_EveryNMonths" xml:space="preserve"><value>раз в {0} мес.</value></data>
   <data name="Contract_Filter_All" xml:space="preserve"><value>Все</value></data>
   <data name="Contract_Household" xml:space="preserve"><value>Дом</value></data>
+  <data name="Contract_KindLocked" xml:space="preserve"><value>Нельзя изменить после создания договора</value></data>
   <data name="Contract_MonthlyTotal" xml:space="preserve"><value>В месяц, всё вместе</value></data>
   <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Такого пока нет.</value></data>
   <data name="Contract_NoPlan" xml:space="preserve"><value>План платежей не задан</value></data>

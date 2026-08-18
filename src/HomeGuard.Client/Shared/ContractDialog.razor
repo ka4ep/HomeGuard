@@ -16,7 +16,8 @@
         <MudGrid>
             <MudItem xs="12" sm="6">
                 <MudSelect @bind-Value="_form.Kind" Label=@(L["Equipment_Category"]) Required="true"
-                           Disabled="_editId.HasValue">
+                           Disabled="_editId.HasValue"
+                           HelperText="@(_editId.HasValue ? (string?)L["Contract_KindLocked"] : null)">
                     @foreach (var kind in AllKinds)
                     {
                         var label = L["ContractKind_" + kind];
@@ -246,12 +247,5 @@
         }
     }
 
-    private string IntervalLabel(int months) => months switch
-    {
-        1  => L["Contract_PerMonth"],
-        3  => L["Contract_PerQuarter"],
-        6  => L["Contract_PerHalfYear"],
-        12 => L["Contract_PerYear"],
-        _  => L["Contract_EveryNMonths", months],
-    };
+    private string IntervalLabel(int months) => ContractFormat.IntervalLabel(L, months);
 }

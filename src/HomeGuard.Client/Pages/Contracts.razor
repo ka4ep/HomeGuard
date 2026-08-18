@@ -220,15 +220,8 @@ else
             ? Money(amount, c.Currency)
             : "—";
 
-    private string IntervalLabel(ContractDto c) => c.IntervalMonths switch
-    {
-        null  => string.Empty,
-        1     => L["Contract_PerMonth"],
-        3     => L["Contract_PerQuarter"],
-        6     => L["Contract_PerHalfYear"],
-        12    => L["Contract_PerYear"],
-        var n => L["Contract_EveryNMonths", n],
-    };
+    private string IntervalLabel(ContractDto c)
+        => c.IntervalMonths is { } months ? ContractFormat.IntervalLabel(L, months) : string.Empty;
 
     private string PeriodLabelFor(ContractDto c)
         => c.EndDate is { } end
@@ -257,14 +250,5 @@ else
         => date.ToString("d", CultureInfo.CurrentCulture);
 
     private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 }

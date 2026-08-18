@@ -371,24 +371,8 @@
         return last.ToString("d", CultureInfo.CurrentCulture);
     }
 
-    private string IntervalLabel(int months) => months switch
-    {
-        1  => L["Contract_PerMonth"],
-        3  => L["Contract_PerQuarter"],
-        6  => L["Contract_PerHalfYear"],
-        12 => L["Contract_PerYear"],
-        _  => L["Contract_EveryNMonths", months],
-    };
+    private string IntervalLabel(int months) => ContractFormat.IntervalLabel(L, months);
 
     private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(Currency)}";
 }

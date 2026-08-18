@@ -158,17 +158,8 @@
         => DateOnly.ParseExact(yyyyMM + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 
     private static string MoneyShort(decimal amount, string currency)
-        => $"{amount.ToString("N0", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N0", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 }

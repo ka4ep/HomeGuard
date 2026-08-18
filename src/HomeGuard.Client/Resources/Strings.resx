@@ -326,6 +326,7 @@
   <data name="Contract_EveryNMonths" xml:space="preserve"><value>every {0} months</value></data>
   <data name="Contract_Filter_All" xml:space="preserve"><value>All</value></data>
   <data name="Contract_Household" xml:space="preserve"><value>Household</value></data>
+  <data name="Contract_KindLocked" xml:space="preserve"><value>Can't be changed after the contract is created</value></data>
   <data name="Contract_MonthlyTotal" xml:space="preserve"><value>Per month, all together</value></data>
   <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Nothing of this kind yet.</value></data>
   <data name="Contract_NoPlan" xml:space="preserve"><value>No payment plan yet</value></data>

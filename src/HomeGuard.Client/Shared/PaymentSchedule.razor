@@ -166,14 +166,5 @@ else
         => date.ToString("d", CultureInfo.CurrentCulture);
 
     private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(Currency)}";
 }
