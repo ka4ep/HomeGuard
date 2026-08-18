@@ -4,7 +4,7 @@
 // Called via IJSRuntime from HomeGuardDb.cs.
 
 const DB_NAME    = 'HomeGuard';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let _db = null;
 
@@ -27,6 +27,14 @@ async function openDb() {
             // Cache: local copies of server data for offline reads.
             if (!db.objectStoreNames.contains('cache')) {
                 db.createObjectStore('cache', { keyPath: 'key' });
+            }
+
+            // Blob outbox: file uploads pending a server round-trip. Kept separate from
+            // 'outbox' — that store's payloadJson goes through the batch JSON endpoint,
+            // which is the wrong shape for a file that can be several MB.
+            if (!db.objectStoreNames.contains('blobOutbox')) {
+                const blobOutbox = db.createObjectStore('blobOutbox', { keyPath: 'clientOperationId' });
+                blobOutbox.createIndex('by_createdAt', 'createdAt', { unique: false });
             }
         };
 
@@ -112,6 +120,56 @@ window.homeGuardDb = {
         return new Promise((resolve, reject) => {
             const tx  = db.transaction('outbox', 'readonly');
             const req = tx.objectStore('outbox').count();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    // ── Blob outbox ──────────────────────────────────────────────────────────────
+
+    async blobOutboxAdd(entry) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx    = db.transaction('blobOutbox', 'readwrite');
+            const store = tx.objectStore('blobOutbox');
+            const req   = store.put(entry);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    // Get all pending blob uploads ordered by createdAt.
+    async blobOutboxGetPending() {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx      = db.transaction('blobOutbox', 'readonly');
+            const index   = tx.objectStore('blobOutbox').index('by_createdAt');
+            const results = [];
+            const req     = index.openCursor();
+            req.onsuccess = e => {
+                const cursor = e.target.result;
+                if (cursor) { results.push(cursor.value); cursor.continue(); }
+                else resolve(results);
+            };
+            req.onerror = () => reject(req.error);
+        });
+    },
+
+    async blobOutboxRemove(clientOperationId) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx  = db.transaction('blobOutbox', 'readwrite');
+            const req = tx.objectStore('blobOutbox').delete(clientOperationId);
+            req.onsuccess = () => resolve();
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    async blobOutboxCount() {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx  = db.transaction('blobOutbox', 'readonly');
+            const req = tx.objectStore('blobOutbox').count();
             req.onsuccess = () => resolve(req.result);
             req.onerror   = () => reject(req.error);
         });

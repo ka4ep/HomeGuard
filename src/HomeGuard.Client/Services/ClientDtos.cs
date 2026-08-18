@@ -224,6 +224,16 @@ public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, Ter
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
 public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
 public enum LoanEstimateGap    { None = 0, MissingRate = 1, MissingBalance = 2 }
+public enum BlobSyncStatus     { LocalOnly = 0, Synced = 1, SyncFailed = 2 }
+
+public sealed record BlobDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    long SizeBytes,
+    BlobSyncStatus SyncStatus,
+    DateTimeOffset CreatedAt
+);
 
 public sealed record ContractDto(
     Guid Id,
@@ -294,7 +304,8 @@ public sealed record ContractDetailDto(
     OpeningPositionDto? Opening,
     IReadOnlyList<PlanRevisionDto> Revisions,
     IReadOnlyList<PaymentDto> Payments,
-    IReadOnlyList<NotificationRuleDto> NotificationRules
+    IReadOnlyList<NotificationRuleDto> NotificationRules,
+    IReadOnlyList<BlobDto> Attachments
 );
 
 /// <summary>
