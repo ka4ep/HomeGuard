@@ -18,16 +18,45 @@
 
 <PageTitle>@(_detail?.Contract.Name ?? L["Nav_Contracts"])</PageTitle>
 
-@if (_loading)
-{
-    <MudProgressLinear Indeterminate="true" />
-}
-else if (_detail is null)
-{
-    <MudAlert Severity="Severity.Warning">@L["Contract_NotFound"]</MudAlert>
-}
-else
-{
+@*
+    Second Object Rule (DESIGN.md): extra width buys a second object, not wider rows.
+    At >=900px the rail sits beside the open contract so switching contracts does not
+    cost the list; on phone the rail is hidden and this is exactly the page it was before.
+*@
+<div class="hg-contract-workspace">
+    <div class="hg-contract-rail">
+        @if (_rail is null)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            @foreach (var item in _rail)
+            {
+                <button type="button"
+                        class="hg-contract-rail-item @(item.Id == Id ? "is-active" : "")"
+                        @onclick="() => OpenRailItem(item.Id)">
+                    <span class="hg-status-dot" style="@RailStatusDotStyle(item)"></span>
+                    <span class="hg-contract-rail-item-text">
+                        <span class="hg-contract-rail-item-name" title="@item.Name">@item.Name</span>
+                        <span class="hg-contract-rail-item-sub hg-tabular">@RailSubLabel(item)</span>
+                    </span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="hg-contract-pane">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (_detail is null)
+    {
+        <MudAlert Severity="Severity.Warning">@L["Contract_NotFound"]</MudAlert>
+    }
+    else
+    {
     var c = _detail.Contract;
 
     @* ── Кто это ─────────────────────────────────────────────────────────── *@
@@ -305,7 +334,9 @@ else
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
                     InstallmentsPaid="@(_summary?.InstallmentsPaid ?? 0)"
                     OnSaved="LoadAsync" />
-}
+    }
+    </div>
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }
@@ -314,6 +345,7 @@ else
     private ContractSummaryDto? _summary;
     private List<ScheduleEntryDto> _schedule = [];
     private List<PendingBlobUpload> _pendingAttachments = [];
+    private List<ContractDto>? _rail;
     private bool _loading = true;
     private bool _showCapture;
     private bool _uploading;
@@ -326,7 +358,13 @@ else
     private string SummaryTitle => L["Contract_Summary"];
     private string NotesTitle   => L["Form_Notes"];
 
-    protected override void OnInitialized() => Outbox.OutboxChanged += OnOutboxChanged;
+    protected override async Task OnInitializedAsync()
+    {
+        Outbox.OutboxChanged += OnOutboxChanged;
+        // Independent of Id: the rail is the same list regardless of which contract is
+        // open, so it loads once here rather than on every LoadAsync() (OnParametersSetAsync).
+        _rail = await Api.GetAllAsync() ?? [];
+    }
 
     protected override async Task OnParametersSetAsync() => await LoadAsync();
 
@@ -452,7 +490,11 @@ else
         await LoadAsync();
     }
 
-    private Task OnDialogSavedAsync(ContractDto? _) => LoadAsync();
+    private async Task OnDialogSavedAsync(ContractDto? _)
+    {
+        await LoadAsync();
+        _rail = await Api.GetAllAsync() ?? [];   // e.g. a rename needs to reach the rail too
+    }
 
     private Task EditPaymentAsync(ScheduleEntryDto entry)
     {
@@ -468,6 +510,20 @@ else
     private string KindLabel(ContractKind kind)     => L["ContractKind_" + kind];
     private string StatusLabel(ContractStatus s)    => L["ContractStatus_" + s];
     private string ReasonLabel(RevisionReason r)    => L["RevisionReason_" + r];
+
+    // Same rule Contracts.razor's list view uses — kept in sync there rather than shared,
+    // matching how CurrencySymbol/ShortDate are already duplicated per page in this file.
+    private static string RailStatusDotStyle(ContractDto c) => c.Status switch
+    {
+        ContractStatus.Active    => "background:var(--hg-success-text)",
+        ContractStatus.Suspended => "background:var(--hg-warning-text)",
+        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
+        _                        => "background:var(--hg-text-subtle)",
+    };
+
+    private string RailSubLabel(ContractDto c) => c.Provider ?? KindLabel(c.Kind);
+
+    private void OpenRailItem(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
     private string PeriodLabel(ContractDto c)
         => c.EndDate is { } end
