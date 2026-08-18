@@ -84,13 +84,26 @@
                         </MudButton>
                     </MudStack>
                 }
+            }
 
-                @if (_error is not null)
-                {
-                    <MudAlert Severity="Severity.Error" Class="mt-4" Dense="true">
-                        @_error
-                    </MudAlert>
-                }
+            @if (_error is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-4" Dense="true">
+                    @_error
+                </MudAlert>
+            }
+
+            @if (_devModeEnabled)
+            {
+                <MudDivider Class="mt-4 mb-3" />
+                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                    @L["Login_DevModeWarning"]
+                </MudAlert>
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.BugReport"
+                           OnClick="DevLoginAsync" Disabled="_busy">
+                    @L["Login_DevSignIn"]
+                </MudButton>
             }
 
         </MudCardContent>
@@ -108,6 +121,7 @@
     private Mode   _mode = Mode.Login;
     private bool   _busy;
     private bool   _supported;
+    private bool   _devModeEnabled;
     private string _displayName = string.Empty;
     private string _deviceName  = string.Empty;
     private string? _error;
@@ -115,7 +129,8 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        _supported = await JS.InvokeAsync<bool>("homeGuardAuth.isSupported");
+        _supported      = await JS.InvokeAsync<bool>("homeGuardAuth.isSupported");
+        _devModeEnabled = await AuthApi.IsDevModeEnabledAsync();
         StateHasChanged();
     }
 
@@ -168,6 +183,35 @@
         catch (Exception ex)
         {
             _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    // ── Dev bypass ────────────────────────────────────────────────────────────
+    // Only ever rendered when the server says Auth:DevBypassEnabled is set AND it is
+    // running in Development — see AuthEndpoints.MapAuthEndpoints. The route this calls
+    // does not exist at all outside Development, regardless of config.
+
+    private async Task DevLoginAsync()
+    {
+        _busy  = true;
+        _error = null;
+
+        try
+        {
+            var result = await AuthApi.DevLoginAsync();
+            if (!result.Success)
+            {
+                _error = result.Error ?? L["Login_AuthFailed"];
+                return;
+            }
+
+            Session.Invalidate();   // same reason as in LoginAsync above
+            Snackbar.Add($"Dev sign-in: {result.DisplayName}", Severity.Warning);
+            Nav.NavigateTo("/");
         }
         finally
         {

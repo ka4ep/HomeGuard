@@ -41,6 +41,19 @@ public static class AuthEndpoints
         grp.MapDelete("/credentials/{id:guid}",           RevokeCredential)  .RequireAuthorization();
         grp.MapPost  ("/credentials/add-device/options",  AddDeviceOptions)  .RequireAuthorization();
         grp.MapPost  ("/credentials/add-device/complete", AddDeviceComplete) .RequireAuthorization();
+
+        // ── Dev bypass ─────────────────────────────────────────────────────────
+        // Skips the WebAuthn ceremony entirely — for a platform authenticator that
+        // cannot create a resident key over the connection in use (RDP is the case
+        // that prompted this; it is not the only one). /dev-mode is always mapped so
+        // Login.razor has something to probe, but always answers false outside
+        // Development. /dev-login only *exists* in Development — not "guarded", gone —
+        // so no config mistake can expose it in a real deployment.
+        grp.MapGet("/dev-mode", (IConfiguration config, IHostEnvironment env) =>
+            Results.Ok(new { Enabled = env.IsDevelopment() && config.GetValue<bool>("Auth:DevBypassEnabled") }));
+
+        if (app.Environment.IsDevelopment())
+            grp.MapPost("/dev-login", DevLogin);
     }
 
     // ── Setup probe ───────────────────────────────────────────────────────────
@@ -51,6 +64,39 @@ public static class AuthEndpoints
     {
         var users = await userRepo.GetAllAsync(ct);
         return Results.Ok(new { Required = users.Count == 0 });
+    }
+
+    // ── Dev bypass ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Signs in as the first user, creating one if none exists yet — no passkey, no
+    /// challenge, just the same cookie SignInAsync issues everywhere else. Only mapped
+    /// in Development (see MapAuthEndpoints); the config check here is belt-and-braces
+    /// for whoever finds this method later, not the actual gate.
+    /// </summary>
+    private static async Task<IResult> DevLogin(
+        IAppUserRepository userRepo,
+        IUnitOfWork uow,
+        IConfiguration config,
+        HttpContext ctx,
+        CancellationToken ct)
+    {
+        if (!config.GetValue<bool>("Auth:DevBypassEnabled"))
+            return Results.NotFound();
+
+        var users = await userRepo.GetAllAsync(ct);
+        var user  = users.Count > 0 ? users[0] : null;
+
+        if (user is null)
+        {
+            user = AppUser.Create(
+                "Dev", AppLanguage.FromAcceptLanguage(ctx.Request.Headers.AcceptLanguage));
+            await userRepo.AddAsync(user, ct);
+            await uow.SaveChangesAsync(ct);
+        }
+
+        await SignInAsync(ctx, user);
+        return Results.Ok(new { user.Id, user.DisplayName });
     }
 
     // ── Registration step 1 ───────────────────────────────────────────────────

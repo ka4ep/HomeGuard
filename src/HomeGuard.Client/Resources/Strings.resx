@@ -271,6 +271,8 @@
   <data name="Login_Authenticating" xml:space="preserve"><value>Signing in…</value></data>
   <data name="Login_BackToSignIn" xml:space="preserve"><value>Back to sign in</value></data>
   <data name="Login_DefaultDeviceName" xml:space="preserve"><value>My device</value></data>
+  <data name="Login_DevModeWarning" xml:space="preserve"><value>Development only — this skips passkey verification entirely.</value></data>
+  <data name="Login_DevSignIn" xml:space="preserve"><value>Dev: sign in without a passkey</value></data>
   <data name="Login_ErrorAbort" xml:space="preserve"><value>The passkey prompt was interrupted. Try again.</value></data>
   <data name="Login_ErrorInvalidState" xml:space="preserve"><value>This device already has a passkey registered here.</value></data>
   <data name="Login_ErrorNotAllowed" xml:space="preserve"><value>Cancelled, or timed out waiting for a fingerprint, face, PIN or security key.</value></data>

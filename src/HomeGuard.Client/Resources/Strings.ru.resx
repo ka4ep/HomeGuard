@@ -264,6 +264,8 @@
   <data name="Login_Authenticating" xml:space="preserve"><value>Входим…</value></data>
   <data name="Login_BackToSignIn" xml:space="preserve"><value>Назад ко входу</value></data>
   <data name="Login_DefaultDeviceName" xml:space="preserve"><value>Моё устройство</value></data>
+  <data name="Login_DevModeWarning" xml:space="preserve"><value>Только для разработки — полностью пропускает проверку passkey.</value></data>
+  <data name="Login_DevSignIn" xml:space="preserve"><value>Dev: войти без passkey</value></data>
   <data name="Login_ErrorAbort" xml:space="preserve"><value>Запрос passkey прервался. Попробуйте ещё раз.</value></data>
   <data name="Login_ErrorInvalidState" xml:space="preserve"><value>На этом устройстве уже зарегистрирован такой passkey.</value></data>
   <data name="Login_ErrorNotAllowed" xml:space="preserve"><value>Отменено, либо истекло время ожидания отпечатка, лица, PIN-кода или ключа безопасности.</value></data>
