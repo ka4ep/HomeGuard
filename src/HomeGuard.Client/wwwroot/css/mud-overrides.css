@@ -132,6 +132,14 @@ body, .mud-layout {
     font-weight: 500 !important;
 }
 
+/* Color="Color.Primary" чипы (например, выбранный фильтр в Contracts.razor) —
+   без этого правила MudBlazor рисует их своей дефолтной палитрой, не Slate.
+   Токены DESIGN.md для chip-neutral: slate-wash фон, slate-deep текст. */
+.mud-chip-color-primary {
+    background-color: var(--hg-accent-on-card) !important;
+    color: var(--hg-accent-text) !important;
+}
+
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
 
 .mud-button-root {
@@ -155,6 +163,30 @@ body, .mud-layout {
 .mud-dialog .mud-button-outlined-primary {
     border-color: var(--hg-border-card) !important;
     color: var(--hg-accent) !important;
+}
+
+/* Filled primary — The One Ink Rule (DESIGN.md): Slate заливка на каждой основной
+   кнопке (Add/Save/…). HomeGuardTheme.cs намеренно не задаёт Palette — единственный
+   источник правды для цвета здесь, а не в C#, см. правило в конце файла. */
+.mud-button-filled-primary {
+    background-color: var(--hg-accent) !important;
+    color: #ffffff !important;
+}
+
+    .mud-button-filled-primary:hover,
+    .mud-button-filled-primary:focus-visible,
+    .mud-button-filled-primary:active {
+        background-color: var(--hg-accent-dark) !important;
+    }
+
+/* Color="Color.Primary" на элементах без более специфичного правила выше —
+   переключатели (MudSwitch), иконки и т.п. Тот же Slate, та же логика. */
+.mud-primary-text {
+    color: var(--hg-accent) !important;
+}
+
+.mud-primary-hover {
+    background-color: rgba(79, 111, 160, .08) !important;
 }
 
 /* ── Text colors ───────────────────────────────────────────────────────────── */
