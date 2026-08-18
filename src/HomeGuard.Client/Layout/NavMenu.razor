@@ -27,9 +27,13 @@
         @if (_displayName is not null)
         {
             <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-4 py-2">
+                @* Color.Secondary resolves to --hg-text-muted globally (mud-overrides.css),
+                   a dark ink meant for the light Clay ground — 1.28:1 on this dark Drawer.
+                   Overridden inline rather than touching the global rule, which is correct
+                   almost everywhere else it's used (on Paper cards, not this chrome). *@
                 <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
-                         Color="Color.Secondary" />
-                <MudText Typo="Typo.body2" Color="Color.Secondary">@_displayName</MudText>
+                         Style="color:var(--hg-text-on-bg-strong)" />
+                <MudText Typo="Typo.body2" Style="color:var(--hg-text-on-bg-strong)">@_displayName</MudText>
             </MudStack>
             <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">
                 @L["Nav_SignOut"]
@@ -44,8 +48,10 @@
     </MudNavMenu>
 
     <div class="px-4 pb-3 mt-auto">
+        @* Solid, not dimmed — this background is dark enough that even solid white barely
+           clears 4.5:1 (4.50:1 exactly); any opacity here drops back below AA. *@
         <MudText Typo="Typo.caption"
-                 Style="color: var(--hg-text-on-bg-subtle)">
+                 Style="color: var(--hg-text-on-bg-strong)">
             v@_version
         </MudText>
     </div>

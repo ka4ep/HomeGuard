@@ -52,14 +52,22 @@
     --hg-border-on-bg: rgba(255, 255, 255, 0.18);
     --hg-border-card: rgba(60, 50, 40, 0.12);
     --hg-border-strong: rgba(60, 50, 40, 0.25);
-    /* Текст на сером фоне */
+    /* Текст на светлом сером фоне (--hg-bg, Clay) — тёмные чернила читаются на нём с
+       запасом (5.6:1). Не путать с --hg-bg-deep (AppBar/Drawer) ниже: это два разных
+       серых, и до аудита этот токен ошибочно ставили на оба сразу. */
     --hg-text-on-bg: #5E5B58;
     --hg-text-on-bg-muted: rgba(255, 255, 255, 0.65);
     --hg-text-on-bg-subtle: rgba(255, 255, 255, 0.38);
+    /* Текст на тёмном сером фоне (--hg-bg-deep, AppBar/Drawer/Nav) — на этом фоне даже
+       белый при 100% непрозрачности едва дотягивает до 4.5:1, так что для реального
+       текста здесь нужен непрозрачный белый, а не полупрозрачный вариант выше. */
+    --hg-text-on-bg-strong: #ffffff;
     /* Текст на карточках */
     --hg-text: #1e1c1a;
     --hg-text-muted: #6b6560;
-    --hg-text-subtle: #9c9590;
+    /* 9c9590 давало 2.46:1 на Paper — не проходит AA даже для мелкого label-текста.
+       78716c — 4.0:1 на Paper, 4.5:1 на Paper Top (родной фон field-well). */
+    --hg-text-subtle: #78716c;
     /* Акцент — slate blue, три варианта под разный фон */
     --hg-accent: #4f6fa0;
     --hg-accent-dark: #3a5278;
@@ -80,7 +88,8 @@
     --hg-service: #4E8A6B;
     --hg-meter: #9C752E;
     --hg-money: #8A5F72;
-    --hg-today: #D85A30;
+    --hg-today: #D85A30; /* dot/mark only — 3.2:1 on Paper, fine for graphics, not for text */
+    --hg-today-text: #ab421f; /* same hue, darkened for actual letters — 5.0:1 on Paper */
     /* Timeline */
     --hg-timeline-line: #d4cfc8;
     --hg-timeline-dot: var(--hg-accent);
@@ -181,6 +190,18 @@ html, body {
     border-bottom: 1px solid var(--hg-border-card);
     padding: .35em .5em;
     text-align: left;
+}
+
+/*
+   A card/row whose only click target is the whole element (MudCard, MudPaper, a
+   PaymentSchedule <tr>) needs its own visible focus ring — browsers don't draw one for
+   an arbitrary element made focusable via tabindex. DESIGN.md: focus rings come from
+   Slate, never the browser default.
+*/
+[role="button"][tabindex]:focus-visible,
+.hg-clickable-card:focus-visible {
+    outline: 2px solid var(--hg-accent);
+    outline-offset: 2px;
 }
 
 /*

@@ -14,7 +14,10 @@ body, .mud-layout {
 
 .mud-appbar {
     background-color: var(--hg-bg-deep) !important;
-    color: var(--hg-text-on-bg) !important;
+    /* Было --hg-text-on-bg (#5E5B58) — тёмные чернила, задуманные для светлого Clay,
+       давали 1.5:1 на тёмном Clay Deep AppBar. Название приложения и иконка меню были
+       практически невидимы на каждой странице. */
+    color: var(--hg-text-on-bg-strong) !important;
     /* Тонкая граница вместо тени */
     border-bottom: 1px solid var(--hg-border-on-bg) !important;
     box-shadow: none !important;
@@ -29,17 +32,21 @@ body, .mud-layout {
     box-shadow: none !important;
 }
 
+/* Clay Deep is dark enough that even solid white only just clears 4.5:1 (4.50:1 exactly)
+   — there is no headroom left to also dim the resting state and stay AA. So every state
+   gets the same strong-white text; which item is current is carried by the background
+   lift alone (DESIGN.md's own words: "contrast comes from lightness, not hue"). The
+   previous rest state (white-65%, 2.90:1) and the hover/active state (--hg-text-on-bg,
+   #5E5B58 on a dark background, 1.8–2.0:1) both failed AA before this fix. */
 .mud-nav-link {
-    color: var(--hg-text-on-bg-muted) !important;
+    color: var(--hg-text-on-bg-strong) !important;
     border-radius: var(--hg-radius-sm) !important;
     margin: 2px 8px !important;
-    transition: background var(--hg-transition), color var(--hg-transition) !important;
+    transition: background var(--hg-transition) !important;
 }
 
-    .mud-nav-link:hover,
-    .mud-nav-link.active {
+    .mud-nav-link:hover {
         background-color: rgba(255,255,255,.1) !important;
-        color: var(--hg-text-on-bg) !important;
     }
 
     .mud-nav-link.active {
@@ -68,7 +75,13 @@ body, .mud-layout {
 .mud-table-container {
     background-color: var(--hg-card) !important;
     border-radius: var(--hg-radius-md) !important;
-    overflow: hidden;
+    /* MudBlazor's own default here is overflow-x:auto — the DESIGN.md-mandated "tables
+       scroll inside their own container" behaviour. `overflow: hidden` (loaded after
+       MudBlazor's stylesheet, so it won, sharing the same specificity) silently clipped
+       any overflowing row instead — no page-wide scroll, but no in-container scroll
+       either, just cut-off content. Rounded corners still clip fine with auto/hidden. */
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .mud-table-head .mud-table-cell {
