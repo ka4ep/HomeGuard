@@ -323,7 +323,13 @@ public sealed record ScheduleEntryDto(
     Guid? PaymentId,
     bool IsOverdue,
     decimal? PrincipalPart = null,
-    decimal? InterestPart = null
+    decimal? InterestPart = null,
+    // Set only when PaymentSchedule is rendering a cross-contract list (Home's upcoming
+    // strip) — the server's per-contract /schedule endpoint never populates these, so the
+    // single-contract callers (ContractDetail) see them as null exactly as before.
+    Guid? ContractId = null,
+    string? ContractName = null,
+    string? Currency = null
 );
 
 public sealed record ContractSummaryDto(

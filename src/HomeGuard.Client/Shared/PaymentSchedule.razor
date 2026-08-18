@@ -22,33 +22,49 @@ else
         <tbody>
             @foreach (var entry in Visible)
             {
-                <tr style="@RowStyle(entry)">
+                <tr style="@(RowStyle(entry));@(OnRowClick.HasDelegate ? "cursor:pointer" : "")"
+                    @onclick="@(() => OnRowClick.InvokeAsync(entry))">
                     <td style="width:1%; padding-right:0">
                         <span class="hg-status-dot" style="@DotStyle(entry)"></span>
                     </td>
                     <td>
                         <MudStack Spacing="0">
-                            <MudText Typo="Typo.body2" Class="hg-tabular">
-                                @ShortDate(entry.DueDate)
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @StateLabel(entry)
-                                @if (entry.InstallmentNo is { } no)
-                                {
-                                    <span> · @no</span>
-                                }
-                            </MudText>
+                            @if (entry.ContractName is { } name)
+                            {
+                                @* Cross-contract list (Home): identity matters more than lifecycle state here. *@
+                                <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                    @if (entry.IsOverdue)
+                                    {
+                                        <span> · @L["Schedule_Overdue"]</span>
+                                    }
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @StateLabel(entry)
+                                    @if (entry.InstallmentNo is { } no)
+                                    {
+                                        <span> · @no</span>
+                                    }
+                                </MudText>
+                            }
                         </MudStack>
                     </td>
                     <td style="text-align:right">
                         <MudText Typo="Typo.body2" Class="hg-tabular"
                                  Style="@AmountStyle(entry)">
-                            @Money(entry.Amount)
+                            @Money(entry.Amount, entry.Currency ?? Currency)
                         </MudText>
                         @if (entry.PrincipalPart is { } p && entry.InterestPart is { } i)
                         {
                             <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
-                                @L["Schedule_Split", Money(p), Money(i)]
+                                @L["Schedule_Split", Money(p, entry.Currency ?? Currency), Money(i, entry.Currency ?? Currency)]
                             </MudText>
                         }
                     </td>
@@ -86,13 +102,23 @@ else
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<ScheduleEntryDto> Entries { get; set; } = [];
 
-    [Parameter, EditorRequired] public string Currency { get; set; } = "EUR";
+    /// <summary>
+    /// Fallback currency for an entry that does not carry its own — every entry does today
+    /// except the cross-contract list (Home's upcoming strip), where each row names its own.
+    /// </summary>
+    [Parameter] public string? Currency { get; set; }
 
     /// <summary>Raised when a row's "paid" button is used; the page owns the API call.</summary>
     [Parameter] public EventCallback<ScheduleEntryDto> OnConfirmPayment { get; set; }
 
     /// <summary>Raised when a stored row is opened for correction.</summary>
     [Parameter] public EventCallback<ScheduleEntryDto> OnEditPayment { get; set; }
+
+    /// <summary>
+    /// Raised on row click instead of the edit/confirm actions — Home's strip uses this to
+    /// jump to the contract rather than act on the payment inline.
+    /// </summary>
+    [Parameter] public EventCallback<ScheduleEntryDto> OnRowClick { get; set; }
 
     /// <summary>How many rows to show before the far tail collapses.</summary>
     [Parameter] public int Collapsed { get; set; } = 12;
@@ -165,6 +191,6 @@ else
     private static string ShortDate(DateOnly date)
         => date.ToString("d", CultureInfo.CurrentCulture);
 
-    private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(Currency)}";
+    private static string Money(decimal amount, string? currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency ?? "EUR")}";
 }

@@ -1,5 +1,4 @@
 @page "/"
-@using System.Globalization
 @inject WarrantyApiClient WarrantyApi
 @inject ServiceRecordApiClient ServiceApi
 @inject EquipmentApiClient EquipmentApi
@@ -39,27 +38,7 @@
                 </MudButton>
             </MudStack>
 
-            @foreach (var p in _upcoming.Take(5))
-            {
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="py-1"
-                          Style="cursor:pointer" @onclick="() => OpenContract(p.ContractId)">
-                    <span class="hg-status-dot"
-                          style="@(p.IsOverdue ? "background:var(--hg-today)" : "background:var(--hg-accent)")"></span>
-                    <MudStack Spacing="0" Style="flex:1; min-width:0">
-                        <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@p.ContractName</MudText>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
-                            @p.DueDate.ToString("d", CultureInfo.CurrentCulture)
-                            @if (p.IsOverdue)
-                            {
-                                <span> · @L["Schedule_Overdue"]</span>
-                            }
-                        </MudText>
-                    </MudStack>
-                    <MudText Typo="Typo.body2" Class="hg-tabular" Style="color:var(--hg-money)">
-                        @Money(p.AmountDue, p.Currency)
-                    </MudText>
-                </MudStack>
-            }
+            <PaymentSchedule Entries="UpcomingEntries" OnRowClick="OpenScheduleContract" />
         </MudCardContent>
     </MudCard>
 }
@@ -181,8 +160,29 @@
 
     private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
-    private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
+    private void OpenScheduleContract(ScheduleEntryDto entry)
+    {
+        if (entry.ContractId is { } id) OpenContract(id);
+    }
+
+    /// <summary>
+    /// The top five, mapped onto PaymentSchedule's shape — the component it was already
+    /// meant to share with the detail page and the equipment section (see PaymentSchedule's
+    /// own header comment), not a hand-rolled row.
+    /// </summary>
+    private List<ScheduleEntryDto> UpcomingEntries
+        => [.. (_upcoming ?? []).Take(5).Select(p => new ScheduleEntryDto(
+            Origin:         ScheduleOrigin.Stored,
+            DueDate:        p.DueDate,
+            Amount:         p.AmountDue,
+            Status:         PaymentStatus.Planned,
+            InstallmentNo:  null,
+            Kind:           PaymentKind.Scheduled,
+            PaymentId:      p.PaymentId,
+            IsOverdue:      p.IsOverdue,
+            ContractId:     p.ContractId,
+            ContractName:   p.ContractName,
+            Currency:       p.Currency))];
 
     private async Task LoadWarrantiesAsync()
         => _expiring = await WarrantyApi.GetExpiringAsync(90) ?? [];
