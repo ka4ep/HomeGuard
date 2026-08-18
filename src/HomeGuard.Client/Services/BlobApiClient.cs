@@ -29,32 +29,47 @@ public sealed class BlobApiClient
             new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
 
         using var form = new MultipartFormDataContent();
-        form.Add(fileContent,                           "file",            file.Name);
-        form.Add(new StringContent(ownerEntityId.ToString()), "ownerEntityId");
-        form.Add(new StringContent(ownerEntityType),          "ownerEntityType");
+        form.Add(fileContent, "file", file.Name);
 
-        var resp = await _http.PostAsync("api/blobs/upload", form, ct);
+        var resp = await _http.PostAsync(UploadUrl(ownerEntityId, ownerEntityType), form, ct);
         if (!resp.IsSuccessStatusCode) return null;
 
         var body = await resp.Content.ReadFromJsonAsync<BlobUploadResult>(ct);
         return body?.Id;
     }
 
-    // В BlobApiClient добавить рядом с существующим UploadAsync:
+    /// <summary>
+    /// Upload raw bytes (from <c>DocumentCapture</c>) to the server.
+    /// <paramref name="clientOperationId"/>, when supplied, makes a retried call after a
+    /// dropped connection idempotent — the server returns the original blob instead of
+    /// creating a duplicate. Returns the blob ID on success, null on failure.
+    /// </summary>
     public async Task<Guid?> UploadAsync(
         byte[] data, string mimeType, string fileName,
-        Guid entityId, string entityType)
+        Guid ownerEntityId, string ownerEntityType,
+        Guid? clientOperationId = null,
+        CancellationToken ct = default)
     {
         using var content = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(data);
         fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(mimeType);
         content.Add(fileContent, "file", fileName);
-        content.Add(new StringContent(entityId.ToString()), "entityId");
-        content.Add(new StringContent(entityType), "entityType");
 
-        var resp = await _http.PostAsync("api/blobs", content);
+        var url = UploadUrl(ownerEntityId, ownerEntityType, clientOperationId);
+        var resp = await _http.PostAsync(url, content, ct);
         if (!resp.IsSuccessStatusCode) return null;
-        return await resp.Content.ReadFromJsonAsync<Guid>();
+
+        var body = await resp.Content.ReadFromJsonAsync<BlobUploadResult>(ct);
+        return body?.Id;
+    }
+
+    // ownerEntityId/ownerEntityType/clientOperationId bind server-side via [FromQuery] —
+    // they must travel in the URL, not as multipart form fields.
+    private static string UploadUrl(Guid ownerEntityId, string ownerEntityType, Guid? clientOperationId = null)
+    {
+        var url = $"api/blobs/upload?ownerEntityId={ownerEntityId}&ownerEntityType={Uri.EscapeDataString(ownerEntityType)}";
+        if (clientOperationId is { } id) url += $"&clientOperationId={id}";
+        return url;
     }
 
     /// <summary>Returns a URL to stream the blob directly from the API.</summary>
