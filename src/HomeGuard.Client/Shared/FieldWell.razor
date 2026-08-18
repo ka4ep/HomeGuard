@@ -1,0 +1,18 @@
+@namespace HomeGuard.Client.Common
+
+@*
+    DESIGN.md's Label-Over-Value Rule and field-well component: "a Paper Top block at 6px
+    radius with a 9.5px uppercase label and a 13.5px/500 tabular value... this is how every
+    fact is displayed — never a bare value in a paragraph." The system's most emphasized
+    pattern and, until now, not built anywhere. Wrap the label; give value markup the
+    `hg-field-well-value` class (plus `hg-tabular` where the content is a number).
+*@
+<div class="hg-field-well">
+    <span class="hg-field-well-label">@Label</span>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

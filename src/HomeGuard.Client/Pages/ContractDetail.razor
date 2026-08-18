@@ -97,62 +97,66 @@
     {
         <MudGrid Class="mb-4">
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_NextPayment"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular" Style="color:var(--hg-money)">
-                    @(_summary.NextDueAmount is { } amount ? Money(amount) : "—")
-                </MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
-                    @(_summary.NextDueDate is { } due ? ShortDate(due) : string.Empty)
-                </MudText>
+                <FieldWell Label="@L["Contract_NextPayment"]">
+                    <span class="hg-field-well-value hg-tabular" style="color:var(--hg-money)">
+                        @(_summary.NextDueAmount is { } amount ? Money(amount) : "—")
+                    </span>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                        @(_summary.NextDueDate is { } due ? ShortDate(due) : string.Empty)
+                    </MudText>
+                </FieldWell>
             </MudItem>
 
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_PaidSoFar"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular">@Money(_summary.PaidToDate)</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @(_summary.InstallmentsTotal is { } total
-                        ? L["Contract_Installments", _summary.InstallmentsPaid, total]
-                        : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
-                </MudText>
-                @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
-                        @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
-                    </MudText>
-                }
-            </MudItem>
-
-            <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Balance"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular">
-                    @(_summary.RemainingBalance is { } balance ? Money(balance) : "—")
-                </MudText>
-                @if (IsLoanLike(c.Kind) && _summary.EstimateGap != LoanEstimateGap.None)
-                {
-                    <MudText Typo="Typo.caption" Class="d-block" Style="color:var(--hg-today); cursor:pointer"
-                             @onclick="@(() => _revisionDialog.Open())">
-                        @(_summary.EstimateGap == LoanEstimateGap.MissingBalance
-                            ? L["Contract_GapMissingBalance"]
-                            : L["Contract_GapMissingRate"])
-                    </MudText>
-                }
-            </MudItem>
-
-            <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Period"]</MudText>
-                <MudText Typo="Typo.body1" Class="hg-tabular">@PeriodLabel(c)</MudText>
-                @if (c.CancellationDeadline is { } deadline)
-                {
-                    <MudText Typo="Typo.caption" Style="color:var(--hg-today)">
-                        @L["Contract_CancelBy", ShortDate(deadline)]
-                    </MudText>
-                }
-                else if (IsLoanLike(c.Kind) && _summary.PayoffDate is { } payoff)
-                {
+                <FieldWell Label="@L["Contract_PaidSoFar"]">
+                    <span class="hg-field-well-value hg-tabular">@Money(_summary.PaidToDate)</span>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @L["Contract_PayoffBy", ShortDate(payoff)]
+                        @(_summary.InstallmentsTotal is { } total
+                            ? L["Contract_Installments", _summary.InstallmentsPaid, total]
+                            : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
                     </MudText>
-                }
+                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                            @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
+                        </MudText>
+                    }
+                </FieldWell>
+            </MudItem>
+
+            <MudItem xs="6" md="3">
+                <FieldWell Label="@L["Contract_Balance"]">
+                    <span class="hg-field-well-value hg-tabular">
+                        @(_summary.RemainingBalance is { } balance ? Money(balance) : "—")
+                    </span>
+                    @if (IsLoanLike(c.Kind) && _summary.EstimateGap != LoanEstimateGap.None)
+                    {
+                        <MudText Typo="Typo.caption" Class="d-block" Style="color:var(--hg-today); cursor:pointer"
+                                 @onclick="@(() => _revisionDialog.Open())">
+                            @(_summary.EstimateGap == LoanEstimateGap.MissingBalance
+                                ? L["Contract_GapMissingBalance"]
+                                : L["Contract_GapMissingRate"])
+                        </MudText>
+                    }
+                </FieldWell>
+            </MudItem>
+
+            <MudItem xs="6" md="3">
+                <FieldWell Label="@L["Contract_Period"]">
+                    <span class="hg-field-well-value hg-tabular">@PeriodLabel(c)</span>
+                    @if (c.CancellationDeadline is { } deadline)
+                    {
+                        <MudText Typo="Typo.caption" Style="color:var(--hg-today)">
+                            @L["Contract_CancelBy", ShortDate(deadline)]
+                        </MudText>
+                    }
+                    else if (IsLoanLike(c.Kind) && _summary.PayoffDate is { } payoff)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @L["Contract_PayoffBy", ShortDate(payoff)]
+                        </MudText>
+                    }
+                </FieldWell>
             </MudItem>
         </MudGrid>
 

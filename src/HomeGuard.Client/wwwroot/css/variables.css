@@ -196,6 +196,37 @@ html, body {
 }
 
 /*
+   Field well — DESIGN.md's Label-Over-Value Rule, the system's signature pattern: every
+   fact is a label over a tinted value, never a bare number in a paragraph. Two per row on
+   a phone, four in a desktop pane (the caller's MudGrid decides that); this only owns the
+   box, the label, and the value's type.
+*/
+.hg-field-well {
+    background: var(--hg-card-top);
+    border-radius: var(--hg-radius-sm);
+    padding: 7px 9px;
+}
+
+.hg-field-well-label {
+    display: block;
+    font-family: var(--hg-font);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--hg-text-subtle);
+    margin-bottom: 2px;
+}
+
+.hg-field-well-value {
+    display: block;
+    font-family: var(--hg-font);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--hg-text);
+}
+
+/*
    The budget-load chart's month/value micro-labels — repeated once per column, so they
    live here rather than as inline styles on every column.
 */
