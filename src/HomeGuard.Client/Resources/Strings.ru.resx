@@ -335,9 +335,19 @@
   <data name="Nav_Contracts" xml:space="preserve"><value>Договоры</value></data>
 
   <!-- ── Карточка договора и график ── -->
+  <data name="Contract_AddAttachment" xml:space="preserve"><value>Добавить документ</value></data>
+  <data name="Contract_AttachmentDeleteFailed" xml:space="preserve"><value>Не удалось удалить документ</value></data>
+  <data name="Contract_AttachmentDeleted" xml:space="preserve"><value>Документ удалён</value></data>
+  <data name="Contract_AttachmentQueued" xml:space="preserve"><value>В очереди — загрузится, когда появится связь</value></data>
+  <data name="Contract_AttachmentSaved" xml:space="preserve"><value>Сохранено — загрузится, когда появится связь</value></data>
+  <data name="Contract_AttachmentUploaded" xml:space="preserve"><value>Документ загружен</value></data>
+  <data name="Contract_Attachments" xml:space="preserve"><value>Документы</value></data>
+  <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте PDF полиса или его фото.</value></data>
   <data name="Contract_Balance" xml:space="preserve"><value>Остаток долга</value></data>
   <data name="Contract_Coverage" xml:space="preserve"><value>Страховая сумма</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Франшиза</value></data>
+  <data name="Contract_DeleteAttachmentMessage" xml:space="preserve"><value>Удалить «{0}»? Это нельзя отменить.</value></data>
+  <data name="Contract_DeleteAttachmentTitle" xml:space="preserve"><value>Удалить документ</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>с {0}</value></data>
   <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Остаток не указан — нажмите, чтобы заполнить</value></data>
   <data name="Contract_GapMissingRate" xml:space="preserve"><value>Ставка не указана — без учёта процентов</value></data>

@@ -342,9 +342,19 @@
   <data name="Nav_Contracts" xml:space="preserve"><value>Contracts</value></data>
 
   <!-- ── Contract detail and schedule ── -->
+  <data name="Contract_AddAttachment" xml:space="preserve"><value>Add document</value></data>
+  <data name="Contract_AttachmentDeleteFailed" xml:space="preserve"><value>Could not delete the document</value></data>
+  <data name="Contract_AttachmentDeleted" xml:space="preserve"><value>Document deleted</value></data>
+  <data name="Contract_AttachmentQueued" xml:space="preserve"><value>Queued — will upload once you're online</value></data>
+  <data name="Contract_AttachmentSaved" xml:space="preserve"><value>Saved — will upload once you're online</value></data>
+  <data name="Contract_AttachmentUploaded" xml:space="preserve"><value>Document uploaded</value></data>
+  <data name="Contract_Attachments" xml:space="preserve"><value>Documents</value></data>
+  <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the policy PDF or a photo of it.</value></data>
   <data name="Contract_Balance" xml:space="preserve"><value>Balance</value></data>
   <data name="Contract_Coverage" xml:space="preserve"><value>Cover</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Deductible</value></data>
+  <data name="Contract_DeleteAttachmentMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
+  <data name="Contract_DeleteAttachmentTitle" xml:space="preserve"><value>Delete document</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>from {0}</value></data>
   <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Balance unknown — tap to add it</value></data>
   <data name="Contract_GapMissingRate" xml:space="preserve"><value>Rate unknown — shown without interest</value></data>

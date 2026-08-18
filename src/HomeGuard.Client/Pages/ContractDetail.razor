@@ -1,9 +1,14 @@
 @page "/contracts/{Id:guid}"
 @using System.Globalization
+@using HomeGuard.Client.Model
 @inject ContractApiClient Api
+@inject BlobApiClient Blobs
+@inject OutboxSyncService Outbox
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IDialogService Dialog
 @inject IStringLocalizer<Strings> L
+@implements IDisposable
 
 @*
     Sequence from the shape brief: who this is → what is next → why → history → actions.
@@ -138,6 +143,71 @@ else
                   Icon="@Icons.Material.Outlined.Article"
                   ShowEmpty="true" />
 
+    @* ── Документы ───────────────────────────────────────────────────────── *@
+    <MudCard Elevation="1" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Outlined.AttachFile" Class="mr-1" />
+                    @L["Contract_Attachments"]
+                </MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@(_showCapture ? Icons.Material.Filled.Close : Icons.Material.Filled.Add)"
+                               OnClick="@(() => _showCapture = !_showCapture)" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (_detail.Attachments.Count == 0 && _pendingAttachments.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Contract_AttachmentsEmpty"]</MudText>
+            }
+            else
+            {
+                @foreach (var a in _detail.Attachments)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                            <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" />
+                            <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank" Style="overflow-wrap:anywhere">
+                                @a.FileName
+                            </MudLink>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                @FormatSize(a.SizeBytes)
+                            </MudText>
+                        </MudStack>
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                       OnClick="@(() => DeleteAttachmentAsync(a))" />
+                    </MudStack>
+                }
+                @foreach (var p in _pendingAttachments)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@p.FileName</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
+                                @L["Contract_AttachmentQueued"]
+                            </MudChip>
+                        </MudStack>
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                       OnClick="@(() => RemovePendingAttachmentAsync(p))" />
+                    </MudStack>
+                }
+            }
+
+            <MudCollapse Expanded="_showCapture">
+                <div class="mt-2">
+                    <DocumentCapture OnCapture="OnDocumentCapturedAsync" Label="@L["Contract_AddAttachment"]" />
+                    @if (_uploading)
+                    {
+                        <MudProgressLinear Indeterminate="true" Class="mt-2" />
+                    }
+                </div>
+            </MudCollapse>
+        </MudCardContent>
+    </MudCard>
+
     @if (c.Kind == ContractKind.Insurance
          && (_detail.CoverageAmount is not null || _detail.Deductible is not null))
     {
@@ -243,7 +313,10 @@ else
     private ContractDetailDto? _detail;
     private ContractSummaryDto? _summary;
     private List<ScheduleEntryDto> _schedule = [];
+    private List<PendingBlobUpload> _pendingAttachments = [];
     private bool _loading = true;
+    private bool _showCapture;
+    private bool _uploading;
 
     private ContractDialog _contractDialog = null!;
     private OpeningPositionDialog _openingDialog = null!;
@@ -253,7 +326,17 @@ else
     private string SummaryTitle => L["Contract_Summary"];
     private string NotesTitle   => L["Form_Notes"];
 
+    protected override void OnInitialized() => Outbox.OutboxChanged += OnOutboxChanged;
+
     protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    public void Dispose() => Outbox.OutboxChanged -= OnOutboxChanged;
+
+    private void OnOutboxChanged() => InvokeAsync(async () =>
+    {
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(Id)];
+        StateHasChanged();
+    });
 
     private async Task LoadAsync()
     {
@@ -262,13 +345,90 @@ else
         var detailTask   = Api.GetAsync(Id);
         var summaryTask  = Api.GetSummaryAsync(Id);
         var scheduleTask = Api.GetScheduleAsync(Id);
-        await Task.WhenAll(detailTask, summaryTask, scheduleTask);
+        var pendingTask  = Outbox.GetPendingBlobsForOwnerAsync(Id);
+        await Task.WhenAll(detailTask, summaryTask, scheduleTask, pendingTask);
 
         _detail   = detailTask.Result;
         _summary  = summaryTask.Result;
         _schedule = scheduleTask.Result ?? [];
+        _pendingAttachments = [.. pendingTask.Result];
         _loading  = false;
     }
+
+    // ── Documents ────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// DocumentCapture fires OnCapture the instant a file is picked or a photo is taken —
+    /// there is no separate "confirm" step on its side, so the upload starts right here.
+    /// Going through the outbox (rather than BlobApiClient directly) means a capture made
+    /// with no signal is not lost: it is queued in IndexedDB and FlushAsync sends it the
+    /// moment a connection is available, same as everything else offline-first in this app.
+    /// </summary>
+    private async Task OnDocumentCapturedAsync(CapturedDocument doc)
+    {
+        _uploading = true;
+        StateHasChanged();
+
+        await Outbox.EnqueueBlobUploadAsync(doc.Data, doc.MimeType, doc.FileName, Id, "Contract");
+        var result = await Outbox.FlushAsync();
+
+        _uploading   = false;
+        _showCapture = false;
+
+        Snackbar.Add(
+            result.Committed > 0 ? L["Contract_AttachmentUploaded"] : L["Contract_AttachmentSaved"],
+            Severity.Success);
+
+        await LoadAsync();
+    }
+
+    private async Task DeleteAttachmentAsync(BlobDto blob)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Contract_DeleteAttachmentTitle"],
+            message: L["Contract_DeleteAttachmentMessage", blob.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        if (!await Blobs.DeleteAsync(blob.Id))
+        {
+            Snackbar.Add(L["Contract_AttachmentDeleteFailed"], Severity.Error);
+            return;
+        }
+
+        Snackbar.Add(L["Contract_AttachmentDeleted"], Severity.Success);
+        await LoadAsync();
+    }
+
+    private async Task RemovePendingAttachmentAsync(PendingBlobUpload pending)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Contract_DeleteAttachmentTitle"],
+            message: L["Contract_DeleteAttachmentMessage", pending.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        await Outbox.RemovePendingBlobAsync(pending.ClientOperationId);
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(Id)];
+    }
+
+    private static string AttachmentIcon(string contentType) => contentType switch
+    {
+        "application/pdf" => Icons.Material.Outlined.PictureAsPdf,
+        _ when contentType.StartsWith("image/", StringComparison.Ordinal) => Icons.Material.Outlined.InsertPhoto,
+        _ => Icons.Material.Outlined.InsertDriveFile,
+    };
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024        => $"{bytes} B",
+        < 1024 * 1024 => $"{bytes / 1024.0:0.#} KB",
+        _             => $"{bytes / 1024.0 / 1024.0:0.#} MB",
+    };
 
     /// <summary>
     /// "Two taps from the notification": the amount and the date are already known, so
