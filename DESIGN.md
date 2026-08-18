@@ -9,8 +9,9 @@ colors:
   paper-top: "#faf8f5"
   ink: "#1e1c1a"
   ink-muted: "#6b6560"
-  ink-subtle: "#9c9590"
+  ink-subtle: "#78716c"
   ink-on-greige: "#5E5B58"
+  chrome-text: "#ffffff"
   slate: "#4f6fa0"
   slate-deep: "#3a5278"
   slate-on-greige: "#a8c4e8"
@@ -20,6 +21,7 @@ colors:
   meter: "#9C752E"
   money: "#8A5F72"
   today: "#D85A30"
+  today-text: "#ab421f"
   success-wash: "#d8eee0"
   success-ink: "#2d6040"
   warning-wash: "#f5ede0"
@@ -128,12 +130,12 @@ components:
     padding: "2px 9px"
   nav-link:
     backgroundColor: "transparent"
-    textColor: "rgba(255, 255, 255, 0.65)"
+    textColor: "{colors.chrome-text}"
     rounded: "{rounded.sm}"
     padding: "8px 12px"
   nav-link-active:
     backgroundColor: "rgba(255, 255, 255, 0.15)"
-    textColor: "{colors.ink-on-greige}"
+    textColor: "{colors.chrome-text}"
   density-toggle-off:
     backgroundColor: "transparent"
     textColor: "rgba(255, 255, 255, 0.62)"
@@ -204,11 +206,15 @@ none of them jumps out of the page. Each clears 3:1 against cream paper.
 
 ### Tertiary
 - **Ember** (#D85A30): time-urgency — the one thing that needs the eye first because
-  of *when* it is, not *what* it is. The timeline's "today" line, an overdue payment's
-  dot and label, a cancellation deadline, the month a budget chart spikes well above
-  the rest. Never a stand-in for the semantic pairs below: a validation error or a
-  status chip is never Ember, whatever its severity — that distinction is what keeps
-  Ember legible as "this is about time" rather than "something is wrong."
+  of *when* it is, not *what* it is. Dots, bars and the timeline's "today" line —
+  graphical marks, never letters. Never a stand-in for the semantic pairs below: a
+  validation error or a status chip is never Ember, whatever its severity — that
+  distinction is what keeps Ember legible as "this is about time" rather than
+  "something is wrong."
+- **Ember Text** (#ab421f): the same warm hue, darkened, for the rare case Ember
+  labels an actual sentence — a cancellation-deadline note, a rate-unknown warning —
+  rather than a dot or a bar. #D85A30 itself is a graphic-only value (3.2:1, the
+  non-text threshold); letters need Ember Text's 5.0:1 against Paper instead.
 
 ### Neutral
 - **Clay** (#BAB2AC): the page ground. Everything else floats on it.
@@ -217,8 +223,16 @@ none of them jumps out of the page. Each clears 3:1 against cream paper.
 - **Paper Top** (#faf8f5): fields, wells, table headers, dialogs — the layer above paper.
 - **Ink** (#1e1c1a): body text on paper.
 - **Ink Muted** (#6b6560): secondary text and table headings.
-- **Ink Subtle** (#9c9590): catalogue labels, axis ticks, timestamps.
-- **Ink on Greige** (#5E5B58): text sitting directly on the clay ground.
+- **Ink Subtle** (#78716c): catalogue labels, axis ticks, timestamps — darkened from an
+  earlier #9c9590 (2.5:1 on Paper) after an audit found the system's own signature
+  label pattern failing contrast on itself.
+- **Ink on Greige** (#5E5B58): text sitting directly on the light Clay ground (5.6:1).
+  Never on Clay Deep — see Chrome Text below.
+- **Chrome Text** (#ffffff): text on Clay Deep — the app bar, the drawer, every nav
+  link. Clay Deep is dark enough that solid white barely clears AA (4.50:1, no
+  headroom); Ink on Greige on this surface measured 1.5–2.0:1 before an audit caught
+  it. There is no muted variant of this token — Clay Deep has no room for one and
+  stay compliant, so hierarchy here comes from background lift, not text weight.
 - **Hairlines** (rgba(60,50,40,.12) / .25): card edges and dividers; on the clay
   ground the hairline flips to rgba(255,255,255,.18).
 
@@ -373,9 +387,11 @@ between them. This is how every fact is displayed — never a bare value in a pa
 
 ### Navigation
 App bar and drawer are Clay Deep with a white-18% hairline instead of a shadow. Nav
-links are 6px-radius rows at white-65%, lifting to white-10% background on hover and
-white-15% when active. The active row never uses Slate — inside the chrome, contrast
-comes from lightness, not hue.
+link text is Chrome Text (#ffffff) at every state — Clay Deep leaves no contrast
+headroom for a dimmer resting state, so which item is current is carried entirely by
+a 6px-radius background lift: transparent at rest, white-10% on hover, white-15% when
+active. The active row never uses Slate — inside the chrome, contrast comes from
+lightness, not hue.
 
 ### Density switch
 A segmented control of two options, **Cards** and **List**, in the surface's header
@@ -407,6 +423,12 @@ entity hue; predicted marks are hollow with a dashed edge in Ink Subtle. The Emb
   scrollbar (6px, Clay Raised thumb), and focus rings.
 - **Do** check any new entity hue at 3:1 against Paper (#eeeae4) before adopting it —
   this is how #B08A3C became #9C752E.
+- **Do** treat Clay Deep as its own contrast case. Text there needs Chrome Text
+  (#ffffff) — Ink on Greige (#5E5B58) is tuned for the lighter Clay page and measures
+  1.5–2.0:1 on Clay Deep. The two greys don't share a text colour, however similar
+  their names look.
+- **Do** give a clickable card or row a keyboard path — `tabindex="0"`, `role="button"`,
+  Enter/Space — whenever the click target isn't already a native button or link.
 
 ### Don't:
 - **Don't** use Slate for anything that cannot be pressed, and don't build an action
@@ -414,7 +436,10 @@ entity hue; predicted marks are hollow with a dashed edge in Ink Subtle. The Emb
 - **Don't** nest a shadow inside a card; separate inner regions with Paper Top instead.
 - **Don't** put a coloured bar wider than 1px on the edge of a card or row — a 7px
   status dot carries the same information without the costume.
-- **Don't** reuse Ember (#D85A30) for anything but "today".
+- **Don't** use Ember for a form error or a status chip, however severe — Ember marks
+  *when* something needs attention, the semantic pairs mark *what's wrong*. Don't put
+  Ember itself (#D85A30) on text either — it's a graphic-only value; use Ember Text
+  (#ab421f) for an actual sentence.
 - **Don't** let MudBlazor's ALL CAPS buttons back in, and don't reintroduce Roboto —
   `app.css` still carries a Blazor-template `font-family: 'Roboto'` on `html, body`
   and a Google Fonts link in `index.html`; both are leftovers, and Plus Jakarta Sans
@@ -424,3 +449,7 @@ entity hue; predicted marks are hollow with a dashed edge in Ink Subtle. The Emb
   and sentence-case labels borrowed from somewhere else.
 - **Don't** set colour in `HomeGuardTheme.cs`; `mud-overrides.css` is the single
   source of truth and its `!important` rules will win silently.
+- **Don't** override `.mud-table-container`'s overflow. MudBlazor's own default is
+  already `overflow-x:auto` — this system's "tables scroll inside their own
+  container" rule, for free. A stray `overflow:hidden` there clips content instead
+  of scrolling it.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-10T00:00:00Z",
+  "generatedAt": "2026-08-18T00:00:00Z",
   "title": "Design System: HomeGuard",
   "extensions": {
     "colorMeta": {
@@ -96,7 +96,7 @@
       "refersTo": "field-well",
       "description": "The system's signature: catalogue label over a tabular value. Every fact is displayed this way.",
       "html": "<div class=\"ds-well\"><span>Next payment</span><b>168,50 &euro;</b></div>",
-      "css": ".ds-well { display: block; background: var(--hg-card-top, #faf8f5); border-radius: var(--hg-radius-sm, 6px); padding: 7px 9px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-well span { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #9c9590); margin-bottom: 2px; } .ds-well b { font-size: 13.5px; font-weight: 500; color: var(--hg-text, #1e1c1a); font-variant-numeric: tabular-nums; }"
+      "css": ".ds-well { display: block; background: var(--hg-card-top, #faf8f5); border-radius: var(--hg-radius-sm, 6px); padding: 7px 9px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-well span { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #78716c); margin-bottom: 2px; } .ds-well b { font-size: 13.5px; font-weight: 500; color: var(--hg-text, #1e1c1a); font-variant-numeric: tabular-nums; }"
     },
     {
       "name": "Card",
@@ -104,7 +104,7 @@
       "refersTo": "card",
       "description": "A document on the clay table. Shadow plus hairline at rest; the lift state is pointer-only.",
       "html": "<div class=\"ds-card\"><div class=\"ds-card-t\">KASKO &mdash; Cupra Born</div><div class=\"ds-card-s\">If P&amp;C Insurance &middot; POL-4471902</div></div>",
-      "css": ".ds-card { background: var(--hg-card, #eeeae4); color: var(--hg-text, #1e1c1a); border: .5px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); box-shadow: 0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10); padding: 14px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; transition: box-shadow 160ms ease, transform 160ms ease; } .ds-card-t { font-size: 17px; font-weight: 600; letter-spacing: -.015em; line-height: 1.25; } .ds-card-s { font-size: 11.5px; color: var(--hg-text-subtle, #9c9590); margin-top: 3px; } @media (hover: hover) and (pointer: fine) { .ds-card:hover { box-shadow: 0 8px 22px rgba(30,28,26,.18); transform: translateY(-3px); } }"
+      "css": ".ds-card { background: var(--hg-card, #eeeae4); color: var(--hg-text, #1e1c1a); border: .5px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); box-shadow: 0 2px 8px rgba(30,28,26,.10), 0 0 0 .5px rgba(60,50,40,.10); padding: 14px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; transition: box-shadow 160ms ease, transform 160ms ease; } .ds-card-t { font-size: 17px; font-weight: 600; letter-spacing: -.015em; line-height: 1.25; } .ds-card-s { font-size: 11.5px; color: var(--hg-text-subtle, #78716c); margin-top: 3px; } @media (hover: hover) and (pointer: fine) { .ds-card:hover { box-shadow: 0 8px 22px rgba(30,28,26,.18); transform: translateY(-3px); } }"
     },
     {
       "name": "Status Chip",
@@ -118,9 +118,9 @@
       "name": "Nav Link",
       "kind": "nav",
       "refersTo": "nav-link",
-      "description": "Inside the Clay Deep chrome, contrast comes from lightness, not hue — the active row never uses Slate.",
+      "description": "Inside the Clay Deep chrome, contrast comes from lightness, not hue — the active row never uses Slate. Text is Chrome Text at every state (Clay Deep has no headroom for a dimmer resting state and still clear AA); which row is current is carried entirely by the background lift.",
       "html": "<div class=\"ds-nav\"><a class=\"ds-nav-l is-active\" href=\"#\">Contracts</a><a class=\"ds-nav-l\" href=\"#\">Equipment</a><a class=\"ds-nav-l\" href=\"#\">Timeline</a></div>",
-      "css": ".ds-nav { background: var(--hg-bg-deep, #7a7672); padding: 8px 4px; border-radius: var(--hg-radius-md, 10px); display: flex; flex-direction: column; gap: 2px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-nav-l { display: block; color: rgba(255,255,255,.65); text-decoration: none; border-radius: var(--hg-radius-sm, 6px); margin: 0 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; transition: background 160ms ease, color 160ms ease; } .ds-nav-l:hover { background: rgba(255,255,255,.1); color: #EDE9E4; } .ds-nav-l.is-active { background: rgba(255,255,255,.15); color: #EDE9E4; } .ds-nav-l:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: -2px; }"
+      "css": ".ds-nav { background: var(--hg-bg-deep, #7a7672); padding: 8px 4px; border-radius: var(--hg-radius-md, 10px); display: flex; flex-direction: column; gap: 2px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-nav-l { display: block; color: var(--hg-text-on-bg-strong, #ffffff); text-decoration: none; border-radius: var(--hg-radius-sm, 6px); margin: 0 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; transition: background 160ms ease; } .ds-nav-l:hover { background: rgba(255,255,255,.1); } .ds-nav-l.is-active { background: rgba(255,255,255,.15); } .ds-nav-l:focus-visible { outline: 2px solid rgba(255,255,255,.6); outline-offset: -2px; }"
     },
     {
       "name": "Density Switch",
@@ -136,7 +136,7 @@
       "refersTo": null,
       "description": "The one custom-drawn surface: fixed label column, panning track, entity hues, hollow marks for predictions, Ember for today.",
       "html": "<div class=\"ds-tl\"><div class=\"ds-tl-l\"><i>Cupra Born</i><b>Engine oil</b></div><div class=\"ds-tl-t\"><span class=\"ds-tl-link\"></span><span class=\"ds-tl-dot\"></span><span class=\"ds-tl-dot ds-tl-dot2\"></span><span class=\"ds-tl-dot ds-tl-pred\"></span><span class=\"ds-tl-today\"></span></div></div>",
-      "css": ".ds-tl { display: flex; height: 50px; background: var(--hg-card, #eeeae4); border: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-tl-l { flex: 0 0 110px; background: var(--hg-card-top, #faf8f5); border-right: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); padding: 0 12px; display: flex; flex-direction: column; justify-content: center; } .ds-tl-l i { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #9c9590); } .ds-tl-l b { font-size: 13px; font-weight: 500; color: var(--hg-text-muted, #6b6560); } .ds-tl-t { flex: 1; position: relative; } .ds-tl-link { position: absolute; top: 50%; left: 12%; width: 52%; height: 2px; transform: translateY(-50%); background: #4E8A6B; opacity: .34; } .ds-tl-dot { position: absolute; top: 50%; left: 12%; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #4E8A6B; background: #fff; transform: translate(-50%,-50%); } .ds-tl-dot2 { left: 64%; } .ds-tl-pred { left: 92%; border-style: dashed; border-color: #9c9590; background: #f2f0ed; } .ds-tl-today { position: absolute; top: 0; bottom: 0; left: 46%; width: 2px; background: #D85A30; }"
+      "css": ".ds-tl { display: flex; height: 50px; background: var(--hg-card, #eeeae4); border: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); border-radius: var(--hg-radius-md, 10px); overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; } .ds-tl-l { flex: 0 0 110px; background: var(--hg-card-top, #faf8f5); border-right: 1px solid var(--hg-border-card, rgba(60,50,40,.12)); padding: 0 12px; display: flex; flex-direction: column; justify-content: center; } .ds-tl-l i { font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--hg-text-subtle, #78716c); } .ds-tl-l b { font-size: 13px; font-weight: 500; color: var(--hg-text-muted, #6b6560); } .ds-tl-t { flex: 1; position: relative; } .ds-tl-link { position: absolute; top: 50%; left: 12%; width: 52%; height: 2px; transform: translateY(-50%); background: #4E8A6B; opacity: .34; } .ds-tl-dot { position: absolute; top: 50%; left: 12%; width: 13px; height: 13px; border-radius: 50%; border: 2px solid #4E8A6B; background: #fff; transform: translate(-50%,-50%); } .ds-tl-dot2 { left: 64%; } .ds-tl-pred { left: 92%; border-style: dashed; border-color: #78716c; background: #f2f0ed; } .ds-tl-today { position: absolute; top: 0; bottom: 0; left: 46%; width: 2px; background: #D85A30; }"
     }
   ],
   "narrative": {
@@ -153,7 +153,7 @@
     "rules": [
       { "name": "The One Ink Rule", "body": "Slate is the only actionable colour. If something is slate-blue, it can be pressed; if it can be pressed, it is slate-blue. A decorative slate element is a bug.", "section": "colors" },
       { "name": "The Meaning-Only Rule", "body": "Every non-neutral colour answers one of two questions: what kind of thing is this (entity hues) or what state is it in (semantic pairs). No colour exists to make a screen livelier.", "section": "colors" },
-      { "name": "The Ember Reserve", "body": "#D85A30 belongs to 'today'. Never reuse it for errors, warnings, or highlights — its value is that it appears exactly once per timeline.", "section": "colors" },
+      { "name": "The Ember Reserve", "body": "#D85A30 marks time-urgency, not severity: the \"today\" line, an overdue payment, a cancellation deadline, a budget month spiking well above the rest — the handful of places something demands attention because of when it falls, not because it is wrong. It never substitutes for the semantic danger/warning pairs — a form error or a status chip is never Ember, however severe.", "section": "colors" },
       { "name": "The Label-Over-Value Rule", "body": "A fact is a 9.5px uppercase label with a 13.5px/500 value beneath it, inside a tinted well. Not 'Label: value' on one line, not a bare number hoping to be understood.", "section": "typography" },
       { "name": "The Tabular Rule", "body": "Every number that can be compared down a column — money, meter readings, dates, counts — carries font-variant-numeric: tabular-nums. Numbers that jitter between rows read as an unfinished product.", "section": "typography" },
       { "name": "The Second Object Rule", "body": "Extra width buys a second object, never wider rows. A desktop screen shows the list and the open item; it does not stretch one card to 1400px.", "section": "layout" },
@@ -167,16 +167,19 @@
       "Do keep the density switch on every list surface — List by default on a phone, Cards on a desktop — and remember the choice per screen and per device.",
       "Do gate the lift state behind @media (hover:hover) and (pointer:fine).",
       "Do theme the browser's own surfaces from the palette: selection, caret, scrollbar (6px, Clay Raised thumb), and focus rings.",
-      "Do check any new entity hue at 3:1 against Paper (#eeeae4) before adopting it — this is how #B08A3C became #9C752E."
+      "Do check any new entity hue at 3:1 against Paper (#eeeae4) before adopting it — this is how #B08A3C became #9C752E.",
+      "Do treat Clay Deep as its own contrast case. Text there needs Chrome Text (#ffffff) — Ink on Greige (#5E5B58) is tuned for the lighter Clay page and measures 1.5–2.0:1 on Clay Deep. The two greys don't share a text colour, however similar their names look.",
+      "Do give a clickable card or row a keyboard path — tabindex=\"0\", role=\"button\", Enter/Space — whenever the click target isn't already a native button or link."
     ],
     "donts": [
       "Don't use Slate for anything that cannot be pressed, and don't build an action in any other colour.",
       "Don't nest a shadow inside a card; separate inner regions with Paper Top instead.",
       "Don't put a coloured bar wider than 1px on the edge of a card or row — a 7px status dot carries the same information without the costume.",
-      "Don't reuse Ember (#D85A30) for anything but 'today'.",
+      "Don't use Ember for a form error or a status chip, however severe — Ember marks when something needs attention, the semantic pairs mark what's wrong. Don't put Ember itself (#D85A30) on text either — it's a graphic-only value; use Ember Text (#ab421f) for an actual sentence.",
       "Don't let MudBlazor's ALL CAPS buttons back in, and don't reintroduce Roboto — app.css still carries a Blazor-template font-family: 'Roboto' on html, body and a Google Fonts link in index.html; both are leftovers, and Plus Jakarta Sans is the only face in this system.",
       "Don't introduce a second visual language for a roomier layout. Roominess is a density of this world — bigger type and more air on the same tokens, not 20px radii and sentence-case labels borrowed from somewhere else.",
-      "Don't set colour in HomeGuardTheme.cs; mud-overrides.css is the single source of truth and its !important rules will win silently."
+      "Don't set colour in HomeGuardTheme.cs; mud-overrides.css is the single source of truth and its !important rules will win silently.",
+      "Don't override .mud-table-container's overflow. MudBlazor's own default is already overflow-x:auto — this system's \"tables scroll inside their own container\" rule, for free. A stray overflow:hidden there clips content instead of scrolling it."
     ]
   }
 }
