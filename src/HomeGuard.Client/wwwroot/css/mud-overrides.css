@@ -140,6 +140,23 @@ body, .mud-layout {
     color: var(--hg-accent-text) !important;
 }
 
+/* Semantic state chips (ContractStatusChip and anywhere else a status shows as a chip) —
+   DESIGN.md's semantic pairs: pale wash background, matching dark ink. */
+.mud-chip-color-success {
+    background-color: var(--hg-success-bg) !important;
+    color: var(--hg-success-text) !important;
+}
+
+.mud-chip-color-warning {
+    background-color: var(--hg-warning-bg) !important;
+    color: var(--hg-warning-text) !important;
+}
+
+.mud-chip-color-error {
+    background-color: var(--hg-danger-bg) !important;
+    color: var(--hg-danger-text) !important;
+}
+
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
 
 .mud-button-root {

@@ -78,9 +78,7 @@
             </MudText>
         </MudStack>
         <MudSpacer />
-        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
-            @StatusLabel(c.Status)
-        </MudChip>
+        <ContractStatusChip Status="c.Status" />
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense="true">
             <MudMenuItem OnClick="@(() => _contractDialog.OpenEdit(_detail!))">
                 @L["Common_Edit"]
@@ -508,7 +506,6 @@
     private static bool IsLoanLike(ContractKind kind) => kind is ContractKind.Loan or ContractKind.Lease;
 
     private string KindLabel(ContractKind kind)     => L["ContractKind_" + kind];
-    private string StatusLabel(ContractStatus s)    => L["ContractStatus_" + s];
     private string ReasonLabel(RevisionReason r)    => L["RevisionReason_" + r];
 
     // Same rule Contracts.razor's list view uses — kept in sync there rather than shared,

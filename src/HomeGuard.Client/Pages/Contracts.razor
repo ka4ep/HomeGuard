@@ -74,7 +74,7 @@ else
             <RowTemplate Context="c">
                 <MudTd DataLabel="@NameLabel">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                        <ContractStatusChip Status="c.Status" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.body2" Style="font-weight:600">@c.Name</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -110,7 +110,7 @@ else
                                         }
                                     </MudText>
                                 </MudStack>
-                                <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                                <ContractStatusChip Status="c.Status" />
                             </MudStack>
 
                             <MudText Typo="Typo.h6" Class="hg-tabular mt-3"
@@ -234,18 +234,6 @@ else
         => c.EndDate is { } end
             ? $"{ShortDate(c.StartDate)} → {ShortDate(end)}"
             : $"{ShortDate(c.StartDate)} → {L["Contract_OpenEnded"]}";
-
-    /// <summary>
-    /// A 7px dot rather than a coloured edge bar (the brief is explicit about this):
-    /// status is a fact about the row, not a second background.
-    /// </summary>
-    private static string StatusDotStyle(ContractDto c) => c.Status switch
-    {
-        ContractStatus.Active    => "background:var(--hg-success-text)",
-        ContractStatus.Suspended => "background:var(--hg-warning-text)",
-        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
-        _                        => "background:var(--hg-text-subtle)",
-    };
 
     // ── Totals ───────────────────────────────────────────────────────────────
 
