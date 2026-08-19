@@ -201,6 +201,7 @@ public sealed class HomeGuardDbContext : DbContext
             e.Property(x => x.Currency).HasMaxLength(3).IsRequired();
             e.Property(x => x.Kind).HasConversion<int>();
             e.Property(x => x.Status).HasConversion<int>();
+            e.Property(x => x.StatusReason).HasMaxLength(500);
             e.Property(x => x.Renewal).HasConversion<int>();
             e.Property(x => x.StartDate).HasConversion(dateOnlyConverter);
             e.Property(x => x.EndDate).HasConversion(nullableDateOnlyConverter);

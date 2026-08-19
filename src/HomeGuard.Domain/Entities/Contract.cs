@@ -57,6 +57,13 @@ public sealed class Contract : Entity
     public ContractStatus Status { get; private set; }
 
     /// <summary>
+    /// Why the contract is Suspended or Cancelled — free text, optional. So a second
+    /// adult reading the record later doesn't have to guess or ask (PRODUCT.md
+    /// Principle 1). Cleared automatically on a return to Active.
+    /// </summary>
+    public string? StatusReason { get; private set; }
+
+    /// <summary>
     /// The previous policy in a renewal chain. Insurance renews into a new contract —
     /// each year has its own document, its own price, its own summary.
     /// </summary>
@@ -213,9 +220,10 @@ public sealed class Contract : Entity
         Touch();
     }
 
-    public void SetStatus(ContractStatus status)
+    public void SetStatus(ContractStatus status, string? reason = null)
     {
         Status = status;
+        StatusReason = status == ContractStatus.Active ? null : Clean(reason);
         Touch();
     }
 
