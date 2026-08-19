@@ -332,7 +332,7 @@
   <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Nothing of this kind yet.</value></data>
   <data name="Contract_NoPlan" xml:space="preserve"><value>No payment plan yet</value></data>
   <data name="Contract_OpenEnded" xml:space="preserve"><value>open-ended</value></data>
-  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>{0} in another currency is not counted in — amounts are never converted.</value></data>
+  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>Each currency is totalled on its own line — amounts are never converted or combined.</value></data>
   <data name="Contract_Payment" xml:space="preserve"><value>Payment</value></data>
   <data name="Contract_PerHalfYear" xml:space="preserve"><value>twice a year</value></data>
   <data name="Contract_PerMonth" xml:space="preserve"><value>per month</value></data>

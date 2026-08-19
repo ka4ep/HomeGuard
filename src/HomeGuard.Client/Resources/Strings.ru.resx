@@ -325,7 +325,7 @@
   <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Такого пока нет.</value></data>
   <data name="Contract_NoPlan" xml:space="preserve"><value>План платежей не задан</value></data>
   <data name="Contract_OpenEnded" xml:space="preserve"><value>без срока</value></data>
-  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>{0} в другой валюте не учтено — суммы никогда не конвертируются.</value></data>
+  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>Каждая валюта считается отдельной строкой — суммы никогда не конвертируются и не складываются.</value></data>
   <data name="Contract_Payment" xml:space="preserve"><value>Платёж</value></data>
   <data name="Contract_PerHalfYear" xml:space="preserve"><value>два раза в год</value></data>
   <data name="Contract_PerMonth" xml:space="preserve"><value>в месяц</value></data>

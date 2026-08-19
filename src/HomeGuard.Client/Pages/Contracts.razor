@@ -153,6 +153,12 @@ else
                 </MudText>
             </MudStack>
         }
+        @if (MonthlyTotals.Count() > 1)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                @L["Contract_OtherCurrencies"]
+            </MudText>
+        }
         @if (WithoutPlanCount > 0)
         {
             <MudText Typo="Typo.caption" Color="Color.Secondary">
