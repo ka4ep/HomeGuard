@@ -302,6 +302,15 @@ public sealed class ContractApiClient
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
         => await _http.DeleteAsync($"api/contracts/{id}", ct);
 
+    public async Task<ContractDto?> SetStatusAsync(
+        Guid id, SetStatusDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PatchAsJsonAsync($"api/contracts/{id}/status", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<ContractDto>(ct)
+            : null;
+    }
+
     public async Task<ContractDetailDto?> SetOpeningAsync(
         Guid id, SetOpeningDto dto, CancellationToken ct = default)
     {

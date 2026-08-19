@@ -353,6 +353,7 @@
   <data name="Contract_Attachments" xml:space="preserve"><value>Documents</value></data>
   <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the policy PDF or a photo of it.</value></data>
   <data name="Contract_Balance" xml:space="preserve"><value>Balance</value></data>
+  <data name="Contract_ChangeStatusTitle" xml:space="preserve"><value>Change status</value></data>
   <data name="Contract_Coverage" xml:space="preserve"><value>Cover</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Deductible</value></data>
   <data name="Contract_DeleteAttachmentMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
@@ -362,6 +363,7 @@
   <data name="Contract_GapMissingRate" xml:space="preserve"><value>Rate unknown — shown without interest</value></data>
   <data name="Contract_Installments" xml:space="preserve"><value>{0} of {1}</value></data>
   <data name="Contract_InterestPaid" xml:space="preserve"><value>of which interest: {0}</value></data>
+  <data name="Contract_NewStatus" xml:space="preserve"><value>New status</value></data>
   <data name="Contract_NextPayment" xml:space="preserve"><value>Next payment</value></data>
   <data name="Contract_NotFound" xml:space="preserve"><value>This contract no longer exists.</value></data>
   <data name="Contract_OpeningNote" xml:space="preserve"><value>{0} instalments totalling {1} before {2} are recorded as one entry, not row by row.</value></data>
@@ -369,6 +371,8 @@
   <data name="Contract_PaidSoFar" xml:space="preserve"><value>Paid so far</value></data>
   <data name="Contract_PayoffBy" xml:space="preserve"><value>Paid off by {0}</value></data>
   <data name="Contract_Revisions" xml:space="preserve"><value>Plan history</value></data>
+  <data name="Contract_StatusReason" xml:space="preserve"><value>Reason (optional)</value></data>
+  <data name="Contract_StatusReasonHelp" xml:space="preserve"><value>Shown on the contract so anyone reading it later knows why, without having to ask.</value></data>
   <data name="Contract_Summary" xml:space="preserve"><value>What it covers</value></data>
   <data name="RevisionReason_AddOn" xml:space="preserve"><value>Add-on</value></data>
   <data name="RevisionReason_Correction" xml:space="preserve"><value>Correction</value></data>

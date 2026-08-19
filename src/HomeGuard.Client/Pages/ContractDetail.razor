@@ -84,6 +84,9 @@
             <MudMenuItem OnClick="@(() => _contractDialog.OpenEdit(_detail!))">
                 @L["Common_Edit"]
             </MudMenuItem>
+            <MudMenuItem OnClick="@(() => _statusDialog.Open(Id, c.Status, _detail!.StatusReason))">
+                @L["Contract_ChangeStatusTitle"]
+            </MudMenuItem>
             <MudMenuItem OnClick="@(() => _openingDialog.Open(_detail!.Opening))">
                 @L["Opening_Title"]
             </MudMenuItem>
@@ -92,6 +95,13 @@
             </MudMenuItem>
         </MudMenu>
     </MudStack>
+
+    @if (!string.IsNullOrWhiteSpace(_detail.StatusReason))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+            @_detail.StatusReason
+        </MudText>
+    }
 
     @* ── Что дальше ──────────────────────────────────────────────────────── *@
     @if (_summary is not null)
@@ -333,6 +343,7 @@
     }
 
     <ContractDialog @ref="_contractDialog" OnSaved="OnDialogSavedAsync" />
+    <ContractStatusDialog @ref="_statusDialog" OnSaved="LoadAsync" />
     <PaymentDialog @ref="_paymentDialog" OnSaved="LoadAsync" />
     <OpeningPositionDialog @ref="_openingDialog" ContractId="Id" OnSaved="LoadAsync" />
     <RevisionDialog @ref="_revisionDialog"
@@ -359,6 +370,7 @@
     private bool _uploading;
 
     private ContractDialog _contractDialog = null!;
+    private ContractStatusDialog _statusDialog = null!;
     private OpeningPositionDialog _openingDialog = null!;
     private RevisionDialog _revisionDialog = null!;
     private PaymentDialog _paymentDialog = null!;

@@ -299,6 +299,7 @@ public sealed record ContractDetailDto(
     ContractDto Contract,
     string? SummaryMarkdown,
     string? Notes,
+    string? StatusReason,
     decimal? CoverageAmount,
     decimal? Deductible,
     OpeningPositionDto? Opening,
@@ -387,6 +388,11 @@ public sealed record SetOpeningDto(
     int InstallmentsPaid,
     decimal AmountPaid,
     decimal? RemainingBalance = null
+);
+
+public sealed record SetStatusDto(
+    ContractStatus Status,
+    string? Reason = null
 );
 
 public sealed record AddRevisionDto(
