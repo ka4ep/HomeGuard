@@ -209,7 +209,8 @@
                                 @FormatSize(a.SizeBytes)
                             </MudText>
                         </MudStack>
-                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Class="hg-touch-target-sm"
                                        aria-label="@L["Common_Delete"]"
                                        OnClick="@(() => DeleteAttachmentAsync(a))" />
                     </MudStack>
@@ -224,7 +225,8 @@
                                 @L["Contract_AttachmentQueued"]
                             </MudChip>
                         </MudStack>
-                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Class="hg-touch-target-sm"
                                        aria-label="@L["Common_Delete"]"
                                        OnClick="@(() => RemovePendingAttachmentAsync(p))" />
                     </MudStack>

@@ -20,8 +20,9 @@ else
 {
     <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="background:transparent">
         <tbody>
-            @foreach (var entry in Visible)
-            {
+            @* "Show all" can mean up to 360 rows (contracts-spec's own stated max) — Virtualize
+               keeps only the on-screen rows in the DOM instead of all 360 at once. *@
+            <Virtualize Items="Visible" Context="entry">
                 <tr style="@(RowStyle(entry));@(OnRowClick.HasDelegate ? "cursor:pointer" : "")"
                     tabindex="@(OnRowClick.HasDelegate ? "0" : null)"
                     role="@(OnRowClick.HasDelegate ? "button" : null)"
@@ -76,7 +77,7 @@ else
                         {
                             <MudTooltip Text="@L["Common_Edit"]">
                                 <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                               Size="Size.Small"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
                                                aria-label="@L["Common_Edit"]"
                                                OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
                             </MudTooltip>
@@ -85,7 +86,7 @@ else
                         {
                             <MudTooltip Text="@ConfirmLabel">
                                 <MudIconButton Icon="@Icons.Material.Outlined.CheckCircle"
-                                               Size="Size.Small"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
                                                aria-label="@ConfirmLabel"
                                                Disabled="@(_confirming == entry.PaymentId)"
                                                OnClick="@(() => ConfirmAsync(entry))" />
@@ -93,7 +94,7 @@ else
                         }
                     </td>
                 </tr>
-            }
+            </Virtualize>
         </tbody>
     </MudSimpleTable>
 
@@ -135,8 +136,9 @@ else
 
     private string ConfirmLabel => L["Schedule_Confirm"];
 
-    private IEnumerable<ScheduleEntryDto> Visible
-        => _showAll ? Entries : Entries.Take(Collapsed);
+    // Virtualize's Items wants an ICollection, not just IEnumerable.
+    private List<ScheduleEntryDto> Visible
+        => _showAll ? [.. Entries] : [.. Entries.Take(Collapsed)];
 
     /// <summary>Only a real, still-planned row can be confirmed — a projection has no id yet.</summary>
     private bool CanConfirm(ScheduleEntryDto e)

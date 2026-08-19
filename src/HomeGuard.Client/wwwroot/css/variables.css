@@ -205,6 +205,18 @@ html, body {
 }
 
 /*
+   Scoped, not global: a Size.Small MudIconButton's own box is well under the 44x44
+   PRODUCT.md asks for in the one-handed/outdoor scene. Bumping every small icon
+   button app-wide risked visibly changing rows we haven't looked at since (Warranties,
+   ServiceRecords, ...); this widens the hit area only where it's applied, the icon
+   itself stays the same visual size.
+*/
+.hg-touch-target-sm {
+    min-width: 44px !important;
+    min-height: 44px !important;
+}
+
+/*
    Статус строки — точка, а не цветная полоса у края (бриф на этом настаивает):
    статус это факт о записи, а не второй фон под ней.
 */
