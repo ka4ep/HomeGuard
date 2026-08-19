@@ -238,17 +238,17 @@ html, body {
 */
 /* Live check: a filled dark track read as heavier than intended next to the plain
    header buttons around it — left transparent instead, with a hairline so it still
-   reads as one control and not two loose icons. Height matches the neighbouring
-   "Add" button (MudButton's own 8px padding + label line ~= 36px) so both sit on the
-   same baseline in the header row instead of the switch looking short next to it. */
+   reads as one control and not two loose icons. 36px read 2-3px taller than the "Add"
+   button next to it; the first correction (30px) overshot the other way by 3-5px.
+   34px split the difference and matched in the browser. */
 .hg-density-switch {
     display: inline-flex;
     align-items: center;
-    height: 36px;
+    height: 34px;
     background: transparent;
     border: .5px solid var(--hg-border-on-bg);
     border-radius: var(--hg-radius-md);
-    padding: 3px;
+    padding: 2px;
     gap: 2px;
 }
 
@@ -263,9 +263,12 @@ html, body {
 }
 
 /* The icon has no trailing label in this component; MudBlazor's default right-margin
-   (meant to space an icon from adjacent text) just pushes it off-centre here. */
+   (meant to space an icon from adjacent text) just pushes it off-centre here.
+   vertical-align:middle is belt-and-braces against the icon's own inline-block
+   baseline alignment in case an ancestor's flex context doesn't fully override it. */
 .hg-density-switch .mud-icon-root {
     margin: 0;
+    vertical-align: middle;
 }
 
 /* MudTooltip's wrapper is inline-block by default, which does not participate in the

@@ -12,7 +12,14 @@ body, .mud-layout {
 
 /* ── AppBar ────────────────────────────────────────────────────────────────── */
 
-.mud-appbar {
+/* .mud-appbar and .mud-elevation-0 (below, line ~67) are both single-class !important
+   rules — tied specificity. MudAppBar renders with both classes on the same <header>,
+   so without the compound selector here, .mud-elevation-0's background (--hg-card, a
+   light card tone) won the tie purely by appearing later in this file, silently
+   overriding the dark chrome background below while leaving color untouched — which
+   is why text measured correctly white but the bar itself still rendered light. */
+.mud-appbar,
+.mud-appbar.mud-elevation-0 {
     background-color: var(--hg-bg-deep) !important;
     /* Было --hg-text-on-bg (#5E5B58) — тёмные чернила, задуманные для светлого Clay,
        давали 1.5:1 на тёмном Clay Deep AppBar. Название приложения и иконка меню были
@@ -25,8 +32,12 @@ body, .mud-layout {
 
 /* ── Drawer ────────────────────────────────────────────────────────────────── */
 
+/* Same .mud-elevation-0 tie as the AppBar above — MudDrawer's root/content also carry
+   that class by default. */
 .mud-drawer,
-.mud-drawer-content {
+.mud-drawer.mud-elevation-0,
+.mud-drawer-content,
+.mud-drawer-content.mud-elevation-0 {
     background-color: var(--hg-bg-deep) !important;
     border-right: 1px solid var(--hg-border-on-bg) !important;
     box-shadow: none !important;

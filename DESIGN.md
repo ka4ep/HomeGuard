@@ -3,7 +3,7 @@ name: HomeGuard
 description: A household's equipment, warranties, services and contracts, kept like a well-ordered paper archive.
 colors:
   greige: "#BAB2AC"
-  greige-deep: "#7a7672"
+  greige-deep: "#55514c"
   greige-raised: "#b0aca7"
   paper: "#eeeae4"
   paper-top: "#faf8f5"
@@ -218,7 +218,7 @@ none of them jumps out of the page. Each clears 3:1 against cream paper.
 
 ### Neutral
 - **Clay** (#BAB2AC): the page ground. Everything else floats on it.
-- **Clay Deep** (#7a7672): app bar and drawer — the chrome that frames the archive.
+- **Clay Deep** (#55514c): app bar and drawer — the chrome that frames the archive.
 - **Paper** (#eeeae4): the standard card. The colour of a document.
 - **Paper Top** (#faf8f5): fields, wells, table headers, dialogs — the layer above paper.
 - **Ink** (#1e1c1a): body text on paper.
@@ -229,10 +229,12 @@ none of them jumps out of the page. Each clears 3:1 against cream paper.
 - **Ink on Greige** (#5E5B58): text sitting directly on the light Clay ground (5.6:1).
   Never on Clay Deep — see Chrome Text below.
 - **Chrome Text** (#ffffff): text on Clay Deep — the app bar, the drawer, every nav
-  link. Clay Deep is dark enough that solid white barely clears AA (4.50:1, no
-  headroom); Ink on Greige on this surface measured 1.5–2.0:1 before an audit caught
-  it. There is no muted variant of this token — Clay Deep has no room for one and
-  stay compliant, so hierarchy here comes from background lift, not text weight.
+  link. An earlier Clay Deep (#7a7672) gave white exactly 4.50:1 — technically AA, but
+  zero headroom and it read as borderline live; Clay Deep darkened to #55514c gives
+  white real margin (7.87:1). Ink on Greige on this surface measured 1.5–2.0:1 before
+  an audit caught it. There is no muted variant of this token — Clay Deep has no room
+  for one and stay compliant, so hierarchy here comes from background lift, not text
+  weight.
 - **Hairlines** (rgba(60,50,40,.12) / .25): card edges and dividers; on the clay
   ground the hairline flips to rgba(255,255,255,.18).
 
@@ -394,10 +396,15 @@ active. The active row never uses Slate — inside the chrome, contrast comes fr
 lightness, not hue.
 
 ### Density switch
-A segmented control of two options, **Cards** and **List**, in the surface's header
-bar: a translucent black track at 10px radius holding two 6px pills, the selected one
-filled with Paper and carrying the Card shadow. It appears on every list surface, is
-remembered per screen and per device, and defaults to List on a phone, Cards on a desktop.
+A segmented control of two icon-only options, **Cards** and **List**, in the surface's
+header bar: a transparent track with a hairline border (0.5px, Hairline on Greige) at
+34px total height — matched to the neighbouring "Add" button's own height so both sit
+on the same line. The selected icon lifts off the track with a Paper fill and the Card
+shadow; the resting icon sits in Ink on Greige, since the track carries no fill of its
+own. An earlier filled-black track read as heavier than the plain header buttons around
+it; transparent-with-hairline reads as one control instead of two loose icons. It
+appears on every list surface, is remembered per screen and per device, and defaults to
+List on a phone, Cards on a desktop.
 
 ### Timeline
 The one custom-drawn surface. Rows are 50px on a Paper grid at 10px radius; the label
@@ -452,4 +459,12 @@ entity hue; predicted marks are hollow with a dashed edge in Ink Subtle. The Emb
 - **Don't** override `.mud-table-container`'s overflow. MudBlazor's own default is
   already `overflow-x:auto` — this system's "tables scroll inside their own
   container" rule, for free. A stray `overflow:hidden` there clips content instead
+- **Don't** give a dark-chrome surface (AppBar, Drawer) a background override scoped
+  only to its own class. MudBlazor renders these with `.mud-elevation-0` on the same
+  element, and `mud-overrides.css`'s own `.mud-elevation-0 { background-color:
+  var(--hg-card) ... }` — a later, equally-specific `!important` rule — silently won
+  the tie by file position alone, painting Clay Deep chrome back to Paper. Pair the
+  selector with `.mud-elevation-0` (`.mud-appbar.mud-elevation-0`,
+  `.mud-drawer.mud-elevation-0`) so the override wins on specificity instead of
+  source order
   of scrolling it.
