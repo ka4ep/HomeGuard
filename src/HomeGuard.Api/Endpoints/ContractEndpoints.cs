@@ -135,7 +135,7 @@ public static class ContractEndpoints
     private static async Task<IResult> SetStatus(
         Guid id, [FromBody] SetContractStatusRequest req, ContractService svc, CancellationToken ct)
     {
-        var contract = await svc.SetStatusAsync(id, req.Status, ct);
+        var contract = await svc.SetStatusAsync(id, req.Status, req.Reason, ct);
         return contract is null ? Results.NotFound() : Results.Ok(ContractDto.From(contract));
     }
 
@@ -374,7 +374,7 @@ public sealed record UpdateContractRequest(
     decimal? Deductible = null,
     IReadOnlyList<string>? Tags = null);
 
-public sealed record SetContractStatusRequest(ContractStatus Status);
+public sealed record SetContractStatusRequest(ContractStatus Status, string? Reason = null);
 public sealed record SetSummaryMarkdownRequest(string? SummaryMarkdown);
 public sealed record ContractNotificationRuleRequest(NotificationOffset Offset, bool Enabled);
 public sealed record SetContractNotificationsRequest(IReadOnlyList<ContractNotificationRuleRequest> Rules);
@@ -457,6 +457,7 @@ public sealed record ContractDetailDto(
     ContractDto Contract,
     string? SummaryMarkdown,
     string? Notes,
+    string? StatusReason,
     decimal? CoverageAmount,
     decimal? Deductible,
     OpeningPositionDto? Opening,
@@ -472,6 +473,7 @@ public sealed record ContractDetailDto(
         ContractDto.From(c),
         c.SummaryMarkdown,
         c.Notes,
+        c.StatusReason,
         c.CoverageAmount,
         c.Deductible,
         c.Opening is null ? null : new OpeningPositionDto(

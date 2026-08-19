@@ -307,12 +307,13 @@ public sealed class ContractService
         return true;
     }
 
-    public async Task<Contract?> SetStatusAsync(Guid id, ContractStatus status, CancellationToken ct = default)
+    public async Task<Contract?> SetStatusAsync(
+        Guid id, ContractStatus status, string? reason = null, CancellationToken ct = default)
     {
         var contract = await _repo.GetByIdAsync(id, ct);
         if (contract is null) return null;
 
-        contract.SetStatus(status);
+        contract.SetStatus(status, reason);
         await _uow.SaveChangesAsync(ct);
         return contract;
     }
