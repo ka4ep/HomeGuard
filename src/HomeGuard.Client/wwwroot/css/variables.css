@@ -43,7 +43,11 @@
     /* Backgrounds — от среднего тона вниз и вверх */
     /*--hg-bg: #9c9590; */ /* страница, основной фон */
     --hg-bg: #BAB2AC;
-    --hg-bg-deep: #7a7672; /* sidebar, nav, header */
+    /* Was #7a7672 — genuinely mid-grey (RGB avg 118), not dark. White text on it measured
+       exactly 4.50:1: passes AA with zero margin, and reads as borderline in practice
+       (confirmed live) even where the math technically clears the bar. Darkened so the
+       chrome is unambiguously dark and white text gets real headroom (7.9:1). */
+    --hg-bg-deep: #55514c; /* sidebar, nav, header */
     --hg-bg-raised: #b0aca7; /* разделители, hover на bg */
     /* Карточки — всплывают над серым фоном */
     --hg-card: #eeeae4; /* стандартная карточка */
@@ -232,18 +236,29 @@ html, body {
    selected look comes entirely from the Color prop's utility classes. There is
    nothing to hang a background/shadow on without this block.
 */
+/* Live check: a filled dark track read as heavier than intended next to the plain
+   header buttons around it — left transparent instead, with a hairline so it still
+   reads as one control and not two loose icons. Height matches the neighbouring
+   "Add" button (MudButton's own 8px padding + label line ~= 36px) so both sit on the
+   same baseline in the header row instead of the switch looking short next to it. */
 .hg-density-switch {
     display: inline-flex;
-    background: rgba(0, 0, 0, .35);
+    align-items: center;
+    height: 36px;
+    background: transparent;
+    border: .5px solid var(--hg-border-on-bg);
     border-radius: var(--hg-radius-md);
     padding: 3px;
     gap: 2px;
 }
 
 .hg-density-switch .mud-toggle-item {
+    height: 100%;
     border-radius: var(--hg-radius-sm) !important;
     align-items: center;
-    color: rgba(255, 255, 255, .9);
+    /* Transparent track sits directly on the Clay page ground, not on its own dark
+       surface — this is the token already tuned for that exact context (5.6:1). */
+    color: var(--hg-text-on-bg);
     transition: background var(--hg-transition), box-shadow var(--hg-transition);
 }
 
