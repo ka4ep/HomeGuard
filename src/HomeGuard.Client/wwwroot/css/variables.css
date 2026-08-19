@@ -217,6 +217,60 @@ html, body {
 }
 
 /*
+   Density switch (DESIGN.md Components): "a translucent black track at 10px radius
+   holding two 6px pills, the selected one filled with Paper and carrying the Card
+   shadow." DensitySwitch.razor is a bare MudToggleGroup — no CSS in this file ever
+   targeted it before, so it rendered as stock MudBlazor (unstyled track, no pill fill,
+   no shadow) rather than this. Icons, not text, are the pill content, so contrast is
+   judged against the 3:1 non-text floor, not the 4.5:1 text floor.
+
+   Track darkness: black at only 20% over Clay reads as a *light* warm grey (a common
+   first guess for "translucent black" that measures ~2.2:1 for anything on it) — 35%
+   is what actually gets a track dark enough for its icons to clear 3:1.
+
+   MudToggleItem has no dedicated "-selected" class in this MudBlazor version — its
+   selected look comes entirely from the Color prop's utility classes. There is
+   nothing to hang a background/shadow on without this block.
+*/
+.hg-density-switch {
+    display: inline-flex;
+    background: rgba(0, 0, 0, .35);
+    border-radius: var(--hg-radius-md);
+    padding: 3px;
+    gap: 2px;
+}
+
+.hg-density-switch .mud-toggle-item {
+    border-radius: var(--hg-radius-sm) !important;
+    align-items: center;
+    color: rgba(255, 255, 255, .9);
+    transition: background var(--hg-transition), box-shadow var(--hg-transition);
+}
+
+/* The icon has no trailing label in this component; MudBlazor's default right-margin
+   (meant to space an icon from adjacent text) just pushes it off-centre here. */
+.hg-density-switch .mud-icon-root {
+    margin: 0;
+}
+
+/* MudTooltip's wrapper is inline-block by default, which does not participate in the
+   parent's flex centring — this is what reads as "icon sits a little high/left". */
+.hg-density-switch .mud-tooltip-root {
+    display: inline-flex;
+    align-items: center;
+}
+
+.hg-density-switch .mud-toggle-item[aria-pressed="true"] {
+    background: var(--hg-card) !important;
+    color: var(--hg-text) !important;
+    box-shadow: var(--hg-shadow-card);
+}
+
+.hg-density-switch .mud-toggle-item[aria-pressed="true"] .mud-icon-root {
+    color: var(--hg-text);
+}
+
+/*
    Статус строки — точка, а не цветная полоса у края (бриф на этом настаивает):
    статус это факт о записи, а не второй фон под ней.
 */
