@@ -201,10 +201,12 @@ public sealed class BlobEntryRepository : RepositoryBase<BlobEntry>, IBlobEntryR
 
     public async Task<IReadOnlyList<BlobEntry>> GetByOwnerAsync(
         Guid ownerEntityId, CancellationToken ct = default)
-        => await Set
-            .Where(b => b.OwnerEntityId == ownerEntityId)
-            .OrderBy(b => b.CreatedAt)
-            .ToListAsync(ct);
+    {
+        // SQLite can't translate ORDER BY over DateTimeOffset (see GetPendingSyncAsync
+        // below, which already works around this the same way) — order client-side.
+        var owned = await Set.Where(b => b.OwnerEntityId == ownerEntityId).ToListAsync(ct);
+        return [.. owned.OrderBy(b => b.CreatedAt)];
+    }
 
     public async Task<IReadOnlyList<BlobEntry>> GetPendingSyncAsync(CancellationToken ct = default)
     {
