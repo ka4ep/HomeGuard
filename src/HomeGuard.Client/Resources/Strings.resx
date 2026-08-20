@@ -99,6 +99,7 @@
 
   <!-- ── Equipment ─────────────────────────────────────────────────────────── -->
   <data name="Equipment_AddTitle" xml:space="preserve"><value>Add equipment</value></data>
+  <data name="Equipment_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the manual or a photo of it.</value></data>
   <data name="Equipment_Brand" xml:space="preserve"><value>Brand</value></data>
   <data name="Equipment_Category" xml:space="preserve"><value>Category</value></data>
   <data name="Equipment_Empty" xml:space="preserve"><value>Nothing here yet — add the first item.</value></data>
@@ -119,6 +120,7 @@
   <data name="Category_Vehicle" xml:space="preserve"><value>Vehicle</value></data>
 
   <!-- ── Warranties ────────────────────────────────────────────────────────── -->
+  <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt or warranty card.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Contract №</value></data>
   <data name="Warranty_Empty" xml:space="preserve"><value>No warranties here.</value></data>
   <data name="Warranty_Name" xml:space="preserve"><value>Warranty</value></data>
@@ -141,6 +143,7 @@
   <data name="Warranty_Tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
 
   <!-- ── Service records ───────────────────────────────────────────────────── -->
+  <data name="Service_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt.</value></data>
   <data name="Service_Cost" xml:space="preserve"><value>Cost</value></data>
   <data name="Service_Date" xml:space="preserve"><value>Service date</value></data>
   <data name="Service_Empty" xml:space="preserve"><value>Nothing here.</value></data>
@@ -343,21 +346,23 @@
   <data name="Markdown_Empty" xml:space="preserve"><value>No summary written yet.</value></data>
   <data name="Nav_Contracts" xml:space="preserve"><value>Contracts</value></data>
 
+  <!-- ── Attachments (shared: Contract/Equipment/Warranty/Service) ── -->
+  <data name="Attachment_Add" xml:space="preserve"><value>Add document</value></data>
+  <data name="Attachment_DeleteFailed" xml:space="preserve"><value>Could not delete the document</value></data>
+  <data name="Attachment_Deleted" xml:space="preserve"><value>Document deleted</value></data>
+  <data name="Attachment_DeleteMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
+  <data name="Attachment_DeleteTitle" xml:space="preserve"><value>Delete document</value></data>
+  <data name="Attachment_Queued" xml:space="preserve"><value>Queued — will upload once you're online</value></data>
+  <data name="Attachment_Saved" xml:space="preserve"><value>Saved — will upload once you're online</value></data>
+  <data name="Attachment_Title" xml:space="preserve"><value>Documents</value></data>
+  <data name="Attachment_Uploaded" xml:space="preserve"><value>Document uploaded</value></data>
+
   <!-- ── Contract detail and schedule ── -->
-  <data name="Contract_AddAttachment" xml:space="preserve"><value>Add document</value></data>
-  <data name="Contract_AttachmentDeleteFailed" xml:space="preserve"><value>Could not delete the document</value></data>
-  <data name="Contract_AttachmentDeleted" xml:space="preserve"><value>Document deleted</value></data>
-  <data name="Contract_AttachmentQueued" xml:space="preserve"><value>Queued — will upload once you're online</value></data>
-  <data name="Contract_AttachmentSaved" xml:space="preserve"><value>Saved — will upload once you're online</value></data>
-  <data name="Contract_AttachmentUploaded" xml:space="preserve"><value>Document uploaded</value></data>
-  <data name="Contract_Attachments" xml:space="preserve"><value>Documents</value></data>
   <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the policy PDF or a photo of it.</value></data>
   <data name="Contract_Balance" xml:space="preserve"><value>Balance</value></data>
   <data name="Contract_ChangeStatusTitle" xml:space="preserve"><value>Change status</value></data>
   <data name="Contract_Coverage" xml:space="preserve"><value>Cover</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Deductible</value></data>
-  <data name="Contract_DeleteAttachmentMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
-  <data name="Contract_DeleteAttachmentTitle" xml:space="preserve"><value>Delete document</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>from {0}</value></data>
   <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Balance unknown — tap to add it</value></data>
   <data name="Contract_GapMissingRate" xml:space="preserve"><value>Rate unknown — shown without interest</value></data>

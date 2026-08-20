@@ -72,6 +72,9 @@ else
         </MudCardContent>
     </MudCard>
 
+    <AttachmentsCard OwnerEntityId="Id" OwnerEntityType="Equipment"
+                     EmptyText="@L["Equipment_AttachmentsEmpty"]" />
+
     <WarrantySection EquipmentId="Id" />
 
     <ServiceSection EquipmentId="Id" MeterUnit="@_detail.MeterUnit"

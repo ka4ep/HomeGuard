@@ -54,6 +54,12 @@
                               Lines="3" Sizing="InputSizing.Auto" />
             </MudItem>
         </MudGrid>
+
+        @if (_editId.HasValue)
+        {
+            <AttachmentsCard OwnerEntityId="_editId.Value" OwnerEntityType="ServiceRecord"
+                             EmptyText="@L["Service_AttachmentsEmpty"]" />
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>

@@ -191,12 +191,12 @@
             <CardHeaderContent>
                 <MudText Typo="Typo.h6">
                     <MudIcon Icon="@Icons.Material.Outlined.AttachFile" Class="mr-1" />
-                    @L["Contract_Attachments"]
+                    @L["Attachment_Title"]
                 </MudText>
             </CardHeaderContent>
             <CardHeaderActions>
                 <MudIconButton Icon="@(_showCapture ? Icons.Material.Filled.Close : Icons.Material.Filled.Add)"
-                               aria-label="@(_showCapture ? L["Common_Close"] : L["Contract_AddAttachment"])"
+                               aria-label="@(_showCapture ? L["Common_Close"] : L["Attachment_Add"])"
                                OnClick="@(() => _showCapture = !_showCapture)" />
             </CardHeaderActions>
         </MudCardHeader>
@@ -232,7 +232,7 @@
                             <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" />
                             <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@p.FileName</MudText>
                             <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
-                                @L["Contract_AttachmentQueued"]
+                                @L["Attachment_Queued"]
                             </MudChip>
                         </MudStack>
                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
@@ -245,7 +245,7 @@
 
             <MudCollapse Expanded="_showCapture">
                 <div class="mt-2">
-                    <DocumentCapture OnCapture="OnDocumentCapturedAsync" Label="@L["Contract_AddAttachment"]" />
+                    <DocumentCapture OnCapture="OnDocumentCapturedAsync" Label="@L["Attachment_Add"]" />
                     @if (_uploading)
                     {
                         <MudProgressLinear Indeterminate="true" Class="mt-2" />
@@ -434,7 +434,7 @@
         _showCapture = false;
 
         Snackbar.Add(
-            result.Committed > 0 ? L["Contract_AttachmentUploaded"] : L["Contract_AttachmentSaved"],
+            result.Committed > 0 ? L["Attachment_Uploaded"] : L["Attachment_Saved"],
             Severity.Success);
 
         await LoadAsync();
@@ -443,8 +443,8 @@
     private async Task DeleteAttachmentAsync(BlobDto blob)
     {
         var confirmed = await Dialog.ShowMessageBoxAsync(
-            title: L["Contract_DeleteAttachmentTitle"],
-            message: L["Contract_DeleteAttachmentMessage", blob.FileName],
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", blob.FileName],
             yesText: L["Common_Delete"],
             cancelText: L["Common_Cancel"]);
 
@@ -452,19 +452,19 @@
 
         if (!await Blobs.DeleteAsync(blob.Id))
         {
-            Snackbar.Add(L["Contract_AttachmentDeleteFailed"], Severity.Error);
+            Snackbar.Add(L["Attachment_DeleteFailed"], Severity.Error);
             return;
         }
 
-        Snackbar.Add(L["Contract_AttachmentDeleted"], Severity.Success);
+        Snackbar.Add(L["Attachment_Deleted"], Severity.Success);
         await LoadAsync();
     }
 
     private async Task RemovePendingAttachmentAsync(PendingBlobUpload pending)
     {
         var confirmed = await Dialog.ShowMessageBoxAsync(
-            title: L["Contract_DeleteAttachmentTitle"],
-            message: L["Contract_DeleteAttachmentMessage", pending.FileName],
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", pending.FileName],
             yesText: L["Common_Delete"],
             cancelText: L["Common_Cancel"]);
 

@@ -76,6 +76,9 @@ public sealed class BlobApiClient
     public string GetDownloadUrl(Guid blobId)
         => $"{_http.BaseAddress}api/blobs/{blobId}";
 
+    public Task<List<BlobDto>?> GetByOwnerAsync(Guid ownerEntityId, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<BlobDto>>($"api/blobs?ownerEntityId={ownerEntityId}", ct);
+
     public async Task<bool> DeleteAsync(Guid blobId, CancellationToken ct = default)
     {
         var resp = await _http.DeleteAsync($"api/blobs/{blobId}", ct);

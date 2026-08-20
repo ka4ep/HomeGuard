@@ -37,8 +37,22 @@ public static class BlobEndpoints
         var grp = app.MapGroup("/api/blobs").WithTags("Blobs").RequireAuthorization();
 
         grp.MapPost("/upload", Upload).DisableAntiforgery();
+        grp.MapGet("/", GetByOwner);
         grp.MapGet("/{id:guid}", Download);
         grp.MapDelete("/{id:guid}", Delete);
+    }
+
+    // Generic by-owner listing — Contract's own attachments ride along on
+    // ContractDetailDto instead (see ContractEndpoints), but Equipment/Warranty/
+    // ServiceRecord have no per-entity detail endpoint to carry it, so the
+    // attachments card loads its own list straight from here.
+    private static async Task<IResult> GetByOwner(
+        [FromQuery] Guid ownerEntityId,
+        HomeGuard.Application.Interfaces.Repositories.IBlobEntryRepository repo,
+        CancellationToken ct)
+    {
+        var blobs = await repo.GetByOwnerAsync(ownerEntityId, ct);
+        return Results.Ok(blobs.Select(BlobDto.From));
     }
 
     private static async Task<IResult> Upload(

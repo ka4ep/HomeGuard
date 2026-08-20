@@ -98,6 +98,7 @@
 
   <!-- ── Техника ───────────────────────────────────────────────────────────── -->
   <data name="Equipment_AddTitle" xml:space="preserve"><value>Новая техника</value></data>
+  <data name="Equipment_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте инструкцию или её фото.</value></data>
   <data name="Equipment_Brand" xml:space="preserve"><value>Марка</value></data>
   <data name="Equipment_Category" xml:space="preserve"><value>Категория</value></data>
   <data name="Equipment_Empty" xml:space="preserve"><value>Здесь пока пусто — добавьте первую запись.</value></data>
@@ -116,6 +117,7 @@
   <data name="Category_Vehicle" xml:space="preserve"><value>Транспорт</value></data>
 
   <!-- ── Гарантии ──────────────────────────────────────────────────────────── -->
+  <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте фото чека или гарантийного талона.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Номер договора</value></data>
   <data name="Warranty_Empty" xml:space="preserve"><value>Здесь гарантий нет.</value></data>
   <data name="Warranty_Name" xml:space="preserve"><value>Гарантия</value></data>
@@ -134,6 +136,7 @@
   <data name="Warranty_Tomorrow" xml:space="preserve"><value>Завтра</value></data>
 
   <!-- ── Обслуживание ──────────────────────────────────────────────────────── -->
+  <data name="Service_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте фото чека.</value></data>
   <data name="Service_Cost" xml:space="preserve"><value>Стоимость</value></data>
   <data name="Service_Date" xml:space="preserve"><value>Дата</value></data>
   <data name="Service_Empty" xml:space="preserve"><value>Здесь пусто.</value></data>
@@ -336,21 +339,23 @@
   <data name="Markdown_Empty" xml:space="preserve"><value>Краткое описание ещё не написано.</value></data>
   <data name="Nav_Contracts" xml:space="preserve"><value>Договоры</value></data>
 
+  <!-- ── Вложения (общие: Contract/Equipment/Warranty/Service) ── -->
+  <data name="Attachment_Add" xml:space="preserve"><value>Добавить документ</value></data>
+  <data name="Attachment_DeleteFailed" xml:space="preserve"><value>Не удалось удалить документ</value></data>
+  <data name="Attachment_Deleted" xml:space="preserve"><value>Документ удалён</value></data>
+  <data name="Attachment_DeleteMessage" xml:space="preserve"><value>Удалить «{0}»? Это нельзя отменить.</value></data>
+  <data name="Attachment_DeleteTitle" xml:space="preserve"><value>Удалить документ</value></data>
+  <data name="Attachment_Queued" xml:space="preserve"><value>В очереди — загрузится, когда появится связь</value></data>
+  <data name="Attachment_Saved" xml:space="preserve"><value>Сохранено — загрузится, когда появится связь</value></data>
+  <data name="Attachment_Title" xml:space="preserve"><value>Документы</value></data>
+  <data name="Attachment_Uploaded" xml:space="preserve"><value>Документ загружен</value></data>
+
   <!-- ── Карточка договора и график ── -->
-  <data name="Contract_AddAttachment" xml:space="preserve"><value>Добавить документ</value></data>
-  <data name="Contract_AttachmentDeleteFailed" xml:space="preserve"><value>Не удалось удалить документ</value></data>
-  <data name="Contract_AttachmentDeleted" xml:space="preserve"><value>Документ удалён</value></data>
-  <data name="Contract_AttachmentQueued" xml:space="preserve"><value>В очереди — загрузится, когда появится связь</value></data>
-  <data name="Contract_AttachmentSaved" xml:space="preserve"><value>Сохранено — загрузится, когда появится связь</value></data>
-  <data name="Contract_AttachmentUploaded" xml:space="preserve"><value>Документ загружен</value></data>
-  <data name="Contract_Attachments" xml:space="preserve"><value>Документы</value></data>
   <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте PDF полиса или его фото.</value></data>
   <data name="Contract_Balance" xml:space="preserve"><value>Остаток долга</value></data>
   <data name="Contract_ChangeStatusTitle" xml:space="preserve"><value>Изменить статус</value></data>
   <data name="Contract_Coverage" xml:space="preserve"><value>Страховая сумма</value></data>
   <data name="Contract_Deductible" xml:space="preserve"><value>Франшиза</value></data>
-  <data name="Contract_DeleteAttachmentMessage" xml:space="preserve"><value>Удалить «{0}»? Это нельзя отменить.</value></data>
-  <data name="Contract_DeleteAttachmentTitle" xml:space="preserve"><value>Удалить документ</value></data>
   <data name="Contract_FromDate" xml:space="preserve"><value>с {0}</value></data>
   <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Остаток не указан — нажмите, чтобы заполнить</value></data>
   <data name="Contract_GapMissingRate" xml:space="preserve"><value>Ставка не указана — без учёта процентов</value></data>
