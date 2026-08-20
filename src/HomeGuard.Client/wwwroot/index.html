@@ -32,6 +32,8 @@
         <a href="" class="reload">Reload</a>
         <span class="dismiss">&#10006;</span>
     </div>
+    <!-- First, so its error listeners are attached before Blazor boots. -->
+    <script src="js/diagnostics.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <!-- HomeGuard JS interop modules -->

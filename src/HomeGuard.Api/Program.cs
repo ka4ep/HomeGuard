@@ -166,6 +166,7 @@ try
     app.MapContractEndpoints();
     app.MapSyncEndpoints();
     app.MapBlobEndpoints();
+    app.MapDiagnosticsEndpoints();
     app.MapCalendarFeedEndpoint();
     app.MapNotificationEndpoints();
     app.MapAttentionEndpoint();

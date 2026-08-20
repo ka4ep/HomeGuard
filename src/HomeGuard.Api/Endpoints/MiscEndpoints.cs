@@ -133,6 +133,37 @@ public sealed record BlobDto(
         b.Id, b.FileName, b.ContentType, b.SizeBytes, b.SyncStatus, b.CreatedAt);
 }
 
+// ── Client diagnostics ───────────────────────────────────────────────────────
+
+// A phone screen can't be copy-pasted from. The client reports its own unhandled JS/
+// WASM errors here (see wwwroot/js/diagnostics.js) so they land in the server log
+// instead of a transcription of a red banner. Same auth as everything else under
+// /api — this only ever fires for errors hit while actually using the app, i.e.
+// already logged in, so requiring the session cookie costs nothing real.
+public static class DiagnosticsEndpoints
+{
+    public static void MapDiagnosticsEndpoints(this WebApplication app)
+    {
+        app.MapPost("/api/diagnostics/client-error", (
+            ClientErrorReport report,
+            ILoggerFactory loggerFactory) =>
+        {
+            loggerFactory.CreateLogger("ClientError").LogError(
+                "[{Source}] {Message} @ {Url} ({UserAgent})\n{Stack}",
+                report.Source, report.Message, report.Url, report.UserAgent, report.Stack);
+            return Results.NoContent();
+        }).RequireAuthorization();
+    }
+}
+
+public sealed record ClientErrorReport(
+    string Message,
+    string? Stack,
+    string? Source,
+    string? Url,
+    string? UserAgent
+);
+
 // ── iCal feed ─────────────────────────────────────────────────────────────────
 
 public static class CalendarFeedEndpoints
