@@ -22,6 +22,7 @@
         ContractStatus.Active    => "background:var(--hg-success-text)",
         ContractStatus.Suspended => "background:var(--hg-warning-text)",
         ContractStatus.Cancelled => "background:var(--hg-danger-text)",
+        ContractStatus.Ended     => "background:var(--hg-text-subtle)",
         _                        => "background:var(--hg-text-subtle)",
     };
 
@@ -30,6 +31,7 @@
         ContractStatus.Active    => Color.Success,
         ContractStatus.Suspended => Color.Warning,
         ContractStatus.Cancelled => Color.Error,
+        ContractStatus.Ended     => Color.Default,
         _                        => Color.Default,
     };
 }
