@@ -38,8 +38,17 @@
             {
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
-                        <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" />
-                        <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank" Style="overflow-wrap:anywhere">
+                        <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank"
+                                 Style="display:flex; align-items:center; gap:8px; min-width:0; overflow-wrap:anywhere">
+                            @if (IsImage(a.ContentType))
+                            {
+                                <img src="@Blobs.GetDownloadUrl(a.Id)" alt="" loading="lazy"
+                                     style="width:28px; height:28px; object-fit:cover; border-radius:var(--hg-radius-sm); flex-shrink:0" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" />
+                            }
                             @a.FileName
                         </MudLink>
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
@@ -182,10 +191,13 @@
         _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(OwnerEntityId)];
     }
 
+    private static bool IsImage(string contentType)
+        => contentType.StartsWith("image/", StringComparison.Ordinal);
+
     private static string AttachmentIcon(string contentType) => contentType switch
     {
         "application/pdf" => Icons.Material.Outlined.PictureAsPdf,
-        _ when contentType.StartsWith("image/", StringComparison.Ordinal) => Icons.Material.Outlined.InsertPhoto,
+        _ when IsImage(contentType) => Icons.Material.Outlined.InsertPhoto,
         _ => Icons.Material.Outlined.InsertDriveFile,
     };
 
