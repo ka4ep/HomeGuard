@@ -41,18 +41,27 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 var host = builder.Build();
 
-// Proves the whole chain end to end on every boot, regardless of what any other page
-// does or doesn't call: if this line is missing from diag.html after a fresh load,
-// the break is before/below ILogger entirely (JS not loaded, storage unavailable, wrong
-// origin) rather than a level or provider-wiring problem.
-host.Services.GetRequiredService<ILoggerFactory>()
-    .CreateLogger("Boot")
-    .LogInformation("HomeGuard client booted at {Time}", DateTimeOffset.Now);
-
 // Культуру нужно поставить до запуска хоста: на ней завязаны и ресурсы, и форматы
 // дат и чисел, а внутри уже запущенного WASM-хоста она не меняется — отсюда reload
 // при переключении языка.
 var js = host.Services.GetRequiredService<IJSRuntime>();
+
+// Bypasses ILogger/BrowserBufferLoggerProvider entirely and *awaits* the JS call
+// directly — the fire-and-forget version behind ILogger left no way to tell "the level
+// filtered it" from "diagnostics.js never loaded" from "the interop call itself failed"
+// apart when diag.html showed nothing. This one only has one way to not show up: the
+// __hgLog global isn't there, meaning wwwroot/js/diagnostics.js's <script> tag in
+// index.html didn't load/run on this device at all.
+try
+{
+    await js.InvokeVoidAsync("__hgLog", "Information", "Boot",
+        $"HomeGuard client booted at {DateTimeOffset.Now}");
+}
+catch
+{
+    // Nothing to fall back to here — this *is* the fallback path's own probe.
+}
+
 LanguagePreference.Apply(await LanguagePreference.ResolveStartupAsync(js));
 
 await host.RunAsync();
