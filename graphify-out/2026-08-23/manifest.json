@@ -5,8 +5,8 @@
     "semantic_hash": ""
   },
   "global.json": {
-    "mtime": 1786543345.013541,
-    "ast_hash": "e8b61c72e963c21e4a7ab26f6712f7fb",
+    "mtime": 1786522550.8706343,
+    "ast_hash": "7826af7e024deee997498661f0a15086",
     "semantic_hash": ""
   },
   "infra/download-fonts.ps1": {
@@ -15,8 +15,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/BackgroundServices/HostedServices.cs": {
-    "mtime": 1786801417.9414682,
-    "ast_hash": "65281c66e905479848a45abde9690dcd",
+    "mtime": 1786519786.5402381,
+    "ast_hash": "fafc3636aa748baa4e41e6b55e9299ef",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/DatabaseStartupExtensions.cs": {
@@ -25,28 +25,28 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/AuthEndpoints.cs": {
-    "mtime": 1787051512.7495837,
-    "ast_hash": "656253e2c92387cd5a54aa9966c6e37f",
+    "mtime": 1786515761.930959,
+    "ast_hash": "ee25fee89a142721ef159ccdb79fc371",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/EquipmentEndpoints.cs": {
-    "mtime": 1786815082.823017,
-    "ast_hash": "00f0c38bf313e3e4fbfa1d0ebd90a7bd",
+    "mtime": 1786517283.4383514,
+    "ast_hash": "015b6caefde395f15b002ca65415d4a8",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/MiscEndpoints.cs": {
-    "mtime": 1787480493.2694504,
-    "ast_hash": "20297f362b41af1795d7e931e84ef190",
+    "mtime": 1786517283.4553523,
+    "ast_hash": "8e5ab56613c8ac51fdc3585b6416b1fa",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/ServiceRecordEndpoints.cs": {
-    "mtime": 1786815090.635375,
-    "ast_hash": "5e98ade268acaaf79ab164779d6c8c5e",
+    "mtime": 1786517283.464352,
+    "ast_hash": "285c200e7253f6d6ecd80752aa2b2662",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/WarrantyEndpoints.cs": {
-    "mtime": 1786815086.6034646,
-    "ast_hash": "fa5a3c9ad793dde1ec580ba8553de95f",
+    "mtime": 1786517283.4763532,
+    "ast_hash": "354d92bf102c6d46051d973f98940ef8",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/GlobalSuppressions.cs": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/HomeGuard.Api.csproj": {
-    "mtime": 1787483206.3852997,
-    "ast_hash": "be658161cd4475bf5e3e33ec4b94c111",
+    "mtime": 1786524892.2920115,
+    "ast_hash": "bff7867cff3c8e739757d83c2e609c85",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/PasskeyAuthExtensions.cs": {
@@ -65,18 +65,18 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Program.cs": {
-    "mtime": 1787249397.632195,
-    "ast_hash": "46dc53fdcaa3d8b7630f42303604aed8",
+    "mtime": 1786524838.784736,
+    "ast_hash": "dde6ca8e191005623e8696c66d39aef3",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Properties/launchSettings.json": {
-    "mtime": 1787230675.289407,
-    "ast_hash": "a39a3fac9737ea4fb2593cd1e123befb",
+    "mtime": 1786519787.2994971,
+    "ast_hash": "d300f443737e31af66cf17ca3b0ed561",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/appsettings.Development.json": {
-    "mtime": 1787051428.7644386,
-    "ast_hash": "9148c0cd513cbdf017ad49f16ce99a81",
+    "mtime": 1786519787.084201,
+    "ast_hash": "580a261ac1603c43e05b55854d63b29f",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/appsettings.json": {
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/ApplicationServiceExtensions.cs": {
-    "mtime": 1786802172.8760583,
-    "ast_hash": "6d1b9d2b6289a3b8e80e3e2819aa763e",
+    "mtime": 1786524838.7695854,
+    "ast_hash": "13ca462a2cd42b219188eaeeb4f381fe",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/GlobalSuppressions.cs": {
@@ -140,8 +140,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/NotificationSchedulerService.cs": {
-    "mtime": 1786801556.3967023,
-    "ast_hash": "0b9b5ed33cd86eeb0b2cc9a53c1b9883",
+    "mtime": 1786519786.7088964,
+    "ast_hash": "193acdefd4652931980a1d48bf5316c4",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/ServiceRecordService.cs": {
@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/SyncProcessorService.cs": {
-    "mtime": 1786802478.6103053,
-    "ast_hash": "94488da63d68647e61d934c35f0498e2",
+    "mtime": 1786519786.818833,
+    "ast_hash": "e0ad923bfc7524bd4a4748a6d881eb75",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/WarrantyService.cs": {
@@ -165,13 +165,13 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/ClientServiceExtensions.cs": {
-    "mtime": 1787478739.0149176,
-    "ast_hash": "c979d27000903ffa3abe5907205b40d7",
+    "mtime": 1786534876.1531463,
+    "ast_hash": "915aa174118b28c50a246af88e7c023b",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/HomeGuard.Client.csproj": {
-    "mtime": 1786543345.1078515,
-    "ast_hash": "994bc2a0c6e23670ffda8439b737d0b2",
+    "mtime": 1786540558.4861543,
+    "ast_hash": "4fc0ed736912dd5598f3b5dbada42d2e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/HomeGuardTheme.cs": {
@@ -180,13 +180,13 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Layout/MainLayout.razor": {
-    "mtime": 1787480341.4987526,
-    "ast_hash": "06f2a9ded09eeac4e2fcd39622b6e3e8",
+    "mtime": 1786517283.515681,
+    "ast_hash": "49a104603471b6f3259dcf011503c657",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Layout/NavMenu.razor": {
-    "mtime": 1787079412.6672685,
-    "ast_hash": "366a3fe316c4b2641db8300fe9882c0c",
+    "mtime": 1786534986.5535293,
+    "ast_hash": "85e1f503b19247966d1eb0057d8a4412",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Model/CapturedDocument.cs": {
@@ -195,53 +195,53 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/DocumentCapture.razor": {
-    "mtime": 1787480406.0332935,
-    "ast_hash": "c90c5cc18dabf821e5e2d575eca1ddf5",
+    "mtime": 1786520825.1586113,
+    "ast_hash": "ca6c424274ba9da7a5c0c0d3d3cc7171",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Equipment.razor": {
-    "mtime": 1787480104.7701495,
-    "ast_hash": "1dca88c24fc340c39b762a4edadf17cd",
+    "mtime": 1786516985.8511007,
+    "ast_hash": "659784ae703913ae6d47bb4094c488b1",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/EquipmentDetail.razor": {
-    "mtime": 1787479098.7512503,
-    "ast_hash": "6304051d7f17e5ca4e37c388cb4af52f",
+    "mtime": 1786542240.670084,
+    "ast_hash": "2c13f28598c7be1067604671273ee672",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Home.razor": {
-    "mtime": 1787136553.9507444,
-    "ast_hash": "639aae96447230dc5114afd9d4e386fe",
+    "mtime": 1786542279.3614957,
+    "ast_hash": "5a799e0355e8714ce492f4cd1d868d67",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Login.razor": {
-    "mtime": 1787051369.3821275,
-    "ast_hash": "726f25036e2903c2cdc0ce4ef7dbeba2",
+    "mtime": 1786520768.891467,
+    "ast_hash": "395c736d253a60a1838d474b44f4ab61",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/ServiceRecords.razor": {
-    "mtime": 1786543345.1133742,
-    "ast_hash": "2df6a2afd98ca5a581c277e6e6718a29",
+    "mtime": 1786519597.5555358,
+    "ast_hash": "a25a94120f0686a830f2bb05591e229b",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Settings.razor": {
-    "mtime": 1787481855.94842,
-    "ast_hash": "cbd97fb3f507d0d47353bcd083bee2f4",
+    "mtime": 1786520534.298915,
+    "ast_hash": "ad36f123c95a87d72e25d87e267e17f4",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Timeline.razor": {
-    "mtime": 1786801990.2456424,
-    "ast_hash": "7ff2cc48991384c432d17612a55586ee",
+    "mtime": 1786520931.93709,
+    "ast_hash": "9e31961980df1e9012ed6b490365d477",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Warranties.razor": {
-    "mtime": 1786543345.1153734,
-    "ast_hash": "06142ac05b880882360c4ef70db19fba",
+    "mtime": 1786519561.8349562,
+    "ast_hash": "88e28dd286810a4e88f128717b0df2b9",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Program.cs": {
-    "mtime": 1787486004.1757722,
-    "ast_hash": "2f9a28d8c5735e23a4643357b8c1e3b3",
+    "mtime": 1786526855.792252,
+    "ast_hash": "8261cdc8a30e3a93bc9ae27cad04f5f9",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Properties/launchSettings.json": {
@@ -250,58 +250,58 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/ApiAuthHandler.cs": {
-    "mtime": 1787480302.0122893,
-    "ast_hash": "5bd6a18ba48944b25b6b9393e99ae7c2",
+    "mtime": 1786517283.6488564,
+    "ast_hash": "74194942dfb927ccc6d04294c3c74de2",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/ApiClients.cs": {
-    "mtime": 1787510222.2181664,
-    "ast_hash": "80c597f4db6d220827384d95ee89c467",
+    "mtime": 1786542146.8976922,
+    "ast_hash": "ec07fc53098ebce5b35567ff233b0e06",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/AuthApiClient.cs": {
-    "mtime": 1787051391.8749945,
-    "ast_hash": "1a2a7da4f9105ff9b3aa2e8beacd84f3",
+    "mtime": 1786515778.3305917,
+    "ast_hash": "6195e79858918a173e11a2700224550b",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/BlobApiClient.cs": {
-    "mtime": 1787510238.3973732,
-    "ast_hash": "5e550930a3baa9474da11d11ca716b6f",
+    "mtime": 1786517283.6728559,
+    "ast_hash": "f19c25e4f510c022e0fc27bfc4edbbc7",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/ClientDtos.cs": {
-    "mtime": 1787129945.284133,
-    "ast_hash": "6051509173ba6c84f5cc90f1fc4f8348",
+    "mtime": 1786542146.884686,
+    "ast_hash": "ebf46f67307d2629c222c4bca78f33cf",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/HomeGuardDb.cs": {
-    "mtime": 1787507216.9504912,
-    "ast_hash": "956209a9f7d06ae741a206eb60ab0a4d",
+    "mtime": 1786517283.6908557,
+    "ast_hash": "3d61935ca36ed56a87ebbc830ce64707",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/OutboxSyncService.cs": {
-    "mtime": 1787489629.7911417,
-    "ast_hash": "cfab85208f2b3c9b317fca93bfc56fd7",
+    "mtime": 1786517283.6998575,
+    "ast_hash": "315e9d5dc798ea8858778e9b877e47c6",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/TimelineInterop.cs": {
-    "mtime": 1786801848.3286145,
-    "ast_hash": "eaff1015233bd5e80a7c5b408e8c2da0",
+    "mtime": 1786520913.0060165,
+    "ast_hash": "672068fecb2eb8cf487667a08802a52e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/EquipmentForm.razor": {
-    "mtime": 1786543345.1213827,
-    "ast_hash": "40c3e22b2a26037b0009aef0e454f420",
+    "mtime": 1786520354.5476902,
+    "ast_hash": "2cede3e10bfd17441f496194feeaeee9",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/FormModels.cs": {
-    "mtime": 1787480023.5698395,
-    "ast_hash": "003f9b55eaa4be5b3c3485afad364472",
+    "mtime": 1786541199.544212,
+    "ast_hash": "45209b336b7b43098f7611d96b95ec08",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/_Imports.razor": {
-    "mtime": 1786543345.128381,
-    "ast_hash": "650ee0dad98c593f698c37a801b7703b",
+    "mtime": 1786540558.4994707,
+    "ast_hash": "ab3c7eaabbc5f1eb4c4fa4a8f3af1ee9",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/appsettings.Development.json": {
@@ -315,33 +315,33 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/documentCapture.js": {
-    "mtime": 1787248157.258881,
-    "ast_hash": "361aa1d41845bc70d2c84f12fbbd4f23",
+    "mtime": 1786517283.8885555,
+    "ast_hash": "97701b540dc847fb6589ba7c04c5c542",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/homeguard-auth.js": {
-    "mtime": 1786816041.3925169,
-    "ast_hash": "81d2bc69dbe451a05233b0ba55db11da",
+    "mtime": 1786517283.898555,
+    "ast_hash": "4568b2f97e5c81ccb89f4f1993c1de22",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/homeguard-db.js": {
-    "mtime": 1787494558.896184,
-    "ast_hash": "6b1eb7af8f740da780acf2cc50dcc89c",
+    "mtime": 1786517283.9105592,
+    "ast_hash": "d05f7a931a162cc2ed3b929063533564",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/homeguard-push.js": {
-    "mtime": 1786802329.1363146,
-    "ast_hash": "203a72d5524fe1e9065091f610636554",
+    "mtime": 1786517283.9210694,
+    "ast_hash": "80cfa25ddfedfd3c67929ccd325935c1",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/homeguard-timeline.js": {
-    "mtime": 1786801867.404141,
-    "ast_hash": "b7ae0b17a783ef87cbe187f2ebc25a01",
+    "mtime": 1786520898.9049447,
+    "ast_hash": "94dac6756e41708df86a333754979164",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/manifest.json": {
-    "mtime": 1786543345.1343858,
-    "ast_hash": "57a250648666509d4e348b7931bfd25f",
+    "mtime": 1786370821.8723686,
+    "ast_hash": "90b88ff543c83e9bc280f82088024d38",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/service-worker.js": {
@@ -350,13 +350,13 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/service-worker.published.js": {
-    "mtime": 1787248150.3720546,
-    "ast_hash": "2a21579017b8d5a76e9dda5ee52ae773",
+    "mtime": 1786373235.4798536,
+    "ast_hash": "76a8ccd3342195d8439a2b3815e5bbe8",
     "semantic_hash": ""
   },
   "src/HomeGuard.Common/HomeGuard.Common.csproj": {
-    "mtime": 1786543345.1343858,
-    "ast_hash": "9d2a36f0e335263311c02c698e2a3711",
+    "mtime": 1786540558.4759982,
+    "ast_hash": "7d429e95d82fbff5c042ef02a914751e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Common/Sync/SyncModels.cs": {
@@ -380,9 +380,9 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Diagnostics/StartupDiagnostics.cs": {
-    "mtime": 1787483128.029822,
-    "ast_hash": "01eaa2df5a51f0152088df722c4c27f5",
-    "semantic_hash": ""
+    "mtime": 1780402795.0925536,
+    "ast_hash": "c5aa3708f16ae62095e1879c82b6d0fe",
+    "semantic_hash": "c5aa3708f16ae62095e1879c82b6d0fe"
   },
   "src/HomeGuard.Diagnostics/StartupValidator.cs": {
     "mtime": 1780399744.8238528,
@@ -395,18 +395,18 @@
     "semantic_hash": "375719d2735a50a7e518fdb177aebc7c"
   },
   "src/HomeGuard.Domain/Common/Entity.cs": {
-    "mtime": 1787057006.7776692,
-    "ast_hash": "5499d397a6975c0c519f68f9c6ae07a0",
+    "mtime": 1786517283.9853888,
+    "ast_hash": "d8d90e97ce8046fe126704448e816b93",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/AppUser.cs": {
-    "mtime": 1786543345.1368995,
-    "ast_hash": "9d1f1d0144a69327c9f0d9bc916eb91c",
+    "mtime": 1786515723.981892,
+    "ast_hash": "d28a0d6e39d30539b03539b096620fdb",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/BlobEntry.cs": {
-    "mtime": 1787057013.5254452,
-    "ast_hash": "3e2e62067d57ad581dfa680a53ada2b8",
+    "mtime": 1786517284.0054326,
+    "ast_hash": "b50394820111dbc364ef04f85d05842e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/Equipment.cs": {
@@ -430,8 +430,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Enums/Enums.cs": {
-    "mtime": 1786543345.1378987,
-    "ast_hash": "1b0cf7c22aa432877bcf4cd5f7a91db6",
+    "mtime": 1786522969.914872,
+    "ast_hash": "3b4f580e4ab06c235a37205ec22bcb2e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/HomeGuard.Domain.csproj": {
@@ -465,8 +465,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Calendar/ICalFeedGenerator.cs": {
-    "mtime": 1786801636.8423882,
-    "ast_hash": "a0692767e30d4f4dee3a5a1487c1bcf4",
+    "mtime": 1786517284.1249185,
+    "ast_hash": "384e573623cc44ce4ccbad6dc65d9229",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/HomeGuard.Infrastructure.csproj": {
@@ -475,13 +475,13 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/HomeGuardDbContextFactory.cs": {
-    "mtime": 1786543807.8280296,
-    "ast_hash": "ad63063285569b3aca50a5cc9efbfac3",
+    "mtime": 1786517284.138991,
+    "ast_hash": "7507b9f7ad6b7fb6e3344b366dbeeccb",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/InfrastructureServiceExtensions.cs": {
-    "mtime": 1786543345.1389031,
-    "ast_hash": "7fa86da73613bddb676629d93399be2a",
+    "mtime": 1786524838.777741,
+    "ast_hash": "8b89f2f7dd035be661a09ea1927db104",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/20260406111949_InitialCreate.Designer.cs": {
@@ -505,8 +505,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/HomeGuardDbContextModelSnapshot.cs": {
-    "mtime": 1787130134.4845698,
-    "ast_hash": "fa90088da058b614ae8542b9e0f0e039",
+    "mtime": 1786523810.7417374,
+    "ast_hash": "3fb481ba453df7c9b26ccda710710687",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Notifications/WebPushNotificationSender.cs": {
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Persistence/HomeGuardDbContext.cs": {
-    "mtime": 1787129839.066142,
-    "ast_hash": "ad80ff870220b81017e91050715301b6",
+    "mtime": 1786523790.9848828,
+    "ast_hash": "9825d48ab5d80cf6ff8b01547c35835c",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Persistence/HomeGuardUnitOfWork.cs": {
@@ -530,8 +530,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Persistence/Repositories/Repositories.cs": {
-    "mtime": 1787247762.3525882,
-    "ast_hash": "507b9fcc70e12c972a0cac216fec8329",
+    "mtime": 1786542102.3412902,
+    "ast_hash": "abb7fac5d0c6b6dca485e9fab5c65048",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Persistence/Repositories/RepositoryBase.cs": {
@@ -555,13 +555,13 @@
     "semantic_hash": "5222ca48e65b0faa171ed8552c8adac1"
   },
   ".github/workflows/build.yml": {
-    "mtime": 1786543345.01154,
-    "ast_hash": "8b99858ed7ab8d1593f9d8a91f100f4e",
+    "mtime": 1786520210.595657,
+    "ast_hash": "b2f968399f5cb4427215813edd341f52",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1787483416.7260575,
-    "ast_hash": "7eda0bbb2c42a3be12737be3a9238d97",
+    "mtime": 1786519786.5647643,
+    "ast_hash": "1d5dfb50dadb70ecd550314bac553601",
     "semantic_hash": ""
   },
   "infra/podman-compose.yml": {
@@ -570,8 +570,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/index.html": {
-    "mtime": 1787481838.528052,
-    "ast_hash": "e603669f25dfaeba27cd6e4205bf6485",
+    "mtime": 1786516680.2134001,
+    "ast_hash": "5a22583f4083e9aa51cb6a31d42d2546",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/favicon.svg": {
@@ -580,8 +580,8 @@
     "semantic_hash": "5199a5ef386f91fa8ba11ded014593df"
   },
   "src/HomeGuard.Client/wwwroot/icon.svg": {
-    "mtime": 1786543345.1323836,
-    "ast_hash": "c72b808fc7798f104dfb6e98e72750f5",
+    "mtime": 1786370705.024312,
+    "ast_hash": "09820c76e7578a7f47043689f7bb0093",
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
@@ -630,8 +630,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/RecurringRuleEndpoints.cs": {
-    "mtime": 1786815094.6444318,
-    "ast_hash": "34c5bfddecba0128f6baaa7fe4a9eb20",
+    "mtime": 1784018345.2156098,
+    "ast_hash": "abe5213a8a71dd93be63e8f12ce13e7f",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/RecurringRuleMaterializationService.cs": {
@@ -675,8 +675,8 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/MeterReadingDialog.razor": {
-    "mtime": 1786543345.123381,
-    "ast_hash": "87cac4eb68f6bf6f0b82a70ad19b57fe",
+    "mtime": 1786520476.1849189,
+    "ast_hash": "15c5706a21a0b5958cb85f95db8a1ac5",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/MeterReading.cs": {
@@ -700,38 +700,38 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/Display.cs": {
-    "mtime": 1786543345.1213827,
-    "ast_hash": "b7ef54221a72717bba9781ecedf9e294",
+    "mtime": 1786519529.5472221,
+    "ast_hash": "276540cd2af03d22e7fcb0b32d403ba1",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/MeterReadingSection.razor": {
-    "mtime": 1786543345.124384,
-    "ast_hash": "083a4a2bba80ea68f5837b1149251b34",
+    "mtime": 1786520476.192975,
+    "ast_hash": "32ad5e0ded3e32f5976f3def92cb9dec",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/RecurringRuleDialog.razor": {
-    "mtime": 1786543345.1253853,
-    "ast_hash": "935790897d1a56ddc1cca2f65c7e8987",
+    "mtime": 1786520414.6299481,
+    "ast_hash": "b36593fe1f16e8e65d3a40ddad2f5694",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/ServiceRecordDialog.razor": {
-    "mtime": 1787246664.5715072,
-    "ast_hash": "135681ccceef98c232224544c0b6f094",
+    "mtime": 1786520414.6203597,
+    "ast_hash": "fbe5a43b9e65acfebda9f4e374402b94",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/ServiceSection.razor": {
-    "mtime": 1786543345.1273837,
-    "ast_hash": "f85d40130190e48728b5426ed53617d0",
+    "mtime": 1786519673.7625532,
+    "ast_hash": "0a67476c01b132eac6ecede0552dcd8c",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/WarrantyDialog.razor": {
-    "mtime": 1787480063.8684394,
-    "ast_hash": "a88e79169e150939a9e6d229a1eac199",
+    "mtime": 1786520354.5556989,
+    "ast_hash": "360fdb34ddbd7d0dcdfb7179fb829f42",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/WarrantySection.razor": {
-    "mtime": 1787479094.8825984,
-    "ast_hash": "783fef3f74df971c6504fbfa8d810736",
+    "mtime": 1786519635.3982234,
+    "ast_hash": "b8f0eb64a36cd58e62fb4f5c7e23be23",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/ApiKeyAuthHandler.cs": {
@@ -755,178 +755,178 @@
     "semantic_hash": ""
   },
   ".impeccable/config.json": {
-    "mtime": 1787481827.4689846,
-    "ast_hash": "660b3e9dee8e1403535a1dfb9c07de93",
+    "mtime": 1786359432.6750998,
+    "ast_hash": "5be1425d14f50f42743178793de05b94",
     "semantic_hash": ""
   },
   ".impeccable/design.json": {
-    "mtime": 1787140701.7782898,
-    "ast_hash": "5c6a0dd1643d4c2a685011639135bf4e",
+    "mtime": 1786359866.0644898,
+    "ast_hash": "560592a3e397c30d48d9ac80bb20e3d2",
     "semantic_hash": ""
   },
   ".impeccable/hook.cache.json": {
-    "mtime": 1787494559.0790088,
-    "ast_hash": "e0b6792bb08707eaa76efef46182526c",
+    "mtime": 1786516680.4261768,
+    "ast_hash": "1ac4aaec5c970707397475169ce52439",
     "semantic_hash": ""
   },
   "src/HomeGuard.Api/Endpoints/ContractEndpoints.cs": {
-    "mtime": 1787129895.9435253,
-    "ast_hash": "830da296bc6f452c38bed9bd3f39677f",
+    "mtime": 1786542146.8764906,
+    "ast_hash": "4b0eedd12632f13a6d3db10bb388c39a",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Interfaces/Repositories/IContractRepository.cs": {
-    "mtime": 1786796726.226279,
-    "ast_hash": "656fabfa5f2abc5293305e1332ea891f",
+    "mtime": 1786542102.3322408,
+    "ast_hash": "6af75e21aa3ab33b3906cfc1f03bafe2",
     "semantic_hash": ""
   },
   "src/HomeGuard.Application/Services/ContractService.cs": {
-    "mtime": 1787129844.8919065,
-    "ast_hash": "5ce5674c9b3916b81abfa5a25af21128",
+    "mtime": 1786542122.0840437,
+    "ast_hash": "dac4a35fb8aa16ac318199af08c3906a",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/ContractDetail.razor": {
-    "mtime": 1787246570.8625176,
-    "ast_hash": "cb013ee1dce0015af2e5b5ccda576325",
+    "mtime": 1786542240.6880915,
+    "ast_hash": "8acc52383cc2b6a605647728fc6c3ad6",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Pages/Contracts.razor": {
-    "mtime": 1787128865.8356464,
-    "ast_hash": "5135622429d01c2148f342c879c10de5",
+    "mtime": 1786541349.577365,
+    "ast_hash": "6b8135a477c5066ba276d67409e9a02f",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/DensityPreference.cs": {
-    "mtime": 1786543345.1183746,
-    "ast_hash": "cbe307e47008b196443fd5453f6bfc44",
+    "mtime": 1786516605.428606,
+    "ast_hash": "619c3d34ad9182c7795c698a0e171367",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/LanguagePreference.cs": {
-    "mtime": 1786543345.1183746,
-    "ast_hash": "f48a53a087732936855cdbf7938c5d3e",
+    "mtime": 1786516752.7607248,
+    "ast_hash": "217ec424ddbf572f18bd1d1d3e26fe5e",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Services/SessionService.cs": {
-    "mtime": 1786543345.119377,
-    "ast_hash": "8ac416a1538f50cd78ac56b88247e934",
+    "mtime": 1786516565.6056314,
+    "ast_hash": "cb88f6d0781d632003d48cca36903642",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/ContractDialog.razor": {
-    "mtime": 1787077001.6820362,
-    "ast_hash": "b644b96f4264da01da6f5a82616b113d",
+    "mtime": 1786541407.4029562,
+    "ast_hash": "d487b9a19dd12f7eb4581f3543e320e8",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/ContractSection.razor": {
-    "mtime": 1787128875.3777835,
-    "ast_hash": "d93a1ec66f4b0ceab168355328855b4a",
+    "mtime": 1786542222.3225105,
+    "ast_hash": "55570ae15badc525584619c1d6d0fcef",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/DensitySwitch.razor": {
-    "mtime": 1786543345.120375,
-    "ast_hash": "033cf6b23e2091ac3a3d3c68eb2d04aa",
+    "mtime": 1786516751.473483,
+    "ast_hash": "54b373bb58a5d682a7c69cd0600211a8",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/LanguageSwitcher.razor": {
-    "mtime": 1786543345.1223843,
-    "ast_hash": "6357f637f1e0b3c4346c95986aebe36f",
+    "mtime": 1786516759.0122607,
+    "ast_hash": "2235c8f9d88a4e8cb44c70b7c5fbffc5",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/MarkdownCard.razor": {
-    "mtime": 1786543345.123381,
-    "ast_hash": "31279f0a3d501acf43174adaad1ebfcd",
+    "mtime": 1786534820.392386,
+    "ast_hash": "f7fccca6d570faabdbe96c8439ce331f",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/OpeningPositionDialog.razor": {
-    "mtime": 1786543345.124384,
-    "ast_hash": "33588eb77935827bb8e03b54c8e7f051",
+    "mtime": 1786541281.4780061,
+    "ast_hash": "11c3cf823a3d7677b6ae400cba22abf4",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/PaymentDialog.razor": {
-    "mtime": 1786543345.1253853,
-    "ast_hash": "3e8310de94f925502f96f53d47af684b",
+    "mtime": 1786542190.195585,
+    "ast_hash": "86457585a8cc705136e710b137b46e36",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/PaymentSchedule.razor": {
-    "mtime": 1787129001.8146472,
-    "ast_hash": "a3a04d893f9fbf55be027d80bcd0e6f4",
+    "mtime": 1786542240.6790836,
+    "ast_hash": "e75077015500112ac1ef8c0a0a2c940b",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Shared/RevisionDialog.razor": {
-    "mtime": 1787076896.5978525,
-    "ast_hash": "fc8a7045782f033c6e9acddf1d34a0a6",
+    "mtime": 1786541328.7809012,
+    "ast_hash": "30fbe8763381c7f7d23238928d4bb34d",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/Strings.cs": {
-    "mtime": 1786543345.128381,
-    "ast_hash": "1c47c550b6f8851cb56d5d79e48789f1",
+    "mtime": 1786516480.7605708,
+    "ast_hash": "0ec9121080d189cb40051ea06a963d2d",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/js/homeguard-prefs.js": {
-    "mtime": 1786543345.1333795,
-    "ast_hash": "7a2fe57e6d39da7f1472b79f098faf73",
+    "mtime": 1786516531.4242487,
+    "ast_hash": "4f3c08fb28cb5756aa7e94de3b043077",
     "semantic_hash": ""
   },
   "src/HomeGuard.Common/Localization/AppLanguage.cs": {
-    "mtime": 1786543345.135892,
-    "ast_hash": "0c30d986bc66dc750a440c3d9f4aed95",
+    "mtime": 1786515705.5808089,
+    "ast_hash": "6f03696fd7ca37d649b9707f9f63fc17",
     "semantic_hash": ""
   },
   "src/HomeGuard.Common/Text/MarkdownRenderer.cs": {
-    "mtime": 1786543345.135892,
-    "ast_hash": "6bc01e4d3615df13500e59be52586178",
+    "mtime": 1786540558.4715314,
+    "ast_hash": "353c6f3a3e7692bcfe6874e167b0139d",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/Contract.cs": {
-    "mtime": 1787129827.574793,
-    "ast_hash": "890c8e6ee1d4156eba6bc290539efdb0",
+    "mtime": 1786523079.7911954,
+    "ast_hash": "fb4b95ea257aa595e2fd262a0101dbf3",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/Entities/ContractPayments.cs": {
-    "mtime": 1786543345.1368995,
-    "ast_hash": "8823d9a5c0cc30248ae0e1b7d7f02b6a",
+    "mtime": 1786523025.7746024,
+    "ast_hash": "3d6553d226e3e46f4ed9b950ba4307df",
     "semantic_hash": ""
   },
   "src/HomeGuard.Domain/ValueObjects/OpeningPosition.cs": {
-    "mtime": 1786543345.1378987,
-    "ast_hash": "d536bfadfdd43921e7a3c7896e05fb38",
+    "mtime": 1786522983.1846333,
+    "ast_hash": "cd9b95f0c73e0f998ad12cc7159cef76",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/20260812083245_AppUserLanguage.Designer.cs": {
-    "mtime": 1786543345.1389031,
-    "ast_hash": "0c421946782db4d583134dc91a5eb6c6",
+    "mtime": 1786523566.0205257,
+    "ast_hash": "6f1cce772f8f2c124528db0c7efd7935",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/20260812083245_AppUserLanguage.cs": {
-    "mtime": 1786543345.1399045,
-    "ast_hash": "7117b762852988ee1065c027c8b1bcb3",
+    "mtime": 1786523578.7084255,
+    "ast_hash": "e566b2985f8f42d1b8b7dbfdf6aaa0ed",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/20260812083650_Contracts.Designer.cs": {
-    "mtime": 1786543345.1399045,
-    "ast_hash": "54ce4040f62c1666056992ef83473d4f",
+    "mtime": 1786523810.7328176,
+    "ast_hash": "40a2b8a1c4511999e77e57c670a34c4c",
     "semantic_hash": ""
   },
   "src/HomeGuard.Infrastructure/Migrations/20260812083650_Contracts.cs": {
-    "mtime": 1786543345.140897,
-    "ast_hash": "f40cc3f5edf4b9a48c67c305f8b7da8e",
+    "mtime": 1786523826.7509313,
+    "ast_hash": "15d1a70bbaf0571dd2dbf5d56a41f764",
     "semantic_hash": ""
   },
   "tests/HomeGuard.Tests.Unit/ContractScheduleTests.cs": {
-    "mtime": 1786797234.9800868,
-    "ast_hash": "05547b90b5aa9c2aea0c196de0b18bf3",
+    "mtime": 1786542407.5108438,
+    "ast_hash": "98dae3c6cdb9a01e9fb134103cb802d9",
     "semantic_hash": ""
   },
   "tests/HomeGuard.Tests.Unit/MarkdownRendererTests.cs": {
-    "mtime": 1786543345.142901,
-    "ast_hash": "1e15c384b8f134ca3e0ac06fa233a792",
+    "mtime": 1786540576.759593,
+    "ast_hash": "8f5953ef67b684a648ce29d6d9ddc578",
     "semantic_hash": ""
   },
   ".impeccable/surfaces/contracts.md": {
-    "mtime": 1787129088.3688984,
-    "ast_hash": "7e85b8ab8e0886de4263abdd89a1e8fe",
+    "mtime": 1786363996.275813,
+    "ast_hash": "2f1455bda14ffe26fa7597f960628ebd",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1787140578.7505867,
-    "ast_hash": "f3a74ba5bc6f3a96e02ea3041ad7ee89",
+    "mtime": 1786359860.10716,
+    "ast_hash": "a45e807077a26d351c5824a8377dc6c4",
     "semantic_hash": ""
   },
   "PRODUCT.md": {
@@ -935,8 +935,8 @@
     "semantic_hash": ""
   },
   "contracts-spec.md": {
-    "mtime": 1786802620.9195986,
-    "ast_hash": "1fd02aa77477d1a449c405553f4b5936",
+    "mtime": 1786542483.470649,
+    "ast_hash": "d6999efaab6d6c921d1e9967c3be50c3",
     "semantic_hash": ""
   },
   "design-directions.html": {
@@ -945,118 +945,38 @@
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/apple-touch-icon-180.png": {
-    "mtime": 1786543345.1293814,
+    "mtime": 1786370733.9556413,
     "ast_hash": "852d997695531b13aacab761d2b50552",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/badge-72.png": {
-    "mtime": 1786543345.1293814,
+    "mtime": 1786370734.2130513,
     "ast_hash": "cbe4d9a5a20856d57ad2e4c53735b523",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/badge.svg": {
-    "mtime": 1786543345.130381,
-    "ast_hash": "7a917cb302a0f0196b0830f3ea32cece",
+    "mtime": 1786370721.2411773,
+    "ast_hash": "b7060becd5720ff36844c9c6578cf48c",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/icon-192.png": {
-    "mtime": 1786543345.13138,
+    "mtime": 1786370733.069839,
     "ast_hash": "26c59196e6c92841554598845a3d49b7",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/icon-512.png": {
-    "mtime": 1786543345.13138,
+    "mtime": 1786370733.3691933,
     "ast_hash": "3dfc514b4884d9e6d2538b0a8c7b7e7c",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/icon-maskable-512.png": {
-    "mtime": 1786543345.13138,
+    "mtime": 1786370733.6636624,
     "ast_hash": "3c55411ea90c91672804fc02a31f6548",
     "semantic_hash": ""
   },
   "src/HomeGuard.Client/wwwroot/icon-maskable.svg": {
-    "mtime": 1786543345.1323836,
-    "ast_hash": "268f3867d7e601b3b78c63356cc3936a",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Api/run-dev.sh": {
-    "mtime": 1787482940.662557,
-    "ast_hash": "59366da98cce5e3b7a43361335a37abb",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Application/Services/AmortizationMath.cs": {
-    "mtime": 1786796644.8484366,
-    "ast_hash": "85a273d8e4286e13f62acd7051fc4490",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Application/Services/AttentionService.cs": {
-    "mtime": 1786812046.6102319,
-    "ast_hash": "e0c0721c1b40aecd37abb859058294a2",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Application/Services/PaymentMaterializationService.cs": {
-    "mtime": 1786801396.152625,
-    "ast_hash": "8b5ffd116313a7e633dbbf113e71adb8",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Services/BrowserBufferLoggerProvider.cs": {
-    "mtime": 1787481971.8101785,
-    "ast_hash": "521197b890bbc1668f77ee3519ab0edb",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/AttachmentsCard.razor": {
-    "mtime": 1787512306.9312313,
-    "ast_hash": "f43376f6d0a92d13613a1c0192cbf1f8",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/BudgetLoadChart.razor": {
-    "mtime": 1787076878.5388653,
-    "ast_hash": "ac1dafd178696142cc544dd277aa7b02",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/ContractFormat.cs": {
-    "mtime": 1787076818.5019426,
-    "ast_hash": "e51194d042f91b843abb10bf37542a51",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/ContractStatusChip.razor": {
-    "mtime": 1787216068.7177088,
-    "ast_hash": "1a10c1763b120acc965a007a71c1b3df",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/ContractStatusDialog.razor": {
-    "mtime": 1787129976.7275224,
-    "ast_hash": "16be91e5852080382abc08b012adf04b",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/Shared/FieldWell.razor": {
-    "mtime": 1787072325.1880324,
-    "ast_hash": "9badb72726eb2b20ef2fa345bb53be95",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/wwwroot/js/diagnostics.js": {
-    "mtime": 1787481791.015973,
-    "ast_hash": "353376e292be0bfdaba22ecb621c9461",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Infrastructure/Migrations/20260819090214_ContractStatusReason.Designer.cs": {
-    "mtime": 1787130134.4750502,
-    "ast_hash": "129747d3c56a566a296cab72b2ed4e9b",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Infrastructure/Migrations/20260819090214_ContractStatusReason.cs": {
-    "mtime": 1787130197.05892,
-    "ast_hash": "fdb51b4955d4a0373545d59e0f71fedc",
-    "semantic_hash": ""
-  },
-  ".impeccable/critique/2026-08-18T11-36-38Z__src-homeguard-client-pages-contracts-razor.md": {
-    "mtime": 1787052998.582289,
-    "ast_hash": "97b53a23841a7f5f8c2c2efddc48b1e9",
-    "semantic_hash": ""
-  },
-  "src/HomeGuard.Client/wwwroot/diag.html": {
-    "mtime": 1787494622.8401177,
-    "ast_hash": "04dec5914b3c06ed4fd76dbacfeadc1f",
+    "mtime": 1786370717.7442324,
+    "ast_hash": "75f408df041a9b086b75c624305006af",
     "semantic_hash": ""
   }
 }
