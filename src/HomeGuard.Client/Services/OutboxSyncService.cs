@@ -178,7 +178,21 @@ public sealed class OutboxSyncService
     /// </summary>
     private async Task<FlushResult> FlushBlobsAsync(CancellationToken ct)
     {
-        var pending = await _db.BlobOutboxGetPendingAsync();
+        IReadOnlyList<PendingBlobUpload> pending;
+        try
+        {
+            pending = await _db.BlobOutboxGetPendingAsync();
+        }
+        catch (Exception ex)
+        {
+            // homeguard-db.js already drops and deletes individually-unreadable rows
+            // before they get here, but a whole-read failure (e.g. IndexedDB itself
+            // erroring) shouldn't take the JSON-command half of the flush down with it —
+            // that one already ran (FlushAsync calls FlushCommandsAsync first).
+            _logger.LogWarning(ex, "Outbox: failed to read pending blob uploads, skipping this flush");
+            return FlushResult.Empty;
+        }
+
         if (pending.Count == 0) return FlushResult.Empty;
 
         int committed = 0, failed = 0;

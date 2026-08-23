@@ -8,6 +8,23 @@ const DB_VERSION = 2;
 
 let _db = null;
 
+// A byte[] argument crossing the .NET->JS interop boundary doesn't consistently arrive
+// as one JS type — Blazor's own marshalling picks a raw Uint8Array for some call shapes
+// and a base64 string for others. IndexedDB's structured-clone storage preserves
+// whichever one it was handed, so a value read back later can be either; this is the
+// one place both get reconciled to the base64 string HomeGuardDb.cs's
+// GetBytesFromBase64() actually needs.
+function toBase64(data) {
+    if (typeof data === 'string') return data;
+    if (data instanceof ArrayBuffer) data = new Uint8Array(data);
+    if (data instanceof Uint8Array) {
+        let binary = '';
+        for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
+        return btoa(binary);
+    }
+    throw new Error('Unrecognized blob data shape: ' + Object.prototype.toString.call(data));
+}
+
 async function openDb() {
     if (_db) return _db;
 
@@ -129,27 +146,50 @@ window.homeGuardDb = {
 
     async blobOutboxAdd(entry) {
         const db = await openDb();
+        // .NET's own byte[]-argument marshalling picks its own wire format for `data`
+        // (a raw Uint8Array in some paths, a base64 string in others) — normalizing to
+        // one shape here means blobOutboxGetPending never has to guess which one it's
+        // reading back.
+        const normalized = { ...entry, data: toBase64(entry.data) };
         return new Promise((resolve, reject) => {
             const tx    = db.transaction('blobOutbox', 'readwrite');
             const store = tx.objectStore('blobOutbox');
-            const req   = store.put(entry);
+            const req   = store.put(normalized);
             req.onsuccess = () => resolve(req.result);
             req.onerror   = () => reject(req.error);
         });
     },
 
-    // Get all pending blob uploads ordered by createdAt.
+    // Get all pending blob uploads ordered by createdAt. `data` is always returned as a
+    // base64 string — HomeGuardDb.cs's GetBytesFromBase64() depends on that — even for
+    // rows written before blobOutboxAdd started normalizing on the way in. A row whose
+    // `data` isn't convertible at all (corrupt beyond recovery) is dropped and deleted
+    // instead of taking the whole flush down with it — see the CS2012-adjacent crash
+    // this was written for: one bad queued capture blocked every future sync attempt.
     async blobOutboxGetPending() {
         const db = await openDb();
         return new Promise((resolve, reject) => {
             const tx      = db.transaction('blobOutbox', 'readonly');
             const index   = tx.objectStore('blobOutbox').index('by_createdAt');
             const results = [];
+            const toDrop  = [];
             const req     = index.openCursor();
             req.onsuccess = e => {
                 const cursor = e.target.result;
-                if (cursor) { results.push(cursor.value); cursor.continue(); }
-                else resolve(results);
+                if (cursor) {
+                    try {
+                        results.push({ ...cursor.value, data: toBase64(cursor.value.data) });
+                    } catch (err) {
+                        console.warn('[homeguard-db] dropping unreadable blobOutbox entry',
+                            cursor.value.clientOperationId, err);
+                        toDrop.push(cursor.value.clientOperationId);
+                    }
+                    cursor.continue();
+                } else {
+                    Promise.all(toDrop.map(id => homeGuardDb.blobOutboxRemove(id)))
+                        .catch(() => { /* best-effort cleanup — a failed delete just retries next time */ })
+                        .then(() => resolve(results));
+                }
             };
             req.onerror = () => reject(req.error);
         });
