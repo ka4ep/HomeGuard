@@ -80,12 +80,22 @@ public sealed class HomeGuardDb
     /// string, but this doesn't trust that that fix has actually reached the browser
     /// being read from (a PWA's cached JS can lag a fresh publish) — it accepts
     /// whichever shape .NET's own byte[]-argument interop marshalling happened to write
-    /// under the old, unnormalized path: a base64 string, a JSON array of byte values,
-    /// or a Uint8Array's own JSON.stringify shape (a JSON object keyed "0","1","2",...).
+    /// under the old, unnormalized path: a plain base64 string, a JSON array of byte
+    /// values, or — confirmed live, the actual shape behind the original crash —
+    /// Blazor's own interop wire format for a byte[] that wasn't statically typed as
+    /// byte[] at the JS interop call site: {"__byte[]": "&lt;base64&gt;"}, not a plain
+    /// Uint8Array-as-object as first assumed.
     /// </summary>
     private static byte[] ReadBlobData(JsonElement entry)
     {
         var data = entry.GetProperty("data");
+        if (data.ValueKind == JsonValueKind.Object
+            && data.TryGetProperty("__byte[]", out var wrapped)
+            && wrapped.ValueKind == JsonValueKind.String)
+        {
+            return wrapped.GetBytesFromBase64();
+        }
+
         return data.ValueKind switch
         {
             JsonValueKind.String => data.GetBytesFromBase64(),

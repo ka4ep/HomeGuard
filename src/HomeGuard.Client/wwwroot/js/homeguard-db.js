@@ -9,11 +9,13 @@ const DB_VERSION = 2;
 let _db = null;
 
 // A byte[] argument crossing the .NET->JS interop boundary doesn't consistently arrive
-// as one JS type — Blazor's own marshalling picks a raw Uint8Array for some call shapes
-// and a base64 string for others. IndexedDB's structured-clone storage preserves
-// whichever one it was handed, so a value read back later can be either; this is the
-// one place both get reconciled to the base64 string HomeGuardDb.cs's
-// GetBytesFromBase64() actually needs.
+// as one JS type. Confirmed live (not just Uint8Array as first assumed): a byte[] that
+// isn't statically typed as byte[] at the JS interop call site — true here, `data` is
+// just one field of an anonymous object — arrives wrapped in Blazor's own interop wire
+// format, {"__byte[]": "<base64>"}, not a raw Uint8Array. IndexedDB's structured-clone
+// storage preserves whichever shape it was handed, so a value read back later can be
+// any of them; this is the one place they all get reconciled to the base64 string
+// HomeGuardDb.cs's GetBytesFromBase64() actually needs.
 function toBase64(data) {
     if (typeof data === 'string') return data;
     if (data instanceof ArrayBuffer) data = new Uint8Array(data);
@@ -21,6 +23,9 @@ function toBase64(data) {
         let binary = '';
         for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
         return btoa(binary);
+    }
+    if (data && typeof data === 'object' && typeof data['__byte[]'] === 'string') {
+        return data['__byte[]'];
     }
     throw new Error('Unrecognized blob data shape: ' + Object.prototype.toString.call(data));
 }
