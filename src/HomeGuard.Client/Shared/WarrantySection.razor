@@ -84,10 +84,12 @@ else
     }
 }
 
-<WarrantyDialog @ref="_dialog" FixedEquipmentId="EquipmentId" OnSaved="OnSavedAsync" />
+<WarrantyDialog @ref="_dialog" FixedEquipmentId="EquipmentId"
+                FixedEquipmentPurchaseDate="EquipmentPurchaseDate" OnSaved="OnSavedAsync" />
 
 @code {
     [Parameter, EditorRequired] public Guid EquipmentId { get; set; }
+    [Parameter] public DateOnly? EquipmentPurchaseDate { get; set; }
 
     private List<WarrantyDto> _warranties = [];
     private WarrantyDialog _dialog = null!;

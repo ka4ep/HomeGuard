@@ -75,7 +75,7 @@ else
     <AttachmentsCard OwnerEntityId="Id" OwnerEntityType="Equipment"
                      EmptyText="@L["Equipment_AttachmentsEmpty"]" />
 
-    <WarrantySection EquipmentId="Id" />
+    <WarrantySection EquipmentId="Id" EquipmentPurchaseDate="_detail.PurchaseDate" />
 
     <ServiceSection EquipmentId="Id" MeterUnit="@_detail.MeterUnit"
                     EditServiceId="EditServiceId" EditRuleId="EditRuleId" />

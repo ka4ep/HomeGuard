@@ -37,11 +37,25 @@ public class WarrantyFormModel
     public DateTime? StartDateNullable { get; set; } = DateTime.Today;
     public DateTime? EndDateNullable   { get; set; } = DateTime.Today.AddYears(2);
 
+    /// <summary>
+    /// The picked preset (1/2/3/5 years) — most warranties are a round number of years,
+    /// so this drives EndDate off StartDate instead of making every warranty need its own
+    /// end-date math. The end date itself stays directly editable for the rare
+    /// months-based or custom case; picking a duration (or moving the start date) again
+    /// afterward simply recomputes it from the preset.
+    /// </summary>
+    public int? DurationYears { get; set; } = 2;
+
     public DateOnly StartDate
         => StartDateNullable.HasValue ? DateOnly.FromDateTime(StartDateNullable.Value) : DateOnly.FromDateTime(DateTime.Today);
 
     public DateOnly EndDate
         => EndDateNullable.HasValue ? DateOnly.FromDateTime(EndDateNullable.Value) : DateOnly.FromDateTime(DateTime.Today.AddYears(2));
+
+    /// <summary>Whole-years-minus-a-day is the usual convention: 2 years from a purchase
+    /// on the 5th covers up to and including the 4th two years later, not one day into a
+    /// third year.</summary>
+    public static DateTime ComputeEnd(DateTime start, int years) => start.AddYears(years).AddDays(-1);
 }
 
 // ── ServiceRecord ─────────────────────────────────────────────────────────────

@@ -12,7 +12,8 @@
             @if (FixedEquipmentId is null)
             {
                 <MudItem xs="12">
-                    <MudSelect @bind-Value="_equipmentId" Label=@(L["Nav_Equipment"]) Required="true"
+                    <MudSelect T="Guid" Value="_equipmentId" ValueChanged="OnEquipmentChanged"
+                               Label=@(L["Nav_Equipment"]) Required="true"
                                Disabled="_editId.HasValue">
                         @foreach (var e in Equipment)
                         {
@@ -24,11 +25,20 @@
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Name" Label=@(L["Form_Name"]) Required="true" />
             </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker @bind-Date="_form.StartDateNullable" Label=@(L["Form_StartDate"])
-                               DateFormat="yyyy-MM-dd" />
+            <MudItem xs="12" sm="4">
+                <MudSelect Value="_form.DurationYears" ValueChanged="OnDurationChanged"
+                           Label=@(L["Warranty_Duration"]) T="int?">
+                    <MudSelectItem T="int?" Value="1">@L["Warranty_Years_1"]</MudSelectItem>
+                    <MudSelectItem T="int?" Value="2">@L["Warranty_Years_2"]</MudSelectItem>
+                    <MudSelectItem T="int?" Value="3">@L["Warranty_Years_3"]</MudSelectItem>
+                    <MudSelectItem T="int?" Value="5">@L["Warranty_Years_5"]</MudSelectItem>
+                </MudSelect>
             </MudItem>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12" sm="4">
+                <MudDatePicker Date="_form.StartDateNullable" DateChanged="OnStartDateChanged"
+                               Label=@(L["Form_StartDate"]) DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="4">
                 <MudDatePicker @bind-Date="_form.EndDateNullable" Label=@(L["Form_EndDate"])
                                DateFormat="yyyy-MM-dd" />
             </MudItem>
@@ -64,6 +74,11 @@
     /// <summary>When set, the equipment is fixed (dialog opened from an equipment page).</summary>
     [Parameter] public Guid? FixedEquipmentId { get; set; }
 
+    /// <summary>Purchase date for the fixed equipment — WarrantySection knows only the
+    /// bare EquipmentId, not the full EquipmentSummary the standalone Warranties page
+    /// picks from, so it has to be threaded through separately.</summary>
+    [Parameter] public DateOnly? FixedEquipmentPurchaseDate { get; set; }
+
     /// <summary>The created/updated warranty, or null if the API returned nothing.</summary>
     [Parameter] public EventCallback<WarrantyDto?> OnSaved { get; set; }
 
@@ -73,13 +88,54 @@
     private Guid  _equipmentId;
     private WarrantyFormModel _form = new();
 
+    private DateOnly? ResolvePurchaseDate(Guid equipmentId) =>
+        FixedEquipmentId is not null
+            ? FixedEquipmentPurchaseDate
+            : Equipment.FirstOrDefault(e => e.Id == equipmentId)?.PurchaseDate;
+
     public void OpenAdd()
     {
         _editId      = null;
-        _form        = new WarrantyFormModel();
         _equipmentId = FixedEquipmentId ?? Equipment.FirstOrDefault()?.Id ?? Guid.Empty;
-        _visible     = true;
+
+        _form = new WarrantyFormModel { Name = L["Warranty_DefaultName"] };
+        if (ResolvePurchaseDate(_equipmentId) is { } start)
+        {
+            _form.StartDateNullable = start.ToDateTime(TimeOnly.MinValue);
+            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears!.Value);
+        }
+
+        _visible = true;
         StateHasChanged();
+    }
+
+    /// <summary>Re-anchoring on equipment choice is Add-only — an existing warranty's
+    /// dates are never silently rewritten just because someone reopened the dialog.</summary>
+    private void OnEquipmentChanged(Guid id)
+    {
+        _equipmentId = id;
+        if (_editId.HasValue) return;
+
+        if (ResolvePurchaseDate(id) is { } purchase)
+        {
+            _form.StartDateNullable = purchase.ToDateTime(TimeOnly.MinValue);
+            if (_form.DurationYears is { } years)
+                _form.EndDateNullable = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, years);
+        }
+    }
+
+    private void OnDurationChanged(int? years)
+    {
+        _form.DurationYears = years;
+        if (years is { } y && _form.StartDateNullable is { } start)
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(start, y);
+    }
+
+    private void OnStartDateChanged(DateTime? start)
+    {
+        _form.StartDateNullable = start;
+        if (start is { } s && _form.DurationYears is { } years)
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(s, years);
     }
 
     public void OpenEdit(WarrantyDto w)

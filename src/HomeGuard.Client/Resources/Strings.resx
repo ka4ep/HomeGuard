@@ -99,6 +99,7 @@
 
   <!-- ── Equipment ─────────────────────────────────────────────────────────── -->
   <data name="Equipment_AddTitle" xml:space="preserve"><value>Add equipment</value></data>
+  <data name="Equipment_AddWarranty" xml:space="preserve"><value>Add a warranty</value></data>
   <data name="Equipment_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the manual or a photo of it.</value></data>
   <data name="Equipment_Brand" xml:space="preserve"><value>Brand</value></data>
   <data name="Equipment_Category" xml:space="preserve"><value>Category</value></data>
@@ -109,6 +110,9 @@
   </data>
   <data name="Equipment_Purchased" xml:space="preserve"><value>Purchased</value></data>
   <data name="Equipment_Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Equipment_WarrantyEndsOn" xml:space="preserve"><value>Covers until {0}</value>
+    <comment>{0} is the computed warranty end date — purchase date + the chosen duration, minus a day.</comment>
+  </data>
 
   <!-- ── Equipment categories (enum EquipmentCategory) ─────────────────────── -->
   <data name="Category_Electronics" xml:space="preserve"><value>Electronics</value></data>
@@ -122,12 +126,20 @@
   <!-- ── Warranties ────────────────────────────────────────────────────────── -->
   <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt or warranty card.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Contract №</value></data>
+  <data name="Warranty_DefaultName" xml:space="preserve"><value>Warranty</value>
+    <comment>Pre-filled into the Name field on Add — a household rarely has more than one warranty per item, so this is usually left as-is.</comment>
+  </data>
+  <data name="Warranty_Duration" xml:space="preserve"><value>Duration</value></data>
   <data name="Warranty_Empty" xml:space="preserve"><value>No warranties here.</value></data>
   <data name="Warranty_Name" xml:space="preserve"><value>Warranty</value></data>
   <data name="Warranty_Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="Warranty_Period" xml:space="preserve"><value>Period</value></data>
   <data name="Warranty_Provider" xml:space="preserve"><value>Provider</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="Warranty_Years_1" xml:space="preserve"><value>1 year</value></data>
+  <data name="Warranty_Years_2" xml:space="preserve"><value>2 years</value></data>
+  <data name="Warranty_Years_3" xml:space="preserve"><value>3 years</value></data>
+  <data name="Warranty_Years_5" xml:space="preserve"><value>5 years</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Active</value></data>
   <data name="Warranty_TabExpiring" xml:space="preserve"><value>Expiring soon</value></data>
 

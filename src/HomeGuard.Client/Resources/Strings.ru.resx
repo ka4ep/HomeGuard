@@ -98,6 +98,7 @@
 
   <!-- ── Техника ───────────────────────────────────────────────────────────── -->
   <data name="Equipment_AddTitle" xml:space="preserve"><value>Новая техника</value></data>
+  <data name="Equipment_AddWarranty" xml:space="preserve"><value>Добавить гарантию</value></data>
   <data name="Equipment_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте инструкцию или её фото.</value></data>
   <data name="Equipment_Brand" xml:space="preserve"><value>Марка</value></data>
   <data name="Equipment_Category" xml:space="preserve"><value>Категория</value></data>
@@ -106,6 +107,9 @@
   <data name="Equipment_NoMatch" xml:space="preserve"><value>По запросу «{0}» ничего нет.</value></data>
   <data name="Equipment_Purchased" xml:space="preserve"><value>Куплено</value></data>
   <data name="Equipment_Tags" xml:space="preserve"><value>Метки</value></data>
+  <data name="Equipment_WarrantyEndsOn" xml:space="preserve"><value>Действует до {0}</value>
+    <comment>{0} is the computed warranty end date — purchase date + the chosen duration, minus a day.</comment>
+  </data>
 
   <!-- ── Категории техники (enum EquipmentCategory) ────────────────────────── -->
   <data name="Category_Electronics" xml:space="preserve"><value>Электроника</value></data>
@@ -119,12 +123,20 @@
   <!-- ── Гарантии ──────────────────────────────────────────────────────────── -->
   <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте фото чека или гарантийного талона.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Номер договора</value></data>
+  <data name="Warranty_DefaultName" xml:space="preserve"><value>Гарантия</value>
+    <comment>Pre-filled into the Name field on Add — a household rarely has more than one warranty per item, so this is usually left as-is.</comment>
+  </data>
+  <data name="Warranty_Duration" xml:space="preserve"><value>Длительность</value></data>
   <data name="Warranty_Empty" xml:space="preserve"><value>Здесь гарантий нет.</value></data>
   <data name="Warranty_Name" xml:space="preserve"><value>Гарантия</value></data>
   <data name="Warranty_Notes" xml:space="preserve"><value>Заметки</value></data>
   <data name="Warranty_Period" xml:space="preserve"><value>Срок</value></data>
   <data name="Warranty_Provider" xml:space="preserve"><value>Кто выдал</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Осталось</value></data>
+  <data name="Warranty_Years_1" xml:space="preserve"><value>1 год</value></data>
+  <data name="Warranty_Years_2" xml:space="preserve"><value>2 года</value></data>
+  <data name="Warranty_Years_3" xml:space="preserve"><value>3 года</value></data>
+  <data name="Warranty_Years_5" xml:space="preserve"><value>5 лет</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Действующие</value></data>
   <data name="Warranty_TabExpiring" xml:space="preserve"><value>Скоро истекают</value></data>
 
