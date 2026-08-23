@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using System.Text.Json;
 
@@ -10,8 +11,13 @@ namespace HomeGuard.Client.Services;
 public sealed class HomeGuardDb
 {
     private readonly IJSRuntime _js;
+    private readonly ILogger<HomeGuardDb> _logger;
 
-    public HomeGuardDb(IJSRuntime js) => _js = js;
+    public HomeGuardDb(IJSRuntime js, ILogger<HomeGuardDb> logger)
+    {
+        _js     = js;
+        _logger = logger;
+    }
 
     // ── Outbox ────────────────────────────────────────────────────────────────
 
@@ -69,19 +75,62 @@ public sealed class HomeGuardDb
         await _js.InvokeVoidAsync("homeGuardDb.blobOutboxAdd", obj);
     }
 
+    /// <summary>
+    /// homeguard-db.js's own blobOutboxGetPending already normalizes `data` to a base64
+    /// string, but this doesn't trust that that fix has actually reached the browser
+    /// being read from (a PWA's cached JS can lag a fresh publish) — it accepts
+    /// whichever shape .NET's own byte[]-argument interop marshalling happened to write
+    /// under the old, unnormalized path: a base64 string, a JSON array of byte values,
+    /// or a Uint8Array's own JSON.stringify shape (a JSON object keyed "0","1","2",...).
+    /// </summary>
+    private static byte[] ReadBlobData(JsonElement entry)
+    {
+        var data = entry.GetProperty("data");
+        return data.ValueKind switch
+        {
+            JsonValueKind.String => data.GetBytesFromBase64(),
+            JsonValueKind.Array  => [.. data.EnumerateArray().Select(x => (byte)x.GetInt32())],
+            JsonValueKind.Object => [.. data.EnumerateObject()
+                                          .OrderBy(p => int.Parse(p.Name, System.Globalization.CultureInfo.InvariantCulture))
+                                          .Select(p => (byte)p.Value.GetInt32())],
+            var kind => throw new InvalidOperationException($"Unexpected blob data shape: {kind}"),
+        };
+    }
+
     public async Task<IReadOnlyList<PendingBlobUpload>> BlobOutboxGetPendingAsync()
     {
-        var raw = await _js.InvokeAsync<JsonElement[]>("homeGuardDb.blobOutboxGetPending");
-        return raw.Select(e => new PendingBlobUpload(
-            ClientOperationId: e.GetProperty("clientOperationId").GetString()!,
-            Data:              e.GetProperty("data").GetBytesFromBase64(),
-            MimeType:          e.GetProperty("mimeType").GetString()!,
-            FileName:          e.GetProperty("fileName").GetString()!,
-            OwnerEntityId:     Guid.Parse(e.GetProperty("ownerEntityId").GetString()!),
-            OwnerEntityType:   e.GetProperty("ownerEntityType").GetString()!,
-            CreatedAt: DateTimeOffset.FromUnixTimeMilliseconds(
-                           e.GetProperty("createdAt").GetInt64())
-        )).ToList();
+        var raw    = await _js.InvokeAsync<JsonElement[]>("homeGuardDb.blobOutboxGetPending");
+        var result = new List<PendingBlobUpload>(raw.Length);
+
+        foreach (var e in raw)
+        {
+            string? clientOperationId = null;
+            try
+            {
+                clientOperationId = e.GetProperty("clientOperationId").GetString();
+                result.Add(new PendingBlobUpload(
+                    ClientOperationId: clientOperationId!,
+                    Data:              ReadBlobData(e),
+                    MimeType:          e.GetProperty("mimeType").GetString()!,
+                    FileName:          e.GetProperty("fileName").GetString()!,
+                    OwnerEntityId:     Guid.Parse(e.GetProperty("ownerEntityId").GetString()!),
+                    OwnerEntityType:   e.GetProperty("ownerEntityType").GetString()!,
+                    CreatedAt: DateTimeOffset.FromUnixTimeMilliseconds(
+                                   e.GetProperty("createdAt").GetInt64())
+                ));
+            }
+            catch (Exception ex)
+            {
+                // One row this defensive a parse still can't make sense of is genuinely
+                // corrupt — drop it (and remove it, if its id was even readable) instead
+                // of taking every other queued upload down with it.
+                _logger.LogWarning(ex, "Dropping unreadable blobOutbox entry {ClientOperationId}", clientOperationId);
+                if (clientOperationId is not null)
+                    await BlobOutboxRemoveAsync(clientOperationId);
+            }
+        }
+
+        return result;
     }
 
     public async Task BlobOutboxRemoveAsync(string clientOperationId)
