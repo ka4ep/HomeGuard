@@ -4,8 +4,10 @@
      OnCapture  — EventCallback<CapturedDocument>, срабатывает при выборе/съёмке
      Label      — опциональный заголовок над компонентом
 *@
+@using Microsoft.Extensions.Logging
 @inject IJSRuntime JS
 @inject IStringLocalizer<Strings> L
+@inject ILogger<DocumentCapture> Logger
 @implements IAsyncDisposable
 
 <div class="dc-root">
@@ -173,6 +175,9 @@
     [JSInvokable]
     public async Task OnFileReady(string base64, string mimeType, string fileName)
     {
+        Logger.LogInformation("DocumentCapture: file picked {FileName} ({MimeType}, {Bytes} b64 chars)",
+            fileName, mimeType, base64.Length);
+
         errorMessage = null;
         var bytes    = Convert.FromBase64String(base64);
         captured     = new CapturedDocument(bytes, mimeType, fileName);
@@ -187,6 +192,7 @@
     [JSInvokable]
     public async Task OnFileError(string message)
     {
+        Logger.LogWarning("DocumentCapture: file rejected — {Message}", message);
         errorMessage = message;
         await InvokeAsync(StateHasChanged);
     }
@@ -194,6 +200,7 @@
     // ── Действия ───────────────────────────────────────────────
     private async Task SwitchTab(Tab tab)
     {
+        Logger.LogInformation("DocumentCapture: tab -> {Tab}", tab);
         if (activeTab == Tab.Camera && cameraStarted)
             await StopCamera();
 
@@ -203,7 +210,9 @@
 
     private async Task StartCamera()
     {
+        Logger.LogInformation("DocumentCapture: starting camera");
         cameraStarted = await jsModule!.InvokeAsync<bool>("startCamera", videoRef);
+        Logger.LogInformation("DocumentCapture: camera start -> {Started}", cameraStarted);
         if (!cameraStarted)
             errorMessage = L["Capture_CameraDenied"];
         StateHasChanged();
@@ -211,10 +220,12 @@
 
     private async Task CapturePhoto()
     {
+        Logger.LogInformation("DocumentCapture: capturing frame");
         var dataUrl = await jsModule!.InvokeAsync<string>("captureFrame", videoRef, canvasRef);
         var base64  = dataUrl.Split(',')[1];
         var bytes   = Convert.FromBase64String(base64);
         var fileName = $"photo_{DateTime.Now:yyyyMMdd_HHmmss}.jpg";
+        Logger.LogInformation("DocumentCapture: captured {FileName} ({Bytes} bytes)", fileName, bytes.Length);
 
         captured       = new CapturedDocument(bytes, "image/jpeg", fileName);
         previewDataUrl = dataUrl;

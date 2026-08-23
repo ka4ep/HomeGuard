@@ -1,4 +1,5 @@
 using HomeGuard.Common.Sync;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace HomeGuard.Client.Services;
@@ -21,15 +22,17 @@ public sealed class OutboxSyncService
     private readonly HomeGuardDb _db;
     private readonly SyncApiClient _api;
     private readonly BlobApiClient _blobs;
+    private readonly ILogger<OutboxSyncService> _logger;
 
     // Raised when the outbox count changes so UI can show a badge.
     public event Action? OutboxChanged;
 
-    public OutboxSyncService(HomeGuardDb db, SyncApiClient api, BlobApiClient blobs)
+    public OutboxSyncService(HomeGuardDb db, SyncApiClient api, BlobApiClient blobs, ILogger<OutboxSyncService> logger)
     {
-        _db    = db;
-        _api   = api;
-        _blobs = blobs;
+        _db     = db;
+        _api    = api;
+        _blobs  = blobs;
+        _logger = logger;
     }
 
     // ── Enqueue ───────────────────────────────────────────────────────────────
@@ -72,6 +75,8 @@ public sealed class OutboxSyncService
         );
 
         await _db.BlobOutboxAddAsync(entry);
+        _logger.LogInformation("Outbox: queued blob upload {FileName} ({Bytes} bytes) for {OwnerType} {OwnerId}",
+            fileName, data.Length, ownerEntityType, ownerEntityId);
         OutboxChanged?.Invoke();
     }
 
@@ -98,11 +103,17 @@ public sealed class OutboxSyncService
         var commands = await FlushCommandsAsync(ct);
         var blobs    = await FlushBlobsAsync(ct);
 
-        return new FlushResult(
+        var result = new FlushResult(
             Sent:      commands.Sent      + blobs.Sent,
             Committed: commands.Committed + blobs.Committed,
             Failed:    commands.Failed    + blobs.Failed
         );
+
+        if (result.Sent > 0)
+            _logger.LogInformation("Outbox: flush sent {Sent}, committed {Committed}, failed {Failed}",
+                result.Sent, result.Committed, result.Failed);
+
+        return result;
     }
 
     private async Task<FlushResult> FlushCommandsAsync(CancellationToken ct)
@@ -182,9 +193,10 @@ public sealed class OutboxSyncService
                     item.OwnerEntityId, item.OwnerEntityType,
                     Guid.Parse(item.ClientOperationId), ct);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 id = null; // network failure — leave queued, retry on the next flush.
+                _logger.LogWarning(ex, "Outbox: blob upload failed for {FileName}, leaving queued", item.FileName);
             }
 
             if (id is not null)

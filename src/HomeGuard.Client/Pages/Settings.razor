@@ -131,6 +131,26 @@
     </MudCardActions>
 </MudCard>
 
+@* ── Diagnostics ──────────────────────────────────────────────────────────── *@
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.BugReport" Class="mr-1" />
+                @L["Settings_Diagnostics"]
+            </MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Color="Color.Secondary">@L["Settings_DiagnosticsHelp"]</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Outlined" OnClick="SendLogsAsync" Disabled="_sendingLogs">
+            @L["Settings_SendLogs"]
+        </MudButton>
+    </MudCardActions>
+</MudCard>
+
 @* ── Push notifications ────────────────────────────────────────────────────── *@
 <MudCard Elevation="1" Class="mb-4">
     <MudCardHeader>
@@ -189,6 +209,9 @@
     // ── Sync ──────────────────────────────────────────────────────────────────
     private int  _pendingCount;
     private bool _flushing;
+
+    // ── Diagnostics ───────────────────────────────────────────────────────────
+    private bool _sendingLogs;
 
     // ── Push ──────────────────────────────────────────────────────────────────
     private PushStatus _pushStatus  = PushStatus.Default;
@@ -290,6 +313,22 @@
             ? L["Settings_SyncPartial", result.Failed]
             : L["Settings_SyncDone", result.Committed],
             result.HasFailures ? Severity.Warning : Severity.Success);
+    }
+
+    // ── Diagnostics ───────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Ships the JS-side log ring buffer (every ILogger&lt;T&gt; call app-wide, via
+    /// BrowserBufferLoggerProvider — see wwwroot/js/diagnostics.js) to the server right
+    /// now, with no error required. For exactly the case a phone screen can't be
+    /// copy-pasted from: something looked wrong, nothing necessarily threw.
+    /// </summary>
+    private async Task SendLogsAsync()
+    {
+        _sendingLogs = true;
+        await JS.InvokeVoidAsync("__hgFlushLogs", "manual send from Settings");
+        _sendingLogs = false;
+        Snackbar.Add(L["Settings_LogsSent"], Severity.Success);
     }
 
     // ── Push notifications ────────────────────────────────────────────────────

@@ -25,6 +25,12 @@ builder.Services.AddMudServices();
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 builder.Services.AddHomeGuardClientServices(apiUri.ToString());
 
+// Every ILogger<T> call app-wide also lands in the JS-side ring buffer a phone-side
+// error report (or the Settings "send logs" button) can ship to the server — see
+// BrowserBufferLoggerProvider's own header comment for why.
+builder.Services.AddSingleton<ILoggerProvider>(sp =>
+    new BrowserBufferLoggerProvider((IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>()));
+
 var host = builder.Build();
 
 // Культуру нужно поставить до запуска хоста: на ней завязаны и ресурсы, и форматы

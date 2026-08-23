@@ -12,6 +12,12 @@ public sealed class ApiAuthHandler(NavigationManager nav, ILogger<ApiAuthHandler
     {
         var response = await base.SendAsync(request, ct);
 
+        // The one chokepoint every meaningful action in this app already passes through —
+        // logging here instead of at each call site is what makes the buffer a usable
+        // action trail without hand-instrumenting every button.
+        logger.LogInformation("{Method} {Path} -> {Status}",
+            request.Method, request.RequestUri?.AbsolutePath, (int)response.StatusCode);
+
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             // /api/auth/me answers 401 *by design* when nobody is signed in — that is its

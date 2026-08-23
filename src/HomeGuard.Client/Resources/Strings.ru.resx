@@ -238,6 +238,9 @@
   <data name="Settings_DeviceRegistered" xml:space="preserve"><value>Устройство «{0}» зарегистрировано.</value></data>
   <data name="Settings_DeviceRemoved" xml:space="preserve"><value>«{0}» удалено.</value></data>
   <data name="Settings_Devices" xml:space="preserve"><value>Устройства с ключом</value></data>
+  <data name="Settings_Diagnostics" xml:space="preserve"><value>Диагностика</value></data>
+  <data name="Settings_DiagnosticsHelp" xml:space="preserve"><value>Если что-то выглядело неправильно, отправьте недавний журнал действий — его можно будет посмотреть на сервере.</value></data>
+  <data name="Settings_LogsSent" xml:space="preserve"><value>Логи отправлены.</value></data>
   <data name="Settings_NoDevices" xml:space="preserve"><value>Устройств нет.</value></data>
   <data name="Settings_OfflineSync" xml:space="preserve"><value>Офлайн-синхронизация</value></data>
   <data name="Settings_PendingOperations" xml:space="preserve"><value>Ждут отправки:</value></data>
@@ -259,6 +262,7 @@
   <data name="Settings_RevokeMessage" xml:space="preserve"><value>Удалить «{0}»? Этот ключ перестанет работать сразу же.</value></data>
   <data name="Settings_RevokeTitle" xml:space="preserve"><value>Отозвать устройство</value></data>
   <data name="Settings_SyncDone" xml:space="preserve"><value>Всё отправлено ({0}).</value></data>
+  <data name="Settings_SendLogs" xml:space="preserve"><value>Отослать логи на сервер</value></data>
   <data name="Settings_SyncNow" xml:space="preserve"><value>Синхронизировать</value></data>
   <data name="Settings_SyncPartial" xml:space="preserve"><value>Синхронизация закончена — не прошло: {0}.</value></data>
 

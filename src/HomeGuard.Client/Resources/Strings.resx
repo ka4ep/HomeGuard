@@ -245,6 +245,9 @@
   <data name="Settings_DeviceRegistered" xml:space="preserve"><value>Device “{0}” registered.</value></data>
   <data name="Settings_DeviceRemoved" xml:space="preserve"><value>“{0}” removed.</value></data>
   <data name="Settings_Devices" xml:space="preserve"><value>Passkey devices</value></data>
+  <data name="Settings_Diagnostics" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="Settings_DiagnosticsHelp" xml:space="preserve"><value>If something looked wrong, send the recent activity log so it can be checked on the server.</value></data>
+  <data name="Settings_LogsSent" xml:space="preserve"><value>Logs sent.</value></data>
   <data name="Settings_NoDevices" xml:space="preserve"><value>No devices found.</value></data>
   <data name="Settings_OfflineSync" xml:space="preserve"><value>Offline sync</value></data>
   <data name="Settings_PendingOperations" xml:space="preserve"><value>Waiting to sync:</value></data>
@@ -266,6 +269,7 @@
   <data name="Settings_RevokeMessage" xml:space="preserve"><value>Remove “{0}”? This passkey stops working immediately.</value></data>
   <data name="Settings_RevokeTitle" xml:space="preserve"><value>Revoke device</value></data>
   <data name="Settings_SyncDone" xml:space="preserve"><value>All synced ({0}).</value></data>
+  <data name="Settings_SendLogs" xml:space="preserve"><value>Send logs to server</value></data>
   <data name="Settings_SyncNow" xml:space="preserve"><value>Sync now</value></data>
   <data name="Settings_SyncPartial" xml:space="preserve"><value>Sync finished — {0} failed.</value></data>
 

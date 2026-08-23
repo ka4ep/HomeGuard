@@ -148,20 +148,34 @@ public static class DiagnosticsEndpoints
             ClientErrorReport report,
             ILoggerFactory loggerFactory) =>
         {
-            loggerFactory.CreateLogger("ClientError").LogError(
+            var log = loggerFactory.CreateLogger("ClientError");
+            log.LogError(
                 "[{Source}] {Message} @ {Url} ({UserAgent})\n{Stack}",
                 report.Source, report.Message, report.Url, report.UserAgent, report.Stack);
+
+            // The action trail (every ILogger<T> call app-wide, via BrowserBufferLoggerProvider)
+            // leading up to this — one block, in order, so "what happened right before" doesn't
+            // need fifty grepped-together log lines to reconstruct.
+            if (report.Logs is { Count: > 0 } logs)
+            {
+                var trail = string.Join('\n', logs.Select(e => $"  {e.T} [{e.Level}] {e.Category}: {e.Message}"));
+                log.LogInformation("Client log trail ({Count} entries):\n{Trail}", logs.Count, trail);
+            }
+
             return Results.NoContent();
         }).RequireAuthorization();
     }
 }
+
+public sealed record ClientLogEntry(string T, string Level, string Category, string Message);
 
 public sealed record ClientErrorReport(
     string Message,
     string? Stack,
     string? Source,
     string? Url,
-    string? UserAgent
+    string? UserAgent,
+    IReadOnlyList<ClientLogEntry>? Logs = null
 );
 
 // ── iCal feed ─────────────────────────────────────────────────────────────────
