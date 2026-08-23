@@ -29,7 +29,7 @@ builder.Services.AddHomeGuardClientServices(apiUri.ToString());
 // error report (or the Settings "send logs" button) can ship to the server — see
 // BrowserBufferLoggerProvider's own header comment for why.
 builder.Services.AddSingleton<ILoggerProvider>(sp =>
-    new BrowserBufferLoggerProvider((IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>()));
+    new BrowserBufferLoggerProvider(sp.GetRequiredService<IJSRuntime>()));
 
 var host = builder.Build();
 

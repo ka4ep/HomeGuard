@@ -2,7 +2,8 @@
   "detector": {
     "ignoreRules": [],
     "ignoreFiles": [
-      "design-directions.html"
+      "design-directions.html",
+      "src/HomeGuard.Client/wwwroot/diag.html"
     ],
     "ignoreValues": [
       {

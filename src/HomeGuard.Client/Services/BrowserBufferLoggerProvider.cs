@@ -8,19 +8,24 @@ namespace HomeGuard.Client.Services;
 /// console. The point: a phone screen can't be copy-pasted from, so anything worth
 /// logging with the standard .NET ILogger convention is now also shippable to the
 /// server — either automatically (attached to an error report) or on demand (Settings'
-/// "Send logs to server" button) — without instrumenting individual call sites beyond
-/// adding the odd ILogger.LogInformation() at a point actually worth narrating.
-/// Synchronous JS interop (IJSInProcessRuntime) — WASM supports it, and a logger's
-/// Log() method isn't async, so this avoids a fire-and-forget Task no one awaits.
+/// "Send logs to server" button / diag.html) — without instrumenting individual call
+/// sites beyond adding the odd ILogger.LogInformation() at a point worth narrating.
+///
+/// Fire-and-forget *async* interop (InvokeVoidAsync), not the synchronous
+/// IJSInProcessRuntime variant this started as: a sync call made from inside a call
+/// site that itself is mid-await on another JS interop operation (ApiAuthHandler logs
+/// right after awaiting the fetch-backed SendAsync, for one) risks the exact kind of
+/// interop reentrancy failure this whole thing exists to catch. Async fire-and-forget
+/// never blocks the caller and never throws back into it either way.
 /// </summary>
-public sealed class BrowserBufferLoggerProvider(IJSInProcessRuntime js) : ILoggerProvider
+public sealed class BrowserBufferLoggerProvider(IJSRuntime js) : ILoggerProvider
 {
     public ILogger CreateLogger(string categoryName) => new BrowserBufferLogger(js, categoryName);
 
     public void Dispose() { }
 }
 
-internal sealed class BrowserBufferLogger(IJSInProcessRuntime js, string category) : ILogger
+internal sealed class BrowserBufferLogger(IJSRuntime js, string category) : ILogger
 {
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
@@ -37,14 +42,20 @@ internal sealed class BrowserBufferLogger(IJSInProcessRuntime js, string categor
         var message = formatter(state, exception);
         if (exception is not null) message += " — " + exception;
 
+        _ = LogAsync(logLevel, message);
+    }
+
+    private async Task LogAsync(LogLevel level, string message)
+    {
         try
         {
-            js.InvokeVoid("__hgLog", logLevel.ToString(), category, message);
+            await js.InvokeVoidAsync("__hgLog", level.ToString(), category, message);
         }
         catch
         {
-            // Interop can fail early in boot (JS module not ready yet) or if the JS
-            // runtime itself is what's in a bad state — logging must never throw.
+            // Interop can fail early in boot (JS module not ready yet), mid-navigation
+            // (the JS side torn down), or if the runtime itself is in a bad state —
+            // logging must never throw, awaited or not.
         }
     }
 }

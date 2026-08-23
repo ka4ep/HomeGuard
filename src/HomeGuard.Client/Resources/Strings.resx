@@ -271,6 +271,7 @@
   <data name="Settings_SyncDone" xml:space="preserve"><value>All synced ({0}).</value></data>
   <data name="Settings_SendLogs" xml:space="preserve"><value>Send logs to server</value></data>
   <data name="Settings_SyncNow" xml:space="preserve"><value>Sync now</value></data>
+  <data name="Settings_ViewLogs" xml:space="preserve"><value>View log on screen</value></data>
   <data name="Settings_SyncPartial" xml:space="preserve"><value>Sync finished — {0} failed.</value></data>
 
   <!-- ── Dashboard ── -->

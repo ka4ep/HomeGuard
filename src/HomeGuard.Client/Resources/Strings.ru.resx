@@ -264,6 +264,7 @@
   <data name="Settings_SyncDone" xml:space="preserve"><value>Всё отправлено ({0}).</value></data>
   <data name="Settings_SendLogs" xml:space="preserve"><value>Отослать логи на сервер</value></data>
   <data name="Settings_SyncNow" xml:space="preserve"><value>Синхронизировать</value></data>
+  <data name="Settings_ViewLogs" xml:space="preserve"><value>Посмотреть журнал на экране</value></data>
   <data name="Settings_SyncPartial" xml:space="preserve"><value>Синхронизация закончена — не прошло: {0}.</value></data>
 
   <!-- ── Сводка ── -->
