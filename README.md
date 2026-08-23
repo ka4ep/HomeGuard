@@ -88,7 +88,40 @@ Volumes: `homeguard-data` (SQLite), `homeguard-blobs` (local blob fallback).
 ### 6. Manual / LAN deployment (without Podman)
 
 For testing on another machine on the LAN (a phone, a home server) without setting up a
-full build toolchain there:
+full build toolchain there.
+
+**Preferred: single-file publish scripts.** `src/HomeGuard.Api/publish-win.bat` and
+`publish-linux.bat` each run a self-contained, single-file `dotnet publish` for their
+platform (`win-x64` / `linux-x64` — the only two targets in use; add another script if a
+third ever is) into `bin\publish-win` / `bin\publish-linux`:
+
+```bat
+dotnet publish . -c Release -r <win-x64|linux-x64> --self-contained true ^
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true ^
+  -o bin\publish-<win|linux>
+```
+
+`-r <rid>` matters beyond picking the target: a RID-less publish bundles a `runtimes/`
+folder with precompiled native SQLite binaries for every platform SQLitePCLRaw ships
+(around 30 of them) since it doesn't know in advance what it'll run on; naming one
+platform trims that to just the one needed. `--self-contained true` means the target
+machine needs nothing pre-installed — no separate .NET runtime. `wwwroot`,
+`appsettings*.json`, and the matching run script (below) are **not** bundled into the
+single file — single-file only ever packs the managed assemblies; content stays on disk
+next to the executable, same as any other publish.
+
+The matching `run-dev.bat` / `run-dev.sh` rides along automatically (wired into
+`HomeGuard.Api.csproj` by `RuntimeIdentifier`, win-only or linux-only so the wrong one
+never ends up next to a binary that can't use it) — sets `ASPNETCORE_ENVIRONMENT=
+Development` and starts the exe. That environment variable is for local/manual test
+runs; **don't** use it for an actual always-on LAN deployment — `appsettings.
+Development.json` pins `Fido2:ServerDomain` to `127.0.0.1` and a stale `Cors:Origins`
+list, which will fight the LAN-IP config below exactly like it did during local dev
+(see §4). On Linux, `chmod +x HomeGuard.Api run-dev.sh` once after copying — the
+executable bit doesn't survive a Windows-to-Linux file copy.
+
+**Fallback: plain publish**, if the scripts don't fit (a third platform, no interest in
+single-file):
 
 ```bash
 dotnet publish src/HomeGuard.Api -c Release -o ./publish
@@ -98,7 +131,8 @@ Copy `./publish` — **not** `bin/Debug/...`. A plain `dotnet build` never bundl
 compiled Blazor client into `wwwroot`; only `publish` does, so a raw Debug-build copy
 serves nothing (blank page on `http`, 404 on every route over `https`).
 
-In the copied `appsettings.json`, matching `.env.example`'s documented pattern:
+Either way, in the copied `appsettings.json`, matching `.env.example`'s documented
+pattern:
 ```json
 {
   "Kestrel": { "Endpoints": { "Http": { "Url": "http://0.0.0.0:8080" } } },
