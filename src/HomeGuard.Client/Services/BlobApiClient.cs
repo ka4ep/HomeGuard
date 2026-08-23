@@ -77,7 +77,10 @@ public sealed class BlobApiClient
         => $"{_http.BaseAddress}api/blobs/{blobId}";
 
     public Task<List<BlobDto>?> GetByOwnerAsync(Guid ownerEntityId, CancellationToken ct = default)
-        => _http.GetFromJsonAsync<List<BlobDto>>($"api/blobs?ownerEntityId={ownerEntityId}", ct);
+        // Json.Options, not the bare default — BlobDto.SyncStatus is a real enum and the
+        // Api sends it as a string; see Json.Options' own comment for why this needs to
+        // be explicit here.
+        => _http.GetFromJsonAsync<List<BlobDto>>($"api/blobs?ownerEntityId={ownerEntityId}", Json.Options, ct);
 
     public async Task<bool> DeleteAsync(Guid blobId, CancellationToken ct = default)
     {

@@ -12,6 +12,15 @@ internal static class Json
     {
         PropertyNamingPolicy        = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
+        // The Api side's own comment states the policy plainly: "enums travel as
+        // strings ... in both directions" (ConfigureHttpJsonOptions in its Program.cs).
+        // Nothing on this side ever actually enforced the other direction — confirmed
+        // live: BlobDto.SyncStatus ("LocalOnly") failed exactly the way a bare
+        // JsonSerializerDefaults.Web deserialize of a string-valued enum always does
+        // with no converter registered. Every *ApiClient.GetFromJsonAsync call in this
+        // file still uses the bare framework default without this, same latent gap —
+        // just not yet hit for any of those the same way.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 }
 
