@@ -65,7 +65,15 @@ public sealed class HomeGuardDb
         var obj = new
         {
             clientOperationId = entry.ClientOperationId,
-            data              = entry.Data,
+            // Confirmed live, the actual root cause: a byte[]-typed value nested in a
+            // generic interop argument gets Blazor's own byte-array-transfer treatment —
+            // the JSON payload carries only a transient reference id ({"__byte[]": 0}),
+            // valid for the duration of this one call, not the real bytes. IndexedDB
+            // storage outlives that call by definition, so anything read back later was
+            // always going to be an unrecoverable dangling reference. Converting to a
+            // plain string here means the property is never byte[]-typed at the interop
+            // boundary at all, so that whole path never triggers.
+            data              = Convert.ToBase64String(entry.Data),
             mimeType          = entry.MimeType,
             fileName          = entry.FileName,
             ownerEntityId     = entry.OwnerEntityId.ToString(),
@@ -81,19 +89,27 @@ public sealed class HomeGuardDb
     /// being read from (a PWA's cached JS can lag a fresh publish) — it accepts
     /// whichever shape .NET's own byte[]-argument interop marshalling happened to write
     /// under the old, unnormalized path: a plain base64 string, a JSON array of byte
-    /// values, or — confirmed live, the actual shape behind the original crash —
-    /// Blazor's own interop wire format for a byte[] that wasn't statically typed as
-    /// byte[] at the JS interop call site: {"__byte[]": "&lt;base64&gt;"}, not a plain
-    /// Uint8Array-as-object as first assumed.
+    /// values, or Blazor's own {"__byte[]": ...} interop wire format for a byte[] that
+    /// wasn't statically typed as byte[] at the call site — confirmed live to carry
+    /// either the base64 payload directly, *or*, when the value is a transient
+    /// byte-array-transfer reference id (a plain number) rather than the payload, no
+    /// recoverable data at all: that reference is only valid for the one interop call
+    /// that created it, which IndexedDB storage necessarily outlives. Root-caused and
+    /// fixed at the write side now (BlobOutboxAddAsync converts to a plain string before
+    /// the interop call, so new rows never take this path) — this stays to explain, and
+    /// cleanly drop, whatever is already stuck in an existing IndexedDB from before that.
     /// </summary>
     private static byte[] ReadBlobData(JsonElement entry)
     {
         var data = entry.GetProperty("data");
-        if (data.ValueKind == JsonValueKind.Object
-            && data.TryGetProperty("__byte[]", out var wrapped)
-            && wrapped.ValueKind == JsonValueKind.String)
+        if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("__byte[]", out var wrapped))
         {
-            return wrapped.GetBytesFromBase64();
+            if (wrapped.ValueKind == JsonValueKind.String)
+                return wrapped.GetBytesFromBase64();
+
+            throw new InvalidOperationException(
+                $"'data' is a transient byte-array interop reference ({wrapped.GetRawText()}), " +
+                "not the actual bytes — this row's real data no longer exists anywhere to recover.");
         }
 
         return data.ValueKind switch
