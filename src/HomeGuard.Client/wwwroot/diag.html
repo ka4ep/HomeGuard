@@ -42,6 +42,7 @@
     <button onclick="refresh()">Обновить</button>
     <button onclick="copyAll()">Скопировать</button>
     <button onclick="clearLog()">Очистить журнал</button>
+    <button onclick="resetCache()">Сбросить кэш/SW</button>
   </div>
   <div id="status"></div>
   <textarea id="log" readonly></textarea>
@@ -49,12 +50,40 @@
 <script>
   var STORAGE_KEY = 'hg_diag_log';
 
+  // Whether "I just published a fix" actually reached this specific browser has been
+  // the real question behind several rounds of "it's still broken" — this answers it
+  // directly instead of inferring it from side effects (a log line's exact wording).
+  async function swInfo() {
+    var lines = [];
+    try {
+      var reg = await navigator.serviceWorker.getRegistration();
+      lines.push('SW controller: ' + (navigator.serviceWorker.controller
+        ? navigator.serviceWorker.controller.scriptURL + ' (state: ' + navigator.serviceWorker.controller.state + ')'
+        : 'none (page not controlled by a service worker)'));
+      if (reg) {
+        lines.push('SW registration: active=' + (reg.active ? reg.active.state : '—') +
+          ', waiting=' + (reg.waiting ? 'YES (an update is installed but not yet active — close every tab/PWA instance and reopen)' : 'no') +
+          ', installing=' + (reg.installing ? 'yes' : 'no'));
+      } else {
+        lines.push('SW registration: none found for this scope.');
+      }
+    } catch (e) { lines.push('SW info unavailable: ' + e); }
+
+    try {
+      var names = await caches.keys();
+      lines.push('Cache Storage entries: ' + (names.length ? names.join(', ') : '(none)'));
+    } catch (e) { lines.push('Cache Storage unavailable: ' + e); }
+
+    return lines.join('\n');
+  }
+
   // A blank textarea has one reading: "nothing was logged." Origin/storage-access and
   // "key was never written" look identical to that unless said out loud — this is the
   // only chance to say it, since there's no DevTools console to check by hand instead.
-  function format() {
+  async function format() {
     var head = 'Адрес: ' + location.origin + location.pathname + '\n' +
-               'User-Agent: ' + navigator.userAgent + '\n\n';
+               'User-Agent: ' + navigator.userAgent + '\n' +
+               (await swInfo()) + '\n\n';
 
     var raw;
     try { raw = localStorage.getItem(STORAGE_KEY); }
@@ -77,9 +106,26 @@
     }).join('\n');
   }
 
-  function refresh() {
-    document.getElementById('log').value = format();
+  async function refresh() {
+    document.getElementById('log').value = await format();
     setStatus('');
+  }
+
+  // The manual version of what clients.claim()/skipWaiting() are supposed to do
+  // automatically — for when they haven't, and re-explaining "where's cache clearing in
+  // Firefox for Android" one more time isn't going to help faster than a button will.
+  async function resetCache() {
+    setStatus('Сбрасываю…');
+    try {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      for (var i = 0; i < regs.length; i++) await regs[i].unregister();
+      var names = await caches.keys();
+      for (var j = 0; j < names.length; j++) await caches.delete(names[j]);
+      await refresh();
+      setStatus('Сброшено. Полностью закройте вкладку/приложение и откройте заново.');
+    } catch (e) {
+      setStatus('Не всё удалось сбросить: ' + e);
+    }
   }
 
   function setStatus(msg) {
@@ -110,9 +156,9 @@
     }
   }
 
-  function clearLog() {
+  async function clearLog() {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
-    refresh();
+    await refresh();
     setStatus('Журнал очищен.');
   }
 

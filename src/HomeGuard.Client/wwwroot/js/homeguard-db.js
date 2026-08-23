@@ -30,6 +30,16 @@ function toBase64(data) {
     throw new Error('Unrecognized blob data shape: ' + Object.prototype.toString.call(data));
 }
 
+// For diagnostics only — property names/keys, not the payload itself (a photo's data
+// can run six figures of characters; nobody needs that in a log line).
+function describeShape(data) {
+    if (data === null || data === undefined) return String(data);
+    if (typeof data !== 'object') return typeof data + ' ' + String(data).slice(0, 40);
+    const ctor = Object.prototype.toString.call(data);
+    const keys = Object.keys(data).slice(0, 10);
+    return ctor + ' keys=[' + keys.join(',') + (Object.keys(data).length > 10 ? ',…' : '') + ']';
+}
+
 async function openDb() {
     if (_db) return _db;
 
@@ -152,10 +162,24 @@ window.homeGuardDb = {
     async blobOutboxAdd(entry) {
         const db = await openDb();
         // .NET's own byte[]-argument marshalling picks its own wire format for `data`
-        // (a raw Uint8Array in some paths, a base64 string in others) — normalizing to
-        // one shape here means blobOutboxGetPending never has to guess which one it's
-        // reading back.
-        const normalized = { ...entry, data: toBase64(entry.data) };
+        // (a raw Uint8Array in some paths, Blazor's own {"__byte[]":"..."} wrapper in
+        // others, a base64 string in others still) — normalizing to one shape here means
+        // blobOutboxGetPending never has to guess which one it's reading back. Logged
+        // right here (not just on the read side, days later) so an unrecognized shape is
+        // visible at the moment it actually happens, from the real caller — earlier
+        // guesses at "what's actually in there" kept turning out wrong.
+        let converted;
+        try {
+            converted = toBase64(entry.data);
+        } catch (err) {
+            if (window.__hgLog) {
+                window.__hgLog('Warning', 'homeguard-db',
+                    'blobOutboxAdd: unrecognized data shape for ' + entry.fileName + ': ' +
+                    describeShape(entry.data) + ' — ' + err);
+            }
+            throw err;
+        }
+        const normalized = { ...entry, data: converted };
         return new Promise((resolve, reject) => {
             const tx    = db.transaction('blobOutbox', 'readwrite');
             const store = tx.objectStore('blobOutbox');
@@ -185,8 +209,11 @@ window.homeGuardDb = {
                     try {
                         results.push({ ...cursor.value, data: toBase64(cursor.value.data) });
                     } catch (err) {
-                        console.warn('[homeguard-db] dropping unreadable blobOutbox entry',
-                            cursor.value.clientOperationId, err);
+                        const msg = '[homeguard-db] dropping unreadable blobOutbox entry ' +
+                            cursor.value.clientOperationId + ': ' + describeShape(cursor.value.data) +
+                            ' — ' + err;
+                        console.warn(msg);
+                        if (window.__hgLog) window.__hgLog('Warning', 'homeguard-db', msg);
                         toDrop.push(cursor.value.clientOperationId);
                     }
                     cursor.continue();
