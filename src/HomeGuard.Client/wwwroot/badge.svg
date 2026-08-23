@@ -1,0 +1,11 @@
+<!-- Notification badge source. Android draws only the alpha channel of `badge:`,
+     tinted by the system, at roughly 24dp — so this is one solid silhouette with the
+     house knocked out by fill-rule="evenodd", no colour and no interior detail.
+     Same shield geometry as icon.svg, scaled to fill the frame. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+  <g transform="translate(12.7 2) scale(0.2429) translate(-160 -96)" fill="#ffffff" fill-rule="evenodd">
+    <path d="M256 96 L352 136 L352 248 C352 308 312 356 256 376
+             C200 356 160 308 160 248 L160 136 Z
+             M256 172 L306 212 L302 212 L302 284 L210 284 L210 212 L206 212 Z"/>
+  </g>
+</svg>

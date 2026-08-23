@@ -1,0 +1,129 @@
+@namespace HomeGuard.Client.Common
+@using System.Globalization
+@inject ContractApiClient Api
+@inject IStringLocalizer<Strings> L
+
+@*
+    The fast path for a contract that has been running for years: instead of back-filling
+    forty seven rows to get a correct balance, the whole prehistory collapses into one
+    record. Everything strictly before the cut-off is counted here and nowhere else.
+*@
+<MudDialog @bind-Visible="_visible" Options="_options">
+    <TitleContent>@L["Opening_Title"]</TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+            @L["Opening_Explain"]
+        </MudText>
+
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.AsOfDateNullable" Label=@(L["Opening_AsOf"])
+                               DateFormat="yyyy-MM-dd"
+                               HelperText=@(L["Opening_AsOfHelp"]) />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.InstallmentsPaid" Min="0"
+                                 Label=@(L["Opening_InstallmentsPaid"]) />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.AmountPaid" Format="F2" Min="0"
+                                 Label=@(L["Opening_AmountPaid"]) />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_form.RemainingBalance" Format="F2" Min="0"
+                                 Label=@(L["Opening_RemainingBalance"])
+                                 HelperText=@(L["Opening_BalanceHelp"]) />
+            </MudItem>
+        </MudGrid>
+
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-3">@_error</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        @if (_hasExisting)
+        {
+            <MudButton Color="Color.Error" OnClick="ClearAsync" Disabled="_saving">
+                @L["Opening_Clear"]
+            </MudButton>
+        }
+        <MudSpacer />
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">
+            @L["Common_Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter, EditorRequired] public Guid ContractId { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private readonly DialogOptions _options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    private bool _visible;
+    private bool _saving;
+    private bool _hasExisting;
+    private string? _error;
+    private OpeningFormModel _form = new();
+
+    public void Open(OpeningPositionDto? existing)
+    {
+        _error       = null;
+        _hasExisting = existing is not null;
+        _form = existing is null
+            ? new OpeningFormModel()
+            : new OpeningFormModel
+            {
+                AsOfDateNullable = existing.AsOfDate.ToDateTime(TimeOnly.MinValue),
+                InstallmentsPaid = existing.InstallmentsPaid,
+                AmountPaid       = existing.AmountPaid,
+                RemainingBalance = existing.RemainingBalance,
+            };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error  = null;
+        try
+        {
+            var result = await Api.SetOpeningAsync(ContractId, new SetOpeningDto(
+                _form.AsOfDate, _form.InstallmentsPaid, _form.AmountPaid, _form.RemainingBalance));
+
+            if (result is null)
+            {
+                // Сервер отказывает, когда до отсечки уже есть записанный платёж:
+                // иначе те же деньги посчитались бы дважды.
+                _error = L["Opening_OverlapError"];
+                return;
+            }
+
+            _visible = false;
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task ClearAsync()
+    {
+        _saving = true;
+        try
+        {
+            await Api.ClearOpeningAsync(ContractId);
+            _visible = false;
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

@@ -201,10 +201,12 @@ public sealed class BlobEntryRepository : RepositoryBase<BlobEntry>, IBlobEntryR
 
     public async Task<IReadOnlyList<BlobEntry>> GetByOwnerAsync(
         Guid ownerEntityId, CancellationToken ct = default)
-        => await Set
-            .Where(b => b.OwnerEntityId == ownerEntityId)
-            .OrderBy(b => b.CreatedAt)
-            .ToListAsync(ct);
+    {
+        // SQLite can't translate ORDER BY over DateTimeOffset (see GetPendingSyncAsync
+        // below, which already works around this the same way) — order client-side.
+        var owned = await Set.Where(b => b.OwnerEntityId == ownerEntityId).ToListAsync(ct);
+        return [.. owned.OrderBy(b => b.CreatedAt)];
+    }
 
     public async Task<IReadOnlyList<BlobEntry>> GetPendingSyncAsync(CancellationToken ct = default)
     {
@@ -272,5 +274,110 @@ public sealed class AppUserRepository : RepositoryBase<AppUser>, IAppUserReposit
         if (user is null) return null;
 
         return (user, credential);
+    }
+}
+
+// ── Contract ──────────────────────────────────────────────────────────────────
+
+public sealed class ContractRepository : RepositoryBase<Contract>, IContractRepository
+{
+    public ContractRepository(HomeGuardDbContext db) : base(db) { }
+
+    public async Task<IReadOnlyList<Contract>> GetAllAsync(
+        ContractKind? kind = null,
+        ContractStatus? status = null,
+        Guid? equipmentId = null,
+        CancellationToken ct = default)
+    {
+        var query = Set.AsQueryable();
+
+        if (kind        is { } k) query = query.Where(c => c.Kind == k);
+        if (status      is { } s) query = query.Where(c => c.Status == s);
+        if (equipmentId is { } e) query = query.Where(c => c.EquipmentId == e);
+
+        var all = await query.ToListAsync(ct);
+        return all.OrderBy(c => c.Name).ToList();
+    }
+
+    public async Task<Contract?> GetWithDetailsAsync(Guid id, CancellationToken ct = default)
+        => await Set
+            .Include(c => c.Revisions).ThenInclude(r => r.Adjustments)
+            .Include(c => c.Payments)
+            .Include(c => c.NotificationRules)
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
+
+    public async Task<IReadOnlyList<Contract>> GetByEquipmentAsync(
+        Guid equipmentId, CancellationToken ct = default)
+    {
+        var all = await Set
+            .Include(c => c.Revisions).ThenInclude(r => r.Adjustments)
+            .Where(c => c.EquipmentId == equipmentId)
+            .ToListAsync(ct);
+
+        return all.OrderBy(c => c.Name).ToList();
+    }
+
+    public async Task<IReadOnlyList<Contract>> GetExpiringAsync(
+        DateOnly fromDate, DateOnly toDate, CancellationToken ct = default)
+    {
+        // Dates are stored as text and DateOnly comparison is not translatable, so the
+        // filtering happens in memory — the same trade-off WarrantyRepository makes, and
+        // for the same reason: a household has dozens of these, not millions.
+        var all = await Set
+            .Where(c => c.Status == ContractStatus.Active && c.EndDate != null)
+            .ToListAsync(ct);
+
+        return all
+            .Where(c =>
+            {
+                var watched = c.CancellationDeadline ?? c.EndDate!.Value;
+                return watched >= fromDate && watched <= toDate;
+            })
+            .OrderBy(c => c.CancellationDeadline ?? c.EndDate!.Value)
+            .ToList();
+    }
+
+    public async Task<Payment?> GetPaymentAsync(Guid paymentId, CancellationToken ct = default)
+        => await Db.Payments.FirstOrDefaultAsync(p => p.Id == paymentId, ct);
+
+    public void RemovePayment(Payment payment) => Db.Payments.Remove(payment);
+
+    public async Task<IReadOnlyList<(Payment Payment, Contract Contract)>> GetPaymentsDueWithContractAsync(
+        DateOnly fromDate, DateOnly toDate, CancellationToken ct = default)
+    {
+        var rows = await Db.Payments
+            .Where(p => p.Status == PaymentStatus.Planned)
+            .Join(Set, p => p.ContractId, c => c.Id, (p, c) => new { Payment = p, Contract = c })
+            .ToListAsync(ct);
+
+        return rows
+            .Where(r => r.Payment.DueDate >= fromDate && r.Payment.DueDate <= toDate)
+            .OrderBy(r => r.Payment.DueDate)
+            .Select(r => (r.Payment, r.Contract))
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<Payment>> GetPaymentsDueAsync(
+        DateOnly fromDate, DateOnly toDate, CancellationToken ct = default)
+    {
+        var all = await Db.Payments
+            .Where(p => p.Status == PaymentStatus.Planned)
+            .ToListAsync(ct);
+
+        return all
+            .Where(p => p.DueDate >= fromDate && p.DueDate <= toDate)
+            .OrderBy(p => p.DueDate)
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<Contract>> GetActiveWithSchedulesAsync(CancellationToken ct = default)
+    {
+        var all = await Set
+            .Include(c => c.Revisions).ThenInclude(r => r.Adjustments)
+            .Include(c => c.Payments)
+            .Where(c => c.Status == ContractStatus.Active)
+            .ToListAsync(ct);
+
+        return all.OrderBy(c => c.Name).ToList();
     }
 }

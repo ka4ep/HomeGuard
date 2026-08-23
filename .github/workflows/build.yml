@@ -13,10 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # global.json is the single source of truth for the SDK version — pinning it
+      # again here is how the two drift apart.
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "9.0.x"
+          global-json-file: global.json
 
       - name: Restore
         run: dotnet restore

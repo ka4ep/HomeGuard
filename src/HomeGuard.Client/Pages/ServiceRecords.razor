@@ -1,22 +1,30 @@
 @page "/service"
+@using System.Globalization
 @inject ServiceRecordApiClient Api
 @inject EquipmentApiClient EquipmentApi
+@inject DensityPreference Density
+@inject IStringLocalizer<Strings> L
 
-<PageTitle>Service records</PageTitle>
+<PageTitle>@L["Nav_Service"]</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-    <MudText Typo="Typo.h5">Service records</MudText>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary"
-               StartIcon="@Icons.Material.Filled.Add"
-               OnClick="() => _dialog.OpenAdd()">
-        Add
-    </MudButton>
+    <MudText Typo="Typo.h5">@L["Nav_Service"]</MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <DensitySwitch Surface="@DensitySurface.ServiceRecords"
+                       Mode="_density"
+                       ModeChanged="m => _density = m" />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="() => _dialog.OpenAdd()">
+            @L["Common_Add"]
+        </MudButton>
+    </MudStack>
 </MudStack>
 
 <MudTabs Elevation="1" Rounded="true" Class="mb-4" @bind-ActivePanelIndex="_tab"
          @bind-ActivePanelIndex:after="LoadAsync">
-    <MudTabPanel Text="Due soon" />
-    <MudTabPanel Text="Overdue" />
+    <MudTabPanel Text="@TabDueSoonLabel" />
+    <MudTabPanel Text="@TabOverdueLabel" />
 </MudTabs>
 
 @if (_items is null)
@@ -25,7 +33,56 @@
 }
 else if (_items.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">Nothing here.</MudAlert>
+    <MudAlert Severity="Severity.Info">@L["Service_Empty"]</MudAlert>
+}
+else if (_density == DensityMode.List)
+{
+    <MudTable T="ServiceRecordDto" Items="_items" Elevation="1" Dense="true" Hover="true">
+        <HeaderContent>
+            <MudTh>@L["Service_Title"]</MudTh>
+            <MudTh>@L["Service_Date"]</MudTh>
+            <MudTh>@L["Service_When"]</MudTh>
+            <MudTh>@L["Service_Cost"]</MudTh>
+            <MudTh />
+        </HeaderContent>
+        <RowTemplate Context="sr">
+            <MudTd DataLabel="@TitleLabel">
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.body2" Style="font-weight:600">@sr.Title</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @EquipmentName(sr.EquipmentId)
+                    </MudText>
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="@DateLabel" Class="hg-tabular">@ShortDate(sr.ServiceDate)</MudTd>
+            <MudTd DataLabel="@WhenLabel">
+                @if (sr.IsOverdue)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Error">@L["Service_Overdue"]</MudChip>
+                }
+                else if (sr.DaysUntilNextService.HasValue)
+                {
+                    <MudChip T="string" Size="Size.Small"
+                             Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
+                        @Display.ServiceDaysLabel(L, sr.DaysUntilNextService)
+                    </MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="@CostLabel" Class="hg-tabular">
+                @(sr.Cost.HasValue ? Money(sr.Cost.Value) : "—")
+            </MudTd>
+            <MudTd>
+                <MudStack Row="true" Spacing="0" Justify="Justify.FlexEnd">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                   Size="Size.Small"
+                                   OnClick="() => _dialog.OpenEdit(sr)" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                   Size="Size.Small" Color="Color.Error"
+                                   OnClick="() => DeleteAsync(sr.Id)" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
 }
 else
 {
@@ -43,27 +100,27 @@ else
                         <MudStack Spacing="0" Style="min-width:160px; flex:1">
                             <MudText Typo="Typo.body1" Style="font-weight:600">@sr.Title</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @(_equipmentNames.GetValueOrDefault(sr.EquipmentId, "…"))
+                                @EquipmentName(sr.EquipmentId)
                             </MudText>
                         </MudStack>
 
                         @* Даты *@
                         <MudStack Spacing="0">
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">Service date</MudText>
-                            <MudText Typo="Typo.body2">@sr.ServiceDate.ToString("d MMM yyyy", null)</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Date"]</MudText>
+                            <MudText Typo="Typo.body2" Class="hg-tabular">@ShortDate(sr.ServiceDate)</MudText>
                         </MudStack>
 
                         @* Статус *@
                         <div>
                             @if (sr.IsOverdue)
                             {
-                                <MudChip T="string" Size="Size.Small" Color="Color.Error">Overdue</MudChip>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Error">@L["Service_Overdue"]</MudChip>
                             }
                             else if (sr.DaysUntilNextService.HasValue)
                             {
                                 <MudChip T="string" Size="Size.Small"
                                          Color="@(sr.DaysUntilNextService <= 7 ? Color.Warning : Color.Default)">
-                                    @Display.ServiceDaysLabel(sr.DaysUntilNextService)
+                                    @Display.ServiceDaysLabel(L, sr.DaysUntilNextService)
                                 </MudChip>
                             }
                         </div>
@@ -75,28 +132,28 @@ else
                 <ChildContent>
                     <MudStack Spacing="3">
 
-                        @* Цена + одометр — только если есть значение *@
+                        @* Цена + счётчик — только если есть значение *@
                         @if (sr.Cost.HasValue || sr.MeterReading.HasValue)
                         {
                             <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
                                 @if (sr.Cost.HasValue)
                                 {
                                     <MudStack Spacing="0">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Cost</MudText>
-                                        <MudText Typo="Typo.body2">€ @sr.Cost.Value.ToString("F2", null)</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Cost"]</MudText>
+                                        <MudText Typo="Typo.body2" Class="hg-tabular">@Money(sr.Cost.Value)</MudText>
                                     </MudStack>
                                 }
                                 @if (sr.MeterReading.HasValue)
                                 {
                                     <MudStack Spacing="0">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Meter reading</MudText>
-                                        <MudText Typo="Typo.body2">@sr.MeterReading</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Meter"]</MudText>
+                                        <MudText Typo="Typo.body2" Class="hg-tabular">@sr.MeterReading</MudText>
                                     </MudStack>
                                 }
                                 @if (sr.ServiceProvider is not null)
                                 {
                                     <MudStack Spacing="0">
-                                        <MudText Typo="Typo.caption" Color="Color.Secondary">Provider</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Provider"]</MudText>
                                         <MudText Typo="Typo.body2">@sr.ServiceProvider</MudText>
                                     </MudStack>
                                 }
@@ -107,7 +164,7 @@ else
                         @if (!string.IsNullOrWhiteSpace(sr.Notes))
                         {
                             <MudStack Spacing="1">
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">Notes</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Service_Notes"]</MudText>
                                 <MudText Typo="Typo.body2" Style="white-space:pre-line">@sr.Notes</MudText>
                             </MudStack>
                         }
@@ -139,9 +196,18 @@ else
     private Dictionary<Guid, string> _equipmentNames = [];
     private int _tab;
     private ServiceRecordDialog _dialog = null!;
+    private DensityMode _density = DensityMode.Cards;
+
+    private string TabDueSoonLabel => L["Service_TabDueSoon"];
+    private string TabOverdueLabel => L["Service_TabOverdue"];
+    private string TitleLabel      => L["Service_Title"];
+    private string DateLabel       => L["Service_Date"];
+    private string WhenLabel       => L["Service_When"];
+    private string CostLabel       => L["Service_Cost"];
 
     protected override async Task OnInitializedAsync()
     {
+        _density        = await Density.GetAsync(DensitySurface.ServiceRecords);
         _equipment      = await EquipmentApi.GetAllAsync() ?? [];
         _equipmentNames = _equipment.ToDictionary(e => e.Id, e => e.Name);
         await LoadAsync();
@@ -161,4 +227,14 @@ else
         await Api.DeleteAsync(id);
         _items?.RemoveAll(sr => sr.Id == id);
     }
+
+    private string EquipmentName(Guid id) => _equipmentNames.GetValueOrDefault(id, "…");
+
+    private static string ShortDate(DateOnly date)
+        => date.ToString("d", CultureInfo.CurrentCulture);
+
+    // Валюта пока одна на весь дом; когда появятся договоры со своей валютой,
+    // это место станет форматированием по коду валюты записи.
+    private static string Money(decimal amount)
+        => "€ " + amount.ToString("N2", CultureInfo.CurrentCulture);
 }

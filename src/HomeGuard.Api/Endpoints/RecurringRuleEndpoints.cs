@@ -8,7 +8,8 @@ public static class RecurringRuleEndpoints
     public static void MapRecurringRuleEndpoints(this WebApplication app)
     {
         var grp = app.MapGroup("/api/recurring-rules")
-            .WithTags("RecurringRules");
+            .WithTags("RecurringRules")
+            .RequireAuthorization();
 
         grp.MapGet("/",                             GetAllWithPredictions);
         grp.MapGet("/by-equipment/{equipId:guid}",  GetByEquipment);

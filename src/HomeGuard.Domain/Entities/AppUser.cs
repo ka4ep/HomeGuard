@@ -16,17 +16,28 @@ public sealed class AppUser : Entity
     /// </summary>
     public string DisplayName { get; private set; } = null!;
 
+    /// <summary>
+    /// Interface language as an ISO 639-1 code, e.g. "ru" or "en".
+    /// <para>
+    /// Kept on the account, not only in the browser, because push notifications and
+    /// the calendar feed are rendered on the server — where there is no request and
+    /// therefore no <c>Accept-Language</c> to read.
+    /// </para>
+    /// </summary>
+    public string Language { get; private set; } = null!;
+
     private readonly List<PasskeyCredential> _credentials = [];
     public IReadOnlyList<PasskeyCredential> Credentials => _credentials.AsReadOnly();
 
     // ── Factory ──────────────────────────────────────────────────────────────
 
-    public static AppUser Create(string displayName)
+    public static AppUser Create(string displayName, string language)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
         var u = new AppUser();
         u.InitNew();
         u.DisplayName = displayName.Trim();
+        u.Language    = NormalizeLanguage(language);
         return u;
     }
 
@@ -37,6 +48,29 @@ public sealed class AppUser : Entity
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
         DisplayName = displayName.Trim();
         Touch();
+    }
+
+    /// <summary>
+    /// Which languages the UI actually ships in is a presentation decision
+    /// (see <c>HomeGuard.Common.Localization.AppLanguage</c>), so the domain only
+    /// insists on the shape of the code and leaves the choice to the caller.
+    /// </summary>
+    public void SetLanguage(string language)
+    {
+        var normalized = NormalizeLanguage(language);
+        if (normalized == Language) return;
+        Language = normalized;
+        Touch();
+    }
+
+    private static string NormalizeLanguage(string language)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(language);
+        var value = language.Trim().ToLowerInvariant();
+        if (value.Length is < 2 or > 8)
+            throw new ArgumentException(
+                $"'{language}' is not a language code.", nameof(language));
+        return value;
     }
 
     /// <summary>

@@ -4,9 +4,41 @@
 // Called via IJSRuntime from HomeGuardDb.cs.
 
 const DB_NAME    = 'HomeGuard';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let _db = null;
+
+// A byte[] argument crossing the .NET->JS interop boundary doesn't consistently arrive
+// as one JS type. Confirmed live (not just Uint8Array as first assumed): a byte[] that
+// isn't statically typed as byte[] at the JS interop call site — true here, `data` is
+// just one field of an anonymous object — arrives wrapped in Blazor's own interop wire
+// format, {"__byte[]": "<base64>"}, not a raw Uint8Array. IndexedDB's structured-clone
+// storage preserves whichever shape it was handed, so a value read back later can be
+// any of them; this is the one place they all get reconciled to the base64 string
+// HomeGuardDb.cs's GetBytesFromBase64() actually needs.
+function toBase64(data) {
+    if (typeof data === 'string') return data;
+    if (data instanceof ArrayBuffer) data = new Uint8Array(data);
+    if (data instanceof Uint8Array) {
+        let binary = '';
+        for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
+        return btoa(binary);
+    }
+    if (data && typeof data === 'object' && typeof data['__byte[]'] === 'string') {
+        return data['__byte[]'];
+    }
+    throw new Error('Unrecognized blob data shape: ' + Object.prototype.toString.call(data));
+}
+
+// For diagnostics only — property names/keys, not the payload itself (a photo's data
+// can run six figures of characters; nobody needs that in a log line).
+function describeShape(data) {
+    if (data === null || data === undefined) return String(data);
+    if (typeof data !== 'object') return typeof data + ' ' + String(data).slice(0, 40);
+    const ctor = Object.prototype.toString.call(data);
+    const keys = Object.keys(data).slice(0, 10);
+    return ctor + ' keys=[' + keys.join(',') + (Object.keys(data).length > 10 ? ',…' : '') + ']';
+}
 
 async function openDb() {
     if (_db) return _db;
@@ -27,6 +59,14 @@ async function openDb() {
             // Cache: local copies of server data for offline reads.
             if (!db.objectStoreNames.contains('cache')) {
                 db.createObjectStore('cache', { keyPath: 'key' });
+            }
+
+            // Blob outbox: file uploads pending a server round-trip. Kept separate from
+            // 'outbox' — that store's payloadJson goes through the batch JSON endpoint,
+            // which is the wrong shape for a file that can be several MB.
+            if (!db.objectStoreNames.contains('blobOutbox')) {
+                const blobOutbox = db.createObjectStore('blobOutbox', { keyPath: 'clientOperationId' });
+                blobOutbox.createIndex('by_createdAt', 'createdAt', { unique: false });
             }
         };
 
@@ -112,6 +152,96 @@ window.homeGuardDb = {
         return new Promise((resolve, reject) => {
             const tx  = db.transaction('outbox', 'readonly');
             const req = tx.objectStore('outbox').count();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    // ── Blob outbox ──────────────────────────────────────────────────────────────
+
+    async blobOutboxAdd(entry) {
+        const db = await openDb();
+        // .NET's own byte[]-argument marshalling picks its own wire format for `data`
+        // (a raw Uint8Array in some paths, Blazor's own {"__byte[]":"..."} wrapper in
+        // others, a base64 string in others still) — normalizing to one shape here means
+        // blobOutboxGetPending never has to guess which one it's reading back. Logged
+        // right here (not just on the read side, days later) so an unrecognized shape is
+        // visible at the moment it actually happens, from the real caller — earlier
+        // guesses at "what's actually in there" kept turning out wrong.
+        let converted;
+        try {
+            converted = toBase64(entry.data);
+        } catch (err) {
+            if (window.__hgLog) {
+                window.__hgLog('Warning', 'homeguard-db',
+                    'blobOutboxAdd: unrecognized data shape for ' + entry.fileName + ': ' +
+                    describeShape(entry.data) + ' — ' + err);
+            }
+            throw err;
+        }
+        const normalized = { ...entry, data: converted };
+        return new Promise((resolve, reject) => {
+            const tx    = db.transaction('blobOutbox', 'readwrite');
+            const store = tx.objectStore('blobOutbox');
+            const req   = store.put(normalized);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    // Get all pending blob uploads ordered by createdAt. `data` is always returned as a
+    // base64 string — HomeGuardDb.cs's GetBytesFromBase64() depends on that — even for
+    // rows written before blobOutboxAdd started normalizing on the way in. A row whose
+    // `data` isn't convertible at all (corrupt beyond recovery) is dropped and deleted
+    // instead of taking the whole flush down with it — see the CS2012-adjacent crash
+    // this was written for: one bad queued capture blocked every future sync attempt.
+    async blobOutboxGetPending() {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx      = db.transaction('blobOutbox', 'readonly');
+            const index   = tx.objectStore('blobOutbox').index('by_createdAt');
+            const results = [];
+            const toDrop  = [];
+            const req     = index.openCursor();
+            req.onsuccess = e => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    try {
+                        results.push({ ...cursor.value, data: toBase64(cursor.value.data) });
+                    } catch (err) {
+                        const msg = '[homeguard-db] dropping unreadable blobOutbox entry ' +
+                            cursor.value.clientOperationId + ': ' + describeShape(cursor.value.data) +
+                            ' — ' + err;
+                        console.warn(msg);
+                        if (window.__hgLog) window.__hgLog('Warning', 'homeguard-db', msg);
+                        toDrop.push(cursor.value.clientOperationId);
+                    }
+                    cursor.continue();
+                } else {
+                    Promise.all(toDrop.map(id => homeGuardDb.blobOutboxRemove(id)))
+                        .catch(() => { /* best-effort cleanup — a failed delete just retries next time */ })
+                        .then(() => resolve(results));
+                }
+            };
+            req.onerror = () => reject(req.error);
+        });
+    },
+
+    async blobOutboxRemove(clientOperationId) {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx  = db.transaction('blobOutbox', 'readwrite');
+            const req = tx.objectStore('blobOutbox').delete(clientOperationId);
+            req.onsuccess = () => resolve();
+            req.onerror   = () => reject(req.error);
+        });
+    },
+
+    async blobOutboxCount() {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const tx  = db.transaction('blobOutbox', 'readonly');
+            const req = tx.objectStore('blobOutbox').count();
             req.onsuccess = () => resolve(req.result);
             req.onerror   = () => reject(req.error);
         });

@@ -22,17 +22,20 @@ public sealed class SyncProcessorService
     private readonly IProcessedOperationStore _operationStore;
     private readonly EquipmentService _equipmentService;
     private readonly WarrantyService _warrantyService;
+    private readonly ContractService _contractService;
 
     // Add more services as more operation types are introduced.
 
     public SyncProcessorService(
         IProcessedOperationStore operationStore,
         EquipmentService equipmentService,
-        WarrantyService warrantyService)
+        WarrantyService warrantyService,
+        ContractService contractService)
     {
         _operationStore = operationStore;
         _equipmentService = equipmentService;
         _warrantyService = warrantyService;
+        _contractService = contractService;
     }
 
     public async Task<SyncBatchResponse> ProcessBatchAsync(
@@ -101,6 +104,52 @@ public sealed class SyncProcessorService
                     await _warrantyService.UpdateAsync(cmd, ct);
                     break;
                 }
+                case SyncOperationTypes.CreateContract:
+                {
+                    var cmd = Deserialize<CreateContractCommand>(entry.PayloadJson);
+                    await _contractService.CreateAsync(cmd, ct);
+                    break;
+                }
+                case SyncOperationTypes.UpdateContract:
+                {
+                    var cmd = Deserialize<UpdateContractCommand>(entry.PayloadJson);
+                    await _contractService.UpdateAsync(cmd, ct);
+                    break;
+                }
+                case SyncOperationTypes.DeleteContract:
+                {
+                    var payload = Deserialize<DeletePayload>(entry.PayloadJson);
+                    await _contractService.DeleteAsync(payload.Id, ct);
+                    break;
+                }
+                case SyncOperationTypes.AddPlanRevision:
+                {
+                    // The domain itself rejects a revision that starts before the active
+                    // one (Contract.AddRevision) — that propagated InvalidOperationException
+                    // is exactly what makes this case idempotent-safe under the generic
+                    // catch below, so the non-commutative ordering rule needs no extra code.
+                    var cmd = Deserialize<AddRevisionCommand>(entry.PayloadJson);
+                    await _contractService.AddRevisionAsync(cmd, ct);
+                    break;
+                }
+                case SyncOperationTypes.CreatePayment:
+                {
+                    var cmd = Deserialize<AddPaymentCommand>(entry.PayloadJson);
+                    await _contractService.AddPaymentAsync(cmd, ct);
+                    break;
+                }
+                case SyncOperationTypes.ConfirmPayment:
+                {
+                    var cmd = Deserialize<ConfirmPaymentCommand>(entry.PayloadJson);
+                    await _contractService.ConfirmPaymentAsync(cmd, ct);
+                    break;
+                }
+                case SyncOperationTypes.SetOpeningPosition:
+                {
+                    var cmd = Deserialize<SetOpeningCommand>(entry.PayloadJson);
+                    await _contractService.SetOpeningAsync(cmd, ct);
+                    break;
+                }
                 default:
                     return new SyncAck(
                         entry.ClientOperationId,
@@ -142,4 +191,11 @@ public static class SyncOperationTypes
     public const string CreateServiceRecord = "CreateServiceRecord";
     public const string UpdateServiceRecord = "UpdateServiceRecord";
     public const string DeleteServiceRecord = "DeleteServiceRecord";
+    public const string CreateContract      = "CreateContract";
+    public const string UpdateContract      = "UpdateContract";
+    public const string DeleteContract      = "DeleteContract";
+    public const string AddPlanRevision     = "AddPlanRevision";
+    public const string CreatePayment       = "CreatePayment";
+    public const string ConfirmPayment      = "ConfirmPayment";
+    public const string SetOpeningPosition  = "SetOpeningPosition";
 }

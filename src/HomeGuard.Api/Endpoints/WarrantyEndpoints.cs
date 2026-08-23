@@ -10,7 +10,7 @@ public static class WarrantyEndpoints
     {
         var grp = app.MapGroup("/api/warranties")
             .WithTags("Warranties")
-            ;
+            .RequireAuthorization();
 
         grp.MapGet("/active",                  GetActive);
         grp.MapGet("/expiring",                GetExpiring);

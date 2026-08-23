@@ -1,0 +1,251 @@
+@namespace HomeGuard.Client.Common
+@inject ContractApiClient Api
+@inject IStringLocalizer<Strings> L
+
+@*
+    New or edited contract. The first payment plan is entered here rather than in a second
+    dialog: a contract with no idea what it costs is not a record anybody can use, and the
+    two together still fit on one screen.
+
+    Insurance-only fields appear only for insurance — the alternative is four screens that
+    differ by three fields each.
+*@
+<MudDialog @bind-Visible="_visible" Options="_options">
+    <TitleContent>@(_editId.HasValue ? L["Contract_EditTitle"] : L["Contract_AddTitle"])</TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudSelect @bind-Value="_form.Kind" Label=@(L["Equipment_Category"]) Required="true"
+                           Disabled="_editId.HasValue"
+                           HelperText="@(_editId.HasValue ? (string?)L["Contract_KindLocked"] : null)">
+                    @foreach (var kind in AllKinds)
+                    {
+                        var label = L["ContractKind_" + kind];
+                        <MudSelectItem Value="@kind">@label</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Name" Label=@(L["Form_Name"]) Required="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.Provider" Label=@(L["Contract_Provider"]) />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_form.ContractNumber" Label=@(L["Warranty_ContractNumber"]) />
+            </MudItem>
+
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.StartDateNullable" Label=@(L["Form_StartDate"])
+                               DateFormat="yyyy-MM-dd" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_form.EndDateNullable" Label=@(L["Contract_EndOptional"])
+                               DateFormat="yyyy-MM-dd" Clearable="true" />
+            </MudItem>
+
+            <MudItem xs="12" sm="4">
+                <MudSelect @bind-Value="_form.Currency" Label=@(L["Contract_Currency"])>
+                    @foreach (var currency in Currencies)
+                    {
+                        <MudSelectItem Value="@currency">@currency</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudSelect @bind-Value="_form.Renewal" Label=@(L["Contract_Renewal"])>
+                    @foreach (var mode in AllRenewals)
+                    {
+                        var label = L["RenewalMode_" + mode];
+                        <MudSelectItem Value="@mode">@label</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField @bind-Value="_form.CancellationNoticeDays"
+                                 Label=@(L["Contract_NoticeDays"]) Min="0"
+                                 HelperText=@(L["Contract_NoticeHelp"]) />
+            </MudItem>
+
+            @if (_form.Kind == ContractKind.Insurance)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.CoverageAmount" Label=@(L["Contract_Coverage"])
+                                     Format="F2" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.Deductible" Label=@(L["Contract_Deductible"])
+                                     Format="F2" />
+                </MudItem>
+            }
+
+            @* ── План платежей ──────────────────────────────────────────── *@
+            @if (!_editId.HasValue)
+            {
+                <MudItem xs="12">
+                    <MudDivider Class="my-2" />
+                    <MudSwitch @bind-Value="_form.HasPlan" Color="Color.Primary"
+                               Label=@(L["Contract_HasPlan"]) />
+                </MudItem>
+
+                @if (_form.HasPlan)
+                {
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField @bind-Value="_form.InstallmentAmount"
+                                         Label=@(L["Contract_Installment"]) Format="F2" />
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudSelect @bind-Value="_form.IntervalMonths" Label=@(L["Contract_Interval"])>
+                            @foreach (var months in Intervals)
+                            {
+                                var label = IntervalLabel(months);
+                                <MudSelectItem Value="@months">@label</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudNumericField @bind-Value="_form.InstallmentCount"
+                                         Label=@(L["Contract_Count"]) Min="1"
+                                         HelperText=@(L["Contract_CountHelp"]) />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudDatePicker @bind-Date="_form.FirstDueDateNullable"
+                                       Label=@(L["Contract_FirstDue"]) DateFormat="yyyy-MM-dd" />
+                    </MudItem>
+                }
+            }
+
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.SummaryMarkdown" Label=@(L["Contract_Summary"])
+                              Lines="4" Sizing="InputSizing.Auto"
+                              HelperText=@(L["Form_NotesHelp"]) />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_form.Tags" Label=@(L["Form_Tags"]) />
+            </MudItem>
+        </MudGrid>
+
+        @if (_error is not null)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">@_error</MudAlert>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync"
+                   Disabled="@(_saving || string.IsNullOrWhiteSpace(_form.Name))">
+            @L["Common_Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public EventCallback<ContractDto?> OnSaved { get; set; }
+
+    /// <summary>Set when the dialog is opened from an equipment page.</summary>
+    [Parameter] public Guid? FixedEquipmentId { get; set; }
+
+    private static readonly ContractKind[] AllKinds =
+        [ContractKind.Insurance, ContractKind.Subscription, ContractKind.Loan,
+         ContractKind.Lease, ContractKind.Other];
+
+    private static readonly RenewalMode[] AllRenewals =
+        [RenewalMode.None, RenewalMode.Auto, RenewalMode.Manual];
+
+    private static readonly string[] Currencies = ["EUR", "CZK", "USD", "GBP"];
+    private static readonly int[] Intervals = [1, 3, 6, 12];
+
+    private readonly DialogOptions _options = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+    private bool _visible;
+    private bool _saving;
+    private Guid? _editId;
+    private string? _error;
+    private ContractFormModel _form = new();
+
+    public void OpenAdd()
+    {
+        _editId = null;
+        _error  = null;
+        _form   = new ContractFormModel { EquipmentId = FixedEquipmentId };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    public void OpenEdit(ContractDetailDto detail)
+    {
+        var c = detail.Contract;
+        _editId = c.Id;
+        _error  = null;
+        _form = new ContractFormModel
+        {
+            Kind                   = c.Kind,
+            Name                   = c.Name,
+            Provider               = c.Provider,
+            ContractNumber         = c.ContractNumber,
+            Currency               = c.Currency,
+            EquipmentId            = c.EquipmentId,
+            Renewal                = c.Renewal,
+            SummaryMarkdown        = detail.SummaryMarkdown,
+            Notes                  = detail.Notes,
+            CoverageAmount         = detail.CoverageAmount,
+            Deductible             = detail.Deductible,
+            Tags                   = string.Join(", ", c.Tags),
+            StartDateNullable      = c.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDateNullable        = c.EndDate?.ToDateTime(TimeOnly.MinValue),
+            HasPlan                = false,
+        };
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        _error  = null;
+        try
+        {
+            var saved = _editId.HasValue
+                ? await Api.UpdateAsync(_editId.Value, new UpdateContractDto(
+                    _form.Name, _form.StartDate, _form.EndDate, _form.Provider,
+                    _form.ContractNumber, _form.Renewal, _form.CancellationNoticeDays,
+                    _form.SummaryMarkdown, _form.Notes, _form.CoverageAmount,
+                    _form.Deductible, _form.TagList))
+                : await Api.CreateAsync(new CreateContractDto(
+                    _form.Kind, _form.Name, _form.StartDate, _form.Currency,
+                    _form.EquipmentId, _form.Provider, _form.ContractNumber, _form.EndDate,
+                    _form.Renewal, _form.CancellationNoticeDays, _form.SummaryMarkdown,
+                    _form.Notes, _form.CoverageAmount, _form.Deductible, _form.TagList));
+
+            if (saved is null)
+            {
+                _error = L["Contract_SaveFailed"];
+                return;
+            }
+
+            // Первая ревизия идёт отдельным вызовом: договор без плана — допустимое
+            // состояние, а план без договора — нет.
+            if (!_editId.HasValue && _form.HasPlan && _form.InstallmentAmount is { } amount)
+            {
+                await Api.AddRevisionAsync(saved.Id, new AddRevisionDto(
+                    EffectiveFrom:     _form.FirstDueDate,
+                    Reason:            RevisionReason.Initial,
+                    FirstDueDate:      _form.FirstDueDate,
+                    IntervalMonths:    _form.IntervalMonths,
+                    InstallmentAmount: amount,
+                    InstallmentCount:  _form.InstallmentCount));
+            }
+
+            _visible = false;
+            await OnSaved.InvokeAsync(saved);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private string IntervalLabel(int months) => ContractFormat.IntervalLabel(L, months);
+}

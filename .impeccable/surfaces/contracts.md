@@ -1,8 +1,12 @@
 ---
 version: 1
 slug: "contracts"
-primary_target: "contracts"
-related_targets: []
+primary_target: "src/HomeGuard.Client/Pages/Contracts.razor"
+related_targets:
+  - "src/HomeGuard.Client/Pages/ContractDetail.razor"
+  - "src/HomeGuard.Client/Shared/ContractSection.razor"
+  - "src/HomeGuard.Client/Shared/ContractDialog.razor"
+  - "src/HomeGuard.Client/Shared/PaymentSchedule.razor"
 ---
 
 # Surface brief: Contracts & Payments

@@ -10,7 +10,7 @@ public static class EquipmentEndpoints
     {
         var grp = app.MapGroup("/api/equipment")
             .WithTags("Equipment")
-            ;
+            .RequireAuthorization();
 
         grp.MapGet("/", GetAll);
         grp.MapGet("/{id:guid}", GetById);

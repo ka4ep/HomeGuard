@@ -1,0 +1,37 @@
+@namespace HomeGuard.Client.Common
+@inject IStringLocalizer<Strings> L
+
+@*
+    Surface brief §6: status is "a 7px dot plus a chip." One place for the dot color, the
+    chip color and the label so the three screens that show a contract's status (the
+    contracts list, the detail header, the equipment section) cannot drift from each other
+    again the way they had before this component existed.
+*@
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Style="display:inline-flex; flex:0 0 auto">
+    <span class="hg-status-dot" style="@DotStyle"></span>
+    <MudChip T="string" Size="Size.Small" Variant="Variant.Filled" Color="@ChipColor">
+        @L["ContractStatus_" + Status]
+    </MudChip>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired] public ContractStatus Status { get; set; }
+
+    private string DotStyle => Status switch
+    {
+        ContractStatus.Active    => "background:var(--hg-success-text)",
+        ContractStatus.Suspended => "background:var(--hg-warning-text)",
+        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
+        ContractStatus.Ended     => "background:var(--hg-text-subtle)",
+        _                        => "background:var(--hg-text-subtle)",
+    };
+
+    private Color ChipColor => Status switch
+    {
+        ContractStatus.Active    => Color.Success,
+        ContractStatus.Suspended => Color.Warning,
+        ContractStatus.Cancelled => Color.Error,
+        ContractStatus.Ended     => Color.Default,
+        _                        => Color.Default,
+    };
+}

@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+
+    <!--
+      Ship the full ICU set instead of the shard the runtime would pick.
+      Blazor chooses an ICU shard from the *browser's* languages at boot, but this app
+      picks its language from the account, so the two disagree the moment someone runs
+      an English browser in Russian (or the reverse) — and the shard that got loaded
+      then has no data for the language actually in use, which quietly breaks date and
+      number formatting. Costs roughly half a megabyte compressed, once, on a home server.
+    -->
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -16,6 +26,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" />
     <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Microsoft.Extensions.Localization" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,14 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@using Microsoft.Extensions.Logging
+@inject SessionService Session
+@inject LanguagePreference Language
+@inject AttentionApiClient AttentionApi
+@inject HomeGuardDb Db
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+@inject ILogger<MainLayout> Logger
+@inject IStringLocalizer<Strings> L
 
 <MudLayout>
     <MudAppBar Elevation="0">
@@ -15,8 +25,8 @@
     <MudDrawer @bind-Open="_drawerOpen" Elevation="0" ClipMode="DrawerClipMode.Always">
         <MudDrawerHeader>
             <MudText Typo="Typo.subtitle2"
-                     Style="color:var(--hg-text-on-bg-muted);text-transform:uppercase;letter-spacing:.08em;font-size:.7rem">
-                Navigation
+                     Style="color:var(--hg-text-on-bg-strong);text-transform:uppercase;letter-spacing:.08em;font-size:.7rem">
+                @L["Nav_Heading"]
             </MudText>
         </MudDrawerHeader>
         <NavMenu />
@@ -24,12 +34,102 @@
 
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
-            @Body
+            @* Nothing renders until we know whether anyone is signed in. Without this the
+               page draws, its data load 401s, and the redirect yanks it away again — which
+               is what "Settings flashes up and then bounces to login" was. *@
+            @if (_sessionChecked)
+            {
+                @Body
+            }
+            else
+            {
+                <MudProgressLinear Indeterminate="true" />
+            }
         </MudContainer>
     </MudMainContent>
 </MudLayout>
 
 @code {
     private bool _drawerOpen = true;
+    private bool _sessionChecked;
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private bool OnLoginPage => Nav.ToBaseRelativePath(Nav.Uri)
+        .TrimStart('/')
+        .StartsWith("login", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// The one place the app asks "is anyone signed in?", before any page gets to render.
+    /// Every /api/* group requires authentication, so without this each page discovered
+    /// that separately by 401-ing partway through its own data load — which is both ugly
+    /// and, when several loads raced, how a single 401 used to take the renderer down.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        // One hook, every navigation — the other half of the action trail ApiAuthHandler
+        // covers for API calls; between the two, "went to page X, then Y broke" is
+        // reconstructable from the log buffer alone.
+        Nav.LocationChanged += OnLocationChanged;
+
+        if (OnLoginPage)
+        {
+            _sessionChecked = true;
+            return;
+        }
+
+        if (await Session.GetAsync() is null)
+        {
+            // Deliberate and singular, so no forceLoad is needed: an ordinary SPA
+            // navigation swaps to the login page without reloading the whole runtime.
+            Nav.NavigateTo("/login");
+            return;
+        }
+
+        _sessionChecked = true;
+    }
+
+    /// <summary>
+    /// The app has already started in whatever language this device remembers. Once the
+    /// session is known, a device that has never chosen adopts the account's language —
+    /// which is what makes signing in on a new phone come up in the right language.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        // Free: SessionService caches the one in-flight request, so this is the same
+        // answer OnInitializedAsync already got, not a second round trip.
+        var me = await Session.GetAsync();
+        await Language.ReconcileWithAccountAsync(me?.Language);
+
+        if (me is not null) await RefreshAttentionBadgeAsync();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+        => Logger.LogInformation("nav: {Path}", Nav.ToBaseRelativePath(e.Location));
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
+    /// <summary>
+    /// The foreground half of the attention pipeline (contracts-spec.md §10.3): recompute
+    /// on every app open and set the icon badge from it. The background half — a push
+    /// arriving while the app is closed re-badging the icon — is not built yet; that path
+    /// needs a live device to verify and is being left for that pass rather than shipped
+    /// unverified.
+    /// </summary>
+    private async Task RefreshAttentionBadgeAsync()
+    {
+        try
+        {
+            var attention = await AttentionApi.GetAsync();
+            if (attention is null) return;
+
+            await Db.CacheSetAsync("attention", attention);
+            await JS.InvokeVoidAsync("homeGuardPush.setBadge", attention.Count);
+        }
+        catch
+        {
+            // Best-effort — a badge that fails to update is not worth surfacing to the user.
+        }
+    }
 }

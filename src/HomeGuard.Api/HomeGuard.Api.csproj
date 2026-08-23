@@ -13,13 +13,29 @@
     </Content>
   </ItemGroup>
 
+  <!-- Run scripts ride along on a matching-platform publish only — run-dev.bat next to
+       a linux-x64 binary (or vice versa) would just confuse whoever finds it later. -->
+  <ItemGroup>
+    <None Include="run-dev.bat" CopyToPublishDirectory="PreserveNewest"
+          Condition="'$(RuntimeIdentifier)' == 'win-x64'" />
+    <None Include="run-dev.sh" CopyToPublishDirectory="PreserveNewest"
+          Condition="'$(RuntimeIdentifier)' == 'linux-x64'" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\HomeGuard.Application\HomeGuard.Application.csproj" />
     <ProjectReference Include="..\HomeGuard.Diagnostics\HomeGuard.Diagnostics.csproj" />
     <ProjectReference Include="..\HomeGuard.Infrastructure\HomeGuard.Infrastructure.csproj" />
     <ProjectReference Include="..\HomeGuard.Common\HomeGuard.Common.csproj" />
-    <!-- Blazor WASM published output будет скопирован сюда при сборке -->
-    <ProjectReference Include="..\HomeGuard.Client\HomeGuard.Client.csproj" />
+    <!-- Blazor WASM published output будет скопирован сюда при сборке.
+         UndefineProperties: a single-file/self-contained/RID-specific publish of this
+         project otherwise leaks those properties down to the Client ProjectReference —
+         MSBuild passes global properties to referenced projects by default — and a WASM
+         app has no native apphost to single-file, so that publish fails outright
+         (NETSDK1098). The Client always builds as a normal WASM bundle regardless of how
+         the Api itself is being published. -->
+    <ProjectReference Include="..\HomeGuard.Client\HomeGuard.Client.csproj"
+                      UndefineProperties="PublishSingleFile;SelfContained;RuntimeIdentifier;PublishTrimmed;PublishReadyToRun;PublishAot" />
   </ItemGroup>
 
   <ItemGroup>

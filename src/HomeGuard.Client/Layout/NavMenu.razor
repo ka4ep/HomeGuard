@@ -1,47 +1,57 @@
 @inject AuthApiClient AuthApi
+@inject SessionService Session
 @inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
 
 @* Обёртка на всю высоту drawer *@
 <div style="display:flex; flex-direction:column; height:100%">
 
     <MudNavMenu>
         <MudNavLink Href="" Match="NavLinkMatch.All"
-                    Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                    Icon="@Icons.Material.Filled.Dashboard">@L["Nav_Dashboard"]</MudNavLink>
         <MudNavLink Href="equipment"
-                    Icon="@Icons.Material.Filled.Devices">Equipment</MudNavLink>
+                    Icon="@Icons.Material.Filled.Devices">@L["Nav_Equipment"]</MudNavLink>
         <MudNavLink Href="warranties"
-                    Icon="@Icons.Material.Filled.VerifiedUser">Warranties</MudNavLink>
+                    Icon="@Icons.Material.Filled.VerifiedUser">@L["Nav_Warranties"]</MudNavLink>
         <MudNavLink Href="service"
-                    Icon="@Icons.Material.Filled.Build">Service records</MudNavLink>
+                    Icon="@Icons.Material.Filled.Build">@L["Nav_Service"]</MudNavLink>
+        <MudNavLink Href="contracts"
+                    Icon="@Icons.Material.Filled.Description">@L["Nav_Contracts"]</MudNavLink>
         <MudNavLink Href="timeline"
-                    Icon="@Icons.Material.Filled.Timeline">Timeline</MudNavLink>
+                    Icon="@Icons.Material.Filled.Timeline">@L["Nav_Timeline"]</MudNavLink>
         <MudDivider Class="my-2" />
         <MudNavLink Href="settings"
-                    Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+                    Icon="@Icons.Material.Filled.Settings">@L["Nav_Settings"]</MudNavLink>
         <MudDivider Class="my-2" />
 
         @if (_displayName is not null)
         {
             <MudStack Row="true" AlignItems="AlignItems.Center" Class="px-4 py-2">
+                @* Color.Secondary resolves to --hg-text-muted globally (mud-overrides.css),
+                   a dark ink meant for the light Clay ground — 1.28:1 on this dark Drawer.
+                   Overridden inline rather than touching the global rule, which is correct
+                   almost everywhere else it's used (on Paper cards, not this chrome). *@
                 <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small"
-                         Color="Color.Secondary" />
-                <MudText Typo="Typo.body2" Color="Color.Secondary">@_displayName</MudText>
+                         Style="color:var(--hg-text-on-bg-strong)" />
+                <MudText Typo="Typo.body2" Style="color:var(--hg-text-on-bg-strong)">@_displayName</MudText>
             </MudStack>
             <MudNavLink Icon="@Icons.Material.Filled.Logout" OnClick="LogoutAsync">
-                Sign out
+                @L["Nav_SignOut"]
             </MudNavLink>
         }
         else
         {
-            <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">Sign in</MudNavLink>
+            <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login">@L["Nav_SignIn"]</MudNavLink>
         }
 
 
     </MudNavMenu>
 
     <div class="px-4 pb-3 mt-auto">
+        @* Solid, not dimmed — this background is dark enough that even solid white barely
+           clears 4.5:1 (4.50:1 exactly); any opacity here drops back below AA. *@
         <MudText Typo="Typo.caption"
-                 Style="color: var(--hg-text-on-bg-subtle)">
+                 Style="color: var(--hg-text-on-bg-strong)">
             v@_version
         </MudText>
     </div>
@@ -55,13 +65,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var me = await AuthApi.GetMeAsync();
+        var me = await Session.GetAsync();
         _displayName = me?.DisplayName;
     }
 
     private async Task LogoutAsync()
     {
         await AuthApi.LogoutAsync();
+        Session.Invalidate();
         _displayName = null;
         Nav.NavigateTo("/login");
     }

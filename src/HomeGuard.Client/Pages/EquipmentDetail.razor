@@ -1,10 +1,12 @@
 @page "/equipment/{Id:guid}"
 @using HomeGuard.Client.Common
 @using Microsoft.AspNetCore.Components
+@using System.Globalization
 @inject EquipmentApiClient EquipmentApi
 @inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
 
-<PageTitle>@(_detail?.Name ?? "Equipment")</PageTitle>
+<PageTitle>@(_detail?.Name ?? L["Nav_Equipment"])</PageTitle>
 
 @if (_detail is null)
 {
@@ -28,26 +30,26 @@ else
         <MudCardContent>
             <MudGrid>
                 <MudItem xs="6" sm="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Category</MudText>
-                    <MudText>@_detail.Category</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Equipment_Category"]</MudText>
+                    <MudText>@L["Category_" + _detail.Category]</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Brand / Model</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Equipment_BrandModel"]</MudText>
                     <MudText>@(_detail.Brand ?? "—") @_detail.Model</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Serial number</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Form_SerialNumber"]</MudText>
                     <MudText>@(_detail.SerialNumber ?? "—")</MudText>
                 </MudItem>
                 <MudItem xs="6" sm="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">Purchased</MudText>
-                    <MudText>@_detail.PurchaseDate.ToString("d MMM yyyy", null)</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Equipment_Purchased"]</MudText>
+                    <MudText Class="hg-tabular">@_detail.PurchaseDate.ToString("d", CultureInfo.CurrentCulture)</MudText>
                 </MudItem>
                 @if (_detail.PurchasePrice.HasValue)
                 {
                     <MudItem xs="6" sm="3">
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">Price</MudText>
-                        <MudText>@_detail.PurchasePrice.Value.ToString("F2", null) €</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Form_PurchasePrice"]</MudText>
+                        <MudText Class="hg-tabular">@_detail.PurchasePrice.Value.ToString("N2", CultureInfo.CurrentCulture) €</MudText>
                     </MudItem>
                 }
             </MudGrid>
@@ -70,24 +72,29 @@ else
         </MudCardContent>
     </MudCard>
 
-    <WarrantySection EquipmentId="Id" />
+    <AttachmentsCard OwnerEntityId="Id" OwnerEntityType="Equipment"
+                     EmptyText="@L["Equipment_AttachmentsEmpty"]" />
+
+    <WarrantySection EquipmentId="Id" EquipmentPurchaseDate="_detail.PurchaseDate" />
 
     <ServiceSection EquipmentId="Id" MeterUnit="@_detail.MeterUnit"
                     EditServiceId="EditServiceId" EditRuleId="EditRuleId" />
 
     <MeterReadingSection Equipment="_detail" />
+
+    <ContractSection EquipmentId="Id" />
 }
 
 @* ── Equipment edit dialog ───────────────────────────────────────────────────── *@
 <MudDialog @bind-Visible="_showEdit">
-    <TitleContent>Edit equipment</TitleContent>
+    <TitleContent>@L["Equipment_EditTitle"]</TitleContent>
     <DialogContent>
         <EquipmentForm Model="_editForm" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="() => _showEdit = false">Cancel</MudButton>
+        <MudButton OnClick="() => _showEdit = false">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled"
-                   OnClick="SaveEditAsync" Disabled="_saving">Save</MudButton>
+                   OnClick="SaveEditAsync" Disabled="_saving">@L["Common_Save"]</MudButton>
     </DialogActions>
 </MudDialog>
 

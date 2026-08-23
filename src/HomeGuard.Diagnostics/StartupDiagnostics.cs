@@ -468,9 +468,20 @@ public sealed class StartupDiagnostics
 
     private static string GetBuildDate(Assembly? asm)
     {
-        if (asm?.Location is { Length: > 0 } loc)
+        // Assembly.Location is always empty for the entry assembly under single-file
+        // publish (IL3000) — this already tolerated that (falls through to "unknown"),
+        // but Environment.ProcessPath (the actual running executable) gives a real date
+        // in that case instead, so single-file doesn't lose the startup card's build date.
+#pragma warning disable IL3000
+        var location = asm?.Location;
+#pragma warning restore IL3000
+        // Fully qualified: StartupDiagnostics has its own instance property named
+        // Environment, which shadows the System.Environment static class here.
+        var path = string.IsNullOrEmpty(location) ? System.Environment.ProcessPath : location;
+
+        if (path is { Length: > 0 })
         {
-            try { return File.GetLastWriteTime(loc).ToString("yyyy-MM-dd HH:mm"); }
+            try { return File.GetLastWriteTime(path).ToString("yyyy-MM-dd HH:mm"); }
             catch { /* ignore */ }
         }
         return "unknown";

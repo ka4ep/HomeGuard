@@ -1,0 +1,112 @@
+@namespace HomeGuard.Client.Common
+@using System.Globalization
+@inject ContractApiClient Api
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
+
+@*
+    Contracts attached to one piece of equipment, shown on its page next to warranties and
+    services. This is the point of hanging a contract off an item at all: the KASKO policy
+    belongs with the car, and its cost belongs in what the car costs to own.
+
+    Self-contained, like the warranty and service sections: loads its own data by id.
+*@
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2 mt-4">
+    <MudIcon Icon="@Icons.Material.Filled.Description" />
+    <MudText Typo="Typo.h6">@L["Nav_Contracts"]</MudText>
+    <MudSpacer />
+    <MudButton Variant="Variant.Text" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.Add"
+               OnClick="() => _dialog.OpenAdd()">@L["Common_Add"]</MudButton>
+</MudStack>
+
+@if (_contracts.Count == 0)
+{
+    <MudText Color="Color.Secondary" Class="mb-4">@L["Contract_SectionEmpty"]</MudText>
+}
+else
+{
+    @foreach (var c in _contracts)
+    {
+        <MudPaper @key="@c.Id" Elevation="1" Class="mb-1 px-4 py-2 hg-clickable-card"
+                  Style="border-radius:var(--hg-radius-md); cursor:pointer"
+                  tabindex="0" role="button" aria-label="@c.Name"
+                  @onclick="() => OpenContract(c.Id)"
+                  @onkeydown="@(e => OnRowKeyDown(e, c.Id))">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                <ContractStatusChip Status="c.Status" />
+                <MudStack Spacing="0" Style="flex:1; min-width:140px">
+                    <MudText Typo="Typo.body1" Style="font-weight:600">@c.Name</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @L["ContractKind_" + c.Kind]
+                        @if (c.Provider is not null)
+                        {
+                            <span> · @c.Provider</span>
+                        }
+                    </MudText>
+                </MudStack>
+
+                <MudStack Spacing="0" Style="text-align:right">
+                    <MudText Typo="Typo.body2" Class="hg-tabular" Style="color:var(--hg-money)">
+                        @(c.CurrentInstallment is { } amount ? Money(amount, c.Currency) : "—")
+                    </MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@IntervalLabel(c)</MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+
+    @* Во что эта техника обходится по договорам — за месяц, по валютам раздельно. *@
+    @foreach (var (currency, total) in MonthlyTotals)
+    {
+        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="px-4 pt-2">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_MonthlyTotal"]</MudText>
+            <MudText Typo="Typo.body2" Class="hg-tabular" Style="color:var(--hg-money)">
+                @Money(total, currency)
+            </MudText>
+        </MudStack>
+    }
+    @if (MonthlyTotals.Count() > 1)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="px-4 d-block">
+            @L["Contract_OtherCurrencies"]
+        </MudText>
+    }
+}
+
+<ContractDialog @ref="_dialog" FixedEquipmentId="EquipmentId" OnSaved="OnSavedAsync" />
+
+@code {
+    [Parameter, EditorRequired] public Guid EquipmentId { get; set; }
+
+    private List<ContractDto> _contracts = [];
+    private ContractDialog _dialog = null!;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+
+    private async Task LoadAsync()
+        => _contracts = await Api.GetByEquipmentAsync(EquipmentId) ?? [];
+
+    private Task OnSavedAsync(ContractDto? _) => LoadAsync();
+
+    private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
+
+    private void OnRowKeyDown(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ") OpenContract(id);
+    }
+
+    private IEnumerable<(string Currency, decimal Total)> MonthlyTotals
+        => _contracts
+            .Where(c => c.Status == ContractStatus.Active
+                     && c.CurrentInstallment is not null
+                     && c.IntervalMonths is > 0)
+            .GroupBy(c => c.Currency)
+            .Select(g => (g.Key, g.Sum(c => c.CurrentInstallment!.Value / c.IntervalMonths!.Value)));
+
+    private string IntervalLabel(ContractDto c)
+        => c.IntervalMonths is { } months ? ContractFormat.IntervalLabel(L, months) : string.Empty;
+
+    private static string Money(decimal amount, string currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
+}

@@ -1,0 +1,210 @@
+@* Add/view/delete document attachments (camera or file) for one entity — the same
+   capability ContractDetail.razor built for itself, extracted so Equipment, Warranty
+   and Service records get it too without three more hand-rolled copies. Contract keeps
+   its own implementation (its attachments already ride along on ContractDetailDto);
+   everything else loads its list straight from GET /api/blobs?ownerEntityId=. *@
+@namespace HomeGuard.Client.Common
+@using HomeGuard.Client.Model
+@using HomeGuard.Client.Pages
+@implements IDisposable
+@inject BlobApiClient Blobs
+@inject OutboxSyncService Outbox
+@inject IDialogService Dialog
+@inject ISnackbar Snackbar
+@inject IStringLocalizer<Strings> L
+
+<MudCard Elevation="1" Class="mb-4">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Outlined.AttachFile" Class="mr-1" />
+                @L["Attachment_Title"]
+            </MudText>
+        </CardHeaderContent>
+        <CardHeaderActions>
+            <MudIconButton Icon="@(_showCapture ? Icons.Material.Filled.Close : Icons.Material.Filled.Add)"
+                           aria-label="@(_showCapture ? L["Common_Close"] : L["Attachment_Add"])"
+                           OnClick="@(() => _showCapture = !_showCapture)" />
+        </CardHeaderActions>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (_attachments.Count == 0 && _pendingAttachments.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@EmptyText</MudText>
+        }
+        else
+        {
+            @foreach (var a in _attachments)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                        <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank"
+                                 Style="display:flex; align-items:center; gap:8px; min-width:0; overflow-wrap:anywhere">
+                            @if (IsImage(a.ContentType))
+                            {
+                                <img src="@Blobs.GetDownloadUrl(a.Id)" alt="" loading="lazy"
+                                     style="width:28px; height:28px; object-fit:cover; border-radius:var(--hg-radius-sm); flex-shrink:0" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" />
+                            }
+                            @a.FileName
+                        </MudLink>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                            @FormatSize(a.SizeBytes)
+                        </MudText>
+                    </MudStack>
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                   Size="Size.Small" Class="hg-touch-target-sm"
+                                   aria-label="@L["Common_Delete"]"
+                                   OnClick="@(() => DeleteAttachmentAsync(a))" />
+                </MudStack>
+            }
+            @foreach (var p in _pendingAttachments)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                        <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" />
+                        <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@p.FileName</MudText>
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
+                            @L["Attachment_Queued"]
+                        </MudChip>
+                    </MudStack>
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                   Size="Size.Small" Class="hg-touch-target-sm"
+                                   aria-label="@L["Common_Delete"]"
+                                   OnClick="@(() => RemovePendingAttachmentAsync(p))" />
+                </MudStack>
+            }
+        }
+
+        <MudCollapse Expanded="_showCapture">
+            <div class="mt-2">
+                <DocumentCapture OnCapture="OnDocumentCapturedAsync" Label="@L["Attachment_Add"]" />
+                @if (_uploading)
+                {
+                    <MudProgressLinear Indeterminate="true" Class="mt-2" />
+                }
+            </div>
+        </MudCollapse>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public Guid OwnerEntityId { get; set; }
+    [Parameter, EditorRequired] public string OwnerEntityType { get; set; } = null!;
+    [Parameter, EditorRequired] public string EmptyText { get; set; } = null!;
+
+    private List<BlobDto> _attachments = [];
+    private List<PendingBlobUpload> _pendingAttachments = [];
+    private bool _showCapture;
+    private bool _uploading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Outbox.OutboxChanged += OnOutboxChanged;
+        await LoadAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (OwnerEntityId != _loadedFor)
+            await LoadAsync();
+    }
+
+    private Guid _loadedFor;
+
+    public void Dispose() => Outbox.OutboxChanged -= OnOutboxChanged;
+
+    private void OnOutboxChanged() => InvokeAsync(async () =>
+    {
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(OwnerEntityId)];
+        StateHasChanged();
+    });
+
+    private async Task LoadAsync()
+    {
+        _loadedFor = OwnerEntityId;
+        var attachmentsTask = Blobs.GetByOwnerAsync(OwnerEntityId);
+        var pendingTask     = Outbox.GetPendingBlobsForOwnerAsync(OwnerEntityId);
+        await Task.WhenAll(attachmentsTask, pendingTask);
+
+        _attachments        = attachmentsTask.Result ?? [];
+        _pendingAttachments = [.. pendingTask.Result];
+    }
+
+    /// <summary>
+    /// Same pattern as ContractDetail's own handler: go through the outbox (not
+    /// BlobApiClient directly) so a capture made with no signal is queued in IndexedDB
+    /// instead of lost, and FlushAsync sends it the moment a connection is available.
+    /// </summary>
+    private async Task OnDocumentCapturedAsync(CapturedDocument doc)
+    {
+        _uploading = true;
+        StateHasChanged();
+
+        await Outbox.EnqueueBlobUploadAsync(doc.Data, doc.MimeType, doc.FileName, OwnerEntityId, OwnerEntityType);
+        var result = await Outbox.FlushAsync();
+
+        _uploading   = false;
+        _showCapture = false;
+
+        Snackbar.Add(
+            result.Committed > 0 ? L["Attachment_Uploaded"] : L["Attachment_Saved"],
+            Severity.Success);
+
+        await LoadAsync();
+    }
+
+    private async Task DeleteAttachmentAsync(BlobDto blob)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", blob.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        if (!await Blobs.DeleteAsync(blob.Id))
+        {
+            Snackbar.Add(L["Attachment_DeleteFailed"], Severity.Error);
+            return;
+        }
+
+        Snackbar.Add(L["Attachment_Deleted"], Severity.Success);
+        await LoadAsync();
+    }
+
+    private async Task RemovePendingAttachmentAsync(PendingBlobUpload pending)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", pending.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        await Outbox.RemovePendingBlobAsync(pending.ClientOperationId);
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(OwnerEntityId)];
+    }
+
+    private static bool IsImage(string contentType)
+        => contentType.StartsWith("image/", StringComparison.Ordinal);
+
+    private static string AttachmentIcon(string contentType) => contentType switch
+    {
+        "application/pdf" => Icons.Material.Outlined.PictureAsPdf,
+        _ when IsImage(contentType) => Icons.Material.Outlined.InsertPhoto,
+        _ => Icons.Material.Outlined.InsertDriveFile,
+    };
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024        => $"{bytes} B",
+        < 1024 * 1024 => $"{bytes / 1024.0:0.#} KB",
+        _             => $"{bytes / 1024.0 / 1024.0:0.#} MB",
+    };
+}

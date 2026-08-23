@@ -3,48 +3,73 @@
 @inject ServiceRecordApiClient ServiceApi
 @inject EquipmentApiClient EquipmentApi
 @inject OutboxSyncService Outbox
+@inject ContractApiClient ContractApi
+@inject NavigationManager Nav
+@inject IStringLocalizer<Strings> L
 @implements IDisposable
 
-<PageTitle>HomeGuard — Dashboard</PageTitle>
+<PageTitle>HomeGuard — @L["Nav_Dashboard"]</PageTitle>
 
 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-    <MudText Typo="Typo.h5">Dashboard</MudText>
+    <MudText Typo="Typo.h5">@L["Nav_Dashboard"]</MudText>
     <MudButton Variant="Variant.Filled" Color="Color.Primary"
                StartIcon="@Icons.Material.Filled.Speed"
                OnClick="OpenReadingDialog">
-        Record reading
+        @L["Home_RecordReading"]
     </MudButton>
 </MudStack>
 
 <MeterReadingDialog @bind-Visible="_showReadingDialog" Equipment="_equipment" />
 
+@*
+    Полоса внимания: что горит по деньгам, поперёк всех договоров. Стоит выше карточек,
+    потому что ради этого вопроса сюда чаще всего и заходят — и именно на него отвечает
+    цифра на иконке приложения.
+*@
+@if (_upcoming is { Count: > 0 })
+{
+    <MudCard Elevation="1" Class="mb-4">
+        <MudCardContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween"
+                      Class="mb-2">
+                <MudText Typo="Typo.subtitle2">@L["Home_Upcoming"]</MudText>
+                <MudButton Href="/contracts" Variant="Variant.Text" Size="Size.Small">
+                    @L["Common_ViewAll"]
+                </MudButton>
+            </MudStack>
+
+            <PaymentSchedule Entries="UpcomingEntries" OnRowClick="OpenScheduleContract" />
+        </MudCardContent>
+    </MudCard>
+}
+
 @if (_pendingSync > 0)
 {
     <MudAlert Severity="Severity.Info" Class="mb-4" Icon="@Icons.Material.Filled.CloudUpload">
-        @_pendingSync change(s) pending sync to server.
-        <MudButton Variant="Variant.Text" OnClick="FlushAsync" Disabled="_flushing">Sync now</MudButton>
+        @L["Home_PendingSync", _pendingSync]
+        <MudButton Variant="Variant.Text" OnClick="FlushAsync" Disabled="_flushing">@L["Settings_SyncNow"]</MudButton>
     </MudAlert>
 }
 
 <MudGrid>
-    <MudItem xs="12" md="6">
-        <MudCard Elevation="2">
+    <MudItem xs="12" md="6" Class="d-flex">
+        <MudCard Elevation="2" Style="height:100%; display:flex; flex-direction:column; width:100%">
             <MudCardHeader>
                 <CardHeaderContent>
                     <MudText Typo="Typo.h6">
                         <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Class="mr-1" />
-                        Warranties expiring soon
+                        @L["Home_WarrantiesExpiring"]
                     </MudText>
                 </CardHeaderContent>
             </MudCardHeader>
-            <MudCardContent>
+            <MudCardContent Style="flex:1">
                 @if (_expiring is null)
                 {
                     <MudProgressLinear Indeterminate="true" />
                 }
                 else if (_expiring.Count == 0)
                 {
-                    <MudText Color="Color.Success">No warranties expiring in the next 90 days.</MudText>
+                    <MudText Color="Color.Success">@L["Home_NoWarrantiesExpiring"]</MudText>
                 }
                 else
                 {
@@ -55,7 +80,7 @@
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                     <MudText>@w.Name</MudText>
                                     <MudChip T="string" Color="@DaysColor(w.DaysRemaining)" Size="Size.Small">
-                                        @DaysLabel(w.DaysRemaining)
+                                        @Display.ServiceDaysLabel(L, w.DaysRemaining)
                                     </MudChip>
                                 </MudStack>
                             </MudListItem>
@@ -64,29 +89,29 @@
                 }
             </MudCardContent>
             <MudCardActions>
-                <MudButton Href="/warranties" Variant="Variant.Text">View all</MudButton>
+                <MudButton Href="/warranties" Variant="Variant.Text">@L["Common_ViewAll"]</MudButton>
             </MudCardActions>
         </MudCard>
     </MudItem>
 
-    <MudItem xs="12" md="6">
-        <MudCard Elevation="2">
+    <MudItem xs="12" md="6" Class="d-flex">
+        <MudCard Elevation="2" Style="height:100%; display:flex; flex-direction:column; width:100%">
             <MudCardHeader>
                 <CardHeaderContent>
                     <MudText Typo="Typo.h6">
                         <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-1" />
-                        Service due
+                        @L["Home_ServiceDue"]
                     </MudText>
                 </CardHeaderContent>
             </MudCardHeader>
-            <MudCardContent>
+            <MudCardContent Style="flex:1">
                 @if (_dueSoon is null)
                 {
                     <MudProgressLinear Indeterminate="true" />
                 }
                 else if (_dueSoon.Count == 0)
                 {
-                    <MudText Color="Color.Success">No service due in the next 90 days.</MudText>
+                    <MudText Color="Color.Success">@L["Home_NoServiceDue"]</MudText>
                 }
                 else
                 {
@@ -99,7 +124,7 @@
                                     <MudChip T="string"
                                              Color="@(sr.IsOverdue ? Color.Error : Color.Warning)"
                                              Size="Size.Small">
-                                        @(sr.IsOverdue ? "Overdue" : DaysLabel(sr.DaysUntilNextService))
+                                        @(sr.IsOverdue ? L["Service_Overdue"] : Display.ServiceDaysLabel(L, sr.DaysUntilNextService))
                                     </MudChip>
                                 </MudStack>
                             </MudListItem>
@@ -108,7 +133,7 @@
                 }
             </MudCardContent>
             <MudCardActions>
-                <MudButton Href="/service" Variant="Variant.Text">View all</MudButton>
+                <MudButton Href="/service" Variant="Variant.Text">@L["Common_ViewAll"]</MudButton>
             </MudCardActions>
         </MudCard>
     </MudItem>
@@ -118,6 +143,7 @@
     private List<WarrantyDto>?      _expiring;
     private List<ServiceRecordDto>? _dueSoon;
     private List<EquipmentSummary>  _equipment = [];
+    private List<UpcomingPaymentDto>? _upcoming;
     private int  _pendingSync;
     private bool _flushing;
     private bool _showReadingDialog;
@@ -126,8 +152,37 @@
     {
         _pendingSync = await Outbox.PendingCountAsync();
         Outbox.OutboxChanged += OnOutboxChanged;
-        await Task.WhenAll(LoadWarrantiesAsync(), LoadServiceAsync());
+        await Task.WhenAll(LoadWarrantiesAsync(), LoadServiceAsync(), LoadUpcomingAsync());
     }
+
+    private async Task LoadUpcomingAsync()
+        => _upcoming = await ContractApi.GetUpcomingAsync(30) ?? [];
+
+    private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
+
+    private void OpenScheduleContract(ScheduleEntryDto entry)
+    {
+        if (entry.ContractId is { } id) OpenContract(id);
+    }
+
+    /// <summary>
+    /// The top five, mapped onto PaymentSchedule's shape — the component it was already
+    /// meant to share with the detail page and the equipment section (see PaymentSchedule's
+    /// own header comment), not a hand-rolled row.
+    /// </summary>
+    private List<ScheduleEntryDto> UpcomingEntries
+        => [.. (_upcoming ?? []).Take(5).Select(p => new ScheduleEntryDto(
+            Origin:         ScheduleOrigin.Stored,
+            DueDate:        p.DueDate,
+            Amount:         p.AmountDue,
+            Status:         PaymentStatus.Planned,
+            InstallmentNo:  null,
+            Kind:           PaymentKind.Scheduled,
+            PaymentId:      p.PaymentId,
+            IsOverdue:      p.IsOverdue,
+            ContractId:     p.ContractId,
+            ContractName:   p.ContractName,
+            Currency:       p.Currency))];
 
     private async Task LoadWarrantiesAsync()
         => _expiring = await WarrantyApi.GetExpiringAsync(90) ?? [];
@@ -166,15 +221,6 @@
         null or > 30 => Color.Default,
         > 7          => Color.Warning,
         _            => Color.Error,
-    };
-
-    private static string DaysLabel(int? days) => days switch
-    {
-        null  => "—",
-        0     => "Today",
-        1     => "Tomorrow",
-        <= 30 => $"In {days} days",
-        _     => $"In {days / 30} month(s)",
     };
 
     public void Dispose() => Outbox.OutboxChanged -= OnOutboxChanged;

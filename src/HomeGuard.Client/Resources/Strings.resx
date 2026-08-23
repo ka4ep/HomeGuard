@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!--
+    Neutral fallback: English. Every user-facing string the app itself authors lives
+    here; anything the household typed (names, providers, notes) never does.
+    Keys are Area_Thing so that a screen's strings sort together.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ── Common vocabulary ─────────────────────────────────────────────────── -->
+  <data name="Common_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Common_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Common_Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+
+  <!-- ── Density switch ────────────────────────────────────────────────────── -->
+  <data name="Density_Cards" xml:space="preserve"><value>Cards</value></data>
+  <data name="Density_List" xml:space="preserve"><value>List</value></data>
+  <data name="Density_Label" xml:space="preserve"><value>View</value></data>
+
+  <!-- ── Language ──────────────────────────────────────────────────────────── -->
+  <data name="Language_en" xml:space="preserve"><value>English</value></data>
+  <data name="Language_ru" xml:space="preserve"><value>Русский</value>
+    <comment>A language is always named in its own language — never translate these two.</comment>
+  </data>
+  <data name="Common_Search" xml:space="preserve"><value>Search</value></data>
+
+  <!-- ── Navigation ────────────────────────────────────────────────────────── -->
+  <data name="Nav_Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="Nav_Equipment" xml:space="preserve"><value>Equipment</value></data>
+  <data name="Nav_Heading" xml:space="preserve"><value>Navigation</value></data>
+  <data name="Nav_Service" xml:space="preserve"><value>Service records</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Nav_SignIn" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Nav_SignOut" xml:space="preserve"><value>Sign out</value></data>
+  <data name="Nav_Timeline" xml:space="preserve"><value>Timeline</value></data>
+  <data name="Nav_Warranties" xml:space="preserve"><value>Warranties</value></data>
+
+  <!-- ── Equipment ─────────────────────────────────────────────────────────── -->
+  <data name="Equipment_AddTitle" xml:space="preserve"><value>Add equipment</value></data>
+  <data name="Equipment_AddWarranty" xml:space="preserve"><value>Add a warranty</value></data>
+  <data name="Equipment_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the manual or a photo of it.</value></data>
+  <data name="Equipment_Brand" xml:space="preserve"><value>Brand</value></data>
+  <data name="Equipment_Category" xml:space="preserve"><value>Category</value></data>
+  <data name="Equipment_Empty" xml:space="preserve"><value>Nothing here yet — add the first item.</value></data>
+  <data name="Equipment_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Equipment_NoMatch" xml:space="preserve"><value>Nothing matches “{0}”.</value>
+    <comment>{0} is the search text the user typed.</comment>
+  </data>
+  <data name="Equipment_Purchased" xml:space="preserve"><value>Purchased</value></data>
+  <data name="Equipment_Tags" xml:space="preserve"><value>Tags</value></data>
+  <data name="Equipment_WarrantyEndsOn" xml:space="preserve"><value>Covers until {0}</value>
+    <comment>{0} is the computed warranty end date — purchase date + the chosen duration, minus a day.</comment>
+  </data>
+
+  <!-- ── Equipment categories (enum EquipmentCategory) ─────────────────────── -->
+  <data name="Category_Electronics" xml:space="preserve"><value>Electronics</value></data>
+  <data name="Category_Furniture" xml:space="preserve"><value>Furniture</value></data>
+  <data name="Category_Garden" xml:space="preserve"><value>Garden</value></data>
+  <data name="Category_Heating" xml:space="preserve"><value>Heating</value></data>
+  <data name="Category_HomeAppliance" xml:space="preserve"><value>Appliance</value></data>
+  <data name="Category_Other" xml:space="preserve"><value>Other</value></data>
+  <data name="Category_Vehicle" xml:space="preserve"><value>Vehicle</value></data>
+
+  <!-- ── Warranties ────────────────────────────────────────────────────────── -->
+  <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt or warranty card.</value></data>
+  <data name="Warranty_ContractNumber" xml:space="preserve"><value>Contract №</value></data>
+  <data name="Warranty_DefaultName" xml:space="preserve"><value>Warranty</value>
+    <comment>Pre-filled into the Name field on Add — a household rarely has more than one warranty per item, so this is usually left as-is.</comment>
+  </data>
+  <data name="Warranty_Duration" xml:space="preserve"><value>Duration</value></data>
+  <data name="Warranty_Empty" xml:space="preserve"><value>No warranties here.</value></data>
+  <data name="Warranty_Name" xml:space="preserve"><value>Warranty</value></data>
+  <data name="Warranty_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Warranty_Period" xml:space="preserve"><value>Period</value></data>
+  <data name="Warranty_Provider" xml:space="preserve"><value>Provider</value></data>
+  <data name="Warranty_NoWarranty" xml:space="preserve"><value>No warranty</value></data>
+  <data name="Warranty_Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="Warranty_YearsFew" xml:space="preserve"><value>{0} years</value></data>
+  <data name="Warranty_YearsMany" xml:space="preserve"><value>{0} years</value></data>
+  <data name="Warranty_YearsOne" xml:space="preserve"><value>{0} year</value></data>
+  <data name="Warranty_TabActive" xml:space="preserve"><value>Active</value></data>
+  <data name="Warranty_TabExpiring" xml:space="preserve"><value>Expiring soon</value></data>
+
+  <!--
+    Remaining-time labels. Deliberately abbreviated: Russian pluralisation has three
+    forms and resx has no plural rules, so "5 d" / "5 дн." sidesteps the problem
+    instead of getting it wrong.
+  -->
+  <data name="Warranty_DaysLeft" xml:space="preserve"><value>{0} d left</value></data>
+  <data name="Warranty_Expired" xml:space="preserve"><value>Expired</value></data>
+  <data name="Warranty_MonthsLeft" xml:space="preserve"><value>{0} mo left</value></data>
+  <data name="Warranty_Today" xml:space="preserve"><value>Today</value></data>
+  <data name="Warranty_Tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
+
+  <!-- ── Service records ───────────────────────────────────────────────────── -->
+  <data name="Service_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt.</value></data>
+  <data name="Service_Cost" xml:space="preserve"><value>Cost</value></data>
+  <data name="Service_Date" xml:space="preserve"><value>Service date</value></data>
+  <data name="Service_Empty" xml:space="preserve"><value>Nothing here.</value></data>
+  <data name="Service_Meter" xml:space="preserve"><value>Meter reading</value></data>
+  <data name="Service_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Service_Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Service_Provider" xml:space="preserve"><value>Provider</value></data>
+  <data name="Service_TabDueSoon" xml:space="preserve"><value>Due soon</value></data>
+  <data name="Service_TabOverdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Service_Title" xml:space="preserve"><value>Work</value></data>
+  <data name="Service_When" xml:space="preserve"><value>When</value></data>
+
+  <data name="Service_InDays" xml:space="preserve"><value>In {0} d</value></data>
+  <data name="Service_InMonths" xml:space="preserve"><value>In {0} mo</value></data>
+  <data name="Service_Today" xml:space="preserve"><value>Today</value></data>
+  <data name="Service_Tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
+
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageHelp" xml:space="preserve"><value>Applies to this account everywhere, including notifications and the calendar feed. The page reloads to apply it.</value></data>
+
+  <!-- ── Recurring rules and per-equipment sections ── -->
+  <data name="Rule_Edit" xml:space="preserve"><value>Edit recurring rule</value></data>
+  <data name="Rule_Empty" xml:space="preserve"><value>No recurring rules yet — attach one to a service record, or add one here.</value></data>
+  <data name="Rule_Every" xml:space="preserve"><value>every {0}</value></data>
+  <data name="Rule_FromHistory" xml:space="preserve"><value>automatically, from history</value></data>
+  <data name="Rule_Inactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="Rule_IntervalDays" xml:space="preserve"><value>~{0} d</value></data>
+  <data name="Rule_Repeats" xml:space="preserve"><value>Repeats {0}</value></data>
+  <data name="Rule_Section" xml:space="preserve"><value>Recurring rules</value></data>
+  <data name="Rule_SetUp" xml:space="preserve"><value>Set up recurring</value></data>
+  <data name="Rule_SincePurchase" xml:space="preserve"><value>Since purchase</value></data>
+  <data name="Service_SectionEmpty" xml:space="preserve"><value>No service records yet.</value></data>
+  <data name="Warranty_SectionEmpty" xml:space="preserve"><value>No warranties registered.</value></data>
+
+  <!-- ── Form fields ── -->
+  <data name="Form_EndDate" xml:space="preserve"><value>End date</value></data>
+  <data name="Form_MeterUnit" xml:space="preserve"><value>Meter unit</value></data>
+  <data name="Form_MeterUnitHelp" xml:space="preserve"><value>e.g. km, mi, m³, kWh, h</value></data>
+  <data name="Form_Model" xml:space="preserve"><value>Model</value></data>
+  <data name="Form_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Form_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Form_NotesHelp" xml:space="preserve"><value>Markdown supported</value></data>
+  <data name="Form_PurchaseDate" xml:space="preserve"><value>Purchase date</value></data>
+  <data name="Form_PurchasePrice" xml:space="preserve"><value>Purchase price</value></data>
+  <data name="Form_SerialNumber" xml:space="preserve"><value>Serial number</value></data>
+  <data name="Form_StartDate" xml:space="preserve"><value>Start date</value></data>
+  <data name="Form_Tags" xml:space="preserve"><value>Tags (comma-separated)</value></data>
+  <data name="Form_TagsHelp" xml:space="preserve"><value>e.g. kitchen, appliance, samsung</value></data>
+  <data name="Warranty_DialogAdd" xml:space="preserve"><value>Add warranty</value></data>
+  <data name="Warranty_DialogEdit" xml:space="preserve"><value>Edit warranty</value></data>
+
+  <!-- ── Service and recurring-rule dialogs ── -->
+  <data name="Rule_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="Rule_AnchorToPurchase" xml:space="preserve"><value>Existed since purchase</value></data>
+  <data name="Rule_AnchorToPurchaseHelp" xml:space="preserve"><value>On: the average interval counts from the purchase date, so one record is enough to predict the next. Off: it counts only from this item's own first recorded service.</value></data>
+  <data name="Rule_IntervalDaysLabel" xml:space="preserve"><value>Interval (days)</value></data>
+  <data name="Rule_IntervalHelp" xml:space="preserve"><value>Leave blank to work it out from history</value></data>
+  <data name="Rule_IntervalMeterLabel" xml:space="preserve"><value>Interval</value></data>
+  <data name="Rule_MaterializeDays" xml:space="preserve"><value>Create the record this many days ahead</value></data>
+  <data name="Rule_PredictionsAhead" xml:space="preserve"><value>Predictions to show</value></data>
+  <data name="ServiceStatus_Completed" xml:space="preserve"><value>Done</value></data>
+  <data name="ServiceStatus_Planned" xml:space="preserve"><value>Planned</value></data>
+  <data name="Service_DialogAdd" xml:space="preserve"><value>Add service record</value></data>
+  <data name="Service_DialogEdit" xml:space="preserve"><value>Edit service record</value></data>
+  <data name="Service_Status" xml:space="preserve"><value>Status</value></data>
+
+  <!-- ── Meter readings ── -->
+  <data name="Meter_Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Meter_DialogTitle" xml:space="preserve"><value>Record a meter reading</value></data>
+  <data name="Meter_Empty" xml:space="preserve"><value>No readings yet.</value></data>
+  <data name="Meter_FromService" xml:space="preserve"><value>From a service record</value></data>
+  <data name="Meter_LastKnown" xml:space="preserve"><value>Last known: {0} {1} on {2}</value></data>
+  <data name="Meter_LowerThanLast" xml:space="preserve"><value>This is lower than the last known reading.</value></data>
+  <data name="Meter_NoMeteredEquipment" xml:space="preserve"><value>Nothing has a meter unit yet, so there is nothing to record a reading against. Set the meter unit (km, kWh, h…) on the item first: Equipment → open the item → Edit.</value></data>
+  <data name="Meter_Note" xml:space="preserve"><value>Note</value></data>
+  <data name="Meter_Reading" xml:space="preserve"><value>Reading</value></data>
+  <data name="Meter_Section" xml:space="preserve"><value>Meter readings</value></data>
+  <data name="Meter_ShowAll" xml:space="preserve"><value>Show all ({0})</value></data>
+
+  <!-- ── Settings ── -->
+  <data name="Settings_AddThisDevice" xml:space="preserve"><value>Add this device</value></data>
+  <data name="Settings_CannotRemoveLast" xml:space="preserve"><value>This is the last device — removing it would lock you out</value></data>
+  <data name="Settings_DeviceAdded" xml:space="preserve"><value>Added {0}</value></data>
+  <data name="Settings_DeviceLastUsed" xml:space="preserve"><value>Last used {0}</value></data>
+  <data name="Settings_DeviceName" xml:space="preserve"><value>Device name</value></data>
+  <data name="Settings_DeviceNamePlaceholder" xml:space="preserve"><value>e.g. iPhone 16, work laptop</value></data>
+  <data name="Settings_DeviceRegistered" xml:space="preserve"><value>Device “{0}” registered.</value></data>
+  <data name="Settings_DeviceRemoved" xml:space="preserve"><value>“{0}” removed.</value></data>
+  <data name="Settings_Devices" xml:space="preserve"><value>Passkey devices</value></data>
+  <data name="Settings_Diagnostics" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="Settings_DiagnosticsHelp" xml:space="preserve"><value>If something looked wrong, send the recent activity log so it can be checked on the server.</value></data>
+  <data name="Settings_LogsSent" xml:space="preserve"><value>Logs sent.</value></data>
+  <data name="Settings_NoDevices" xml:space="preserve"><value>No devices found.</value></data>
+  <data name="Settings_OfflineSync" xml:space="preserve"><value>Offline sync</value></data>
+  <data name="Settings_PendingOperations" xml:space="preserve"><value>Waiting to sync:</value></data>
+  <data name="Settings_Push" xml:space="preserve"><value>Push notifications</value></data>
+  <data name="Settings_PushDenied" xml:space="preserve"><value>Notifications are blocked. Allow them in the browser settings and reload.</value></data>
+  <data name="Settings_PushEnable" xml:space="preserve"><value>Turn on notifications</value></data>
+  <data name="Settings_PushEnabled" xml:space="preserve"><value>Notifications are on.</value></data>
+  <data name="Settings_PushExplain" xml:space="preserve"><value>Turn on notifications to be reminded about warranties and service dates.</value></data>
+  <data name="Settings_PushGranted" xml:space="preserve"><value>Notifications are on for this device.</value></data>
+  <data name="Settings_PushNotConfigured" xml:space="preserve"><value>Push is not configured on the server.</value></data>
+  <data name="Settings_PushPermissionDenied" xml:space="preserve"><value>Notification permission denied.</value></data>
+  <data name="Settings_RegisterCancelled" xml:space="preserve"><value>Registration cancelled.</value></data>
+  <data name="Settings_RegisterFailed" xml:space="preserve"><value>Registration failed.</value></data>
+  <data name="Settings_RegisterPasskey" xml:space="preserve"><value>Register passkey</value></data>
+  <data name="Settings_RegisterStartFailed" xml:space="preserve"><value>Could not start device registration.</value></data>
+  <data name="Settings_Registering" xml:space="preserve"><value>Registering…</value></data>
+  <data name="Settings_RevokeDevice" xml:space="preserve"><value>Revoke this device</value></data>
+  <data name="Settings_RevokeFailed" xml:space="preserve"><value>Could not revoke the device.</value></data>
+  <data name="Settings_RevokeMessage" xml:space="preserve"><value>Remove “{0}”? This passkey stops working immediately.</value></data>
+  <data name="Settings_RevokeTitle" xml:space="preserve"><value>Revoke device</value></data>
+  <data name="Settings_SyncDone" xml:space="preserve"><value>All synced ({0}).</value></data>
+  <data name="Settings_SendLogs" xml:space="preserve"><value>Send logs to server</value></data>
+  <data name="Settings_SyncNow" xml:space="preserve"><value>Sync now</value></data>
+  <data name="Settings_ViewLogs" xml:space="preserve"><value>View log on screen</value></data>
+  <data name="Settings_SyncPartial" xml:space="preserve"><value>Sync finished — {0} failed.</value></data>
+
+  <!-- ── Dashboard ── -->
+  <data name="Common_ViewAll" xml:space="preserve"><value>View all</value></data>
+  <data name="Home_NoServiceDue" xml:space="preserve"><value>Nothing due in the next 90 days.</value></data>
+  <data name="Home_NoWarrantiesExpiring" xml:space="preserve"><value>Nothing expires in the next 90 days.</value></data>
+  <data name="Home_PendingSync" xml:space="preserve"><value>{0} change(s) waiting to reach the server.</value></data>
+  <data name="Home_RecordReading" xml:space="preserve"><value>Record reading</value></data>
+  <data name="Home_ServiceDue" xml:space="preserve"><value>Service due</value></data>
+  <data name="Home_WarrantiesExpiring" xml:space="preserve"><value>Warranties expiring soon</value></data>
+
+  <!-- ── Equipment detail ── -->
+  <data name="Equipment_BrandModel" xml:space="preserve"><value>Brand / model</value></data>
+  <data name="Equipment_EditTitle" xml:space="preserve"><value>Edit equipment</value></data>
+
+  <!-- ── Sign in ── -->
+  <data name="Login_AuthFailed" xml:space="preserve"><value>Sign-in failed.</value></data>
+  <data name="Login_Authenticating" xml:space="preserve"><value>Signing in…</value></data>
+  <data name="Login_BackToSignIn" xml:space="preserve"><value>Back to sign in</value></data>
+  <data name="Login_DefaultDeviceName" xml:space="preserve"><value>My device</value></data>
+  <data name="Login_DevModeWarning" xml:space="preserve"><value>Development only — this skips passkey verification entirely.</value></data>
+  <data name="Login_DevSignIn" xml:space="preserve"><value>Dev: sign in without a passkey</value></data>
+  <data name="Login_ErrorAbort" xml:space="preserve"><value>The passkey prompt was interrupted. Try again.</value></data>
+  <data name="Login_ErrorInvalidState" xml:space="preserve"><value>This device already has a passkey registered here.</value></data>
+  <data name="Login_ErrorNotAllowed" xml:space="preserve"><value>Cancelled, or timed out waiting for a fingerprint, face, PIN or security key.</value></data>
+  <data name="Login_ErrorNotSupported" xml:space="preserve"><value>This device can't create the kind of passkey this app needs (a discoverable one). Set up Windows Hello (PIN, fingerprint or face) or use a physical security key that supports it.</value></data>
+  <data name="Login_ErrorSecurity" xml:space="preserve"><value>The page's address doesn't match what the server expects. Make sure you're on the correct URL.</value></data>
+  <data name="Login_FirstTime" xml:space="preserve"><value>First time here? Register a passkey.</value></data>
+  <data name="Login_NoPasskeySupport" xml:space="preserve"><value>This browser does not support passkeys. Use a current browser on a device with biometric unlock.</value></data>
+  <data name="Login_Register" xml:space="preserve"><value>Register</value></data>
+  <data name="Login_ServerUnreachable" xml:space="preserve"><value>Could not reach the server.</value></data>
+  <data name="Login_SignInWithPasskey" xml:space="preserve"><value>Sign in with a passkey</value></data>
+  <data name="Login_Subtitle" xml:space="preserve"><value>Sign in with your passkey</value></data>
+  <data name="Login_ThisDevice" xml:space="preserve"><value>This device (iPhone 16, work laptop…)</value></data>
+  <data name="Login_ThisDevicePlaceholder" xml:space="preserve"><value>So you recognise it later</value></data>
+  <data name="Login_YourName" xml:space="preserve"><value>Your name (Mum, Alex…)</value></data>
+  <data name="Login_YourNamePlaceholder" xml:space="preserve"><value>What should we call you?</value></data>
+
+  <!-- ── Timeline and document capture ── -->
+  <data name="Capture_CameraDenied" xml:space="preserve"><value>Could not reach the camera. Check the browser permissions.</value></data>
+  <data name="Capture_PhotoAlt" xml:space="preserve"><value>Captured photo</value></data>
+  <data name="Capture_Retake" xml:space="preserve"><value>Retake</value></data>
+  <data name="Capture_StartCamera" xml:space="preserve"><value>Turn on the camera</value></data>
+  <data name="Timeline_CannotMaterialize" xml:space="preserve"><value>Not enough history yet to predict a date for this one.</value></data>
+  <data name="Timeline_FitAll" xml:space="preserve"><value>Fit all</value></data>
+  <data name="Timeline_PlannedCreated" xml:space="preserve"><value>Planned record created.</value></data>
+  <data name="Timeline_Today" xml:space="preserve"><value>Today</value></data>
+
+  <!-- ── Timeline card (rendered by JS) ── -->
+  <data name="Timeline_EditRecord" xml:space="preserve"><value>Edit the record</value></data>
+  <data name="Timeline_Event" xml:space="preserve"><value>Event</value></data>
+  <data name="Timeline_MaterializeNow" xml:space="preserve"><value>Plan it now</value></data>
+  <data name="Timeline_OpenRule" xml:space="preserve"><value>Open the recurring rule</value></data>
+  <data name="Timeline_Predicted" xml:space="preserve"><value>Predicted</value></data>
+  <data name="Timeline_WarrantyExpiry" xml:space="preserve"><value>Warranty ends</value></data>
+  <data name="Timeline_WarrantyStart" xml:space="preserve"><value>Warranty starts</value></data>
+  <data name="Timeline_ContractEnd" xml:space="preserve"><value>Contract ends</value></data>
+  <data name="Timeline_ContractStart" xml:space="preserve"><value>Contract starts</value></data>
+  <data name="Timeline_OpenContract" xml:space="preserve"><value>Open the contract</value></data>
+
+  <!-- ── Contracts ── -->
+  <data name="ContractKind_Insurance" xml:space="preserve"><value>Insurance</value></data>
+  <data name="ContractKind_Lease" xml:space="preserve"><value>Lease</value></data>
+  <data name="ContractKind_Loan" xml:space="preserve"><value>Loan</value></data>
+  <data name="ContractKind_Other" xml:space="preserve"><value>Other</value></data>
+  <data name="ContractKind_Subscription" xml:space="preserve"><value>Subscription</value></data>
+  <data name="ContractStatus_Active" xml:space="preserve"><value>Active</value></data>
+  <data name="ContractStatus_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="ContractStatus_Ended" xml:space="preserve"><value>Ended</value></data>
+  <data name="ContractStatus_Suspended" xml:space="preserve"><value>Suspended</value></data>
+  <data name="Contract_CancelBy" xml:space="preserve"><value>Cancel by {0}</value></data>
+  <data name="Contract_Empty" xml:space="preserve"><value>No contracts yet. Insurance, subscriptions, loans and leases all live here.</value></data>
+  <data name="Contract_EveryNMonths" xml:space="preserve"><value>every {0} months</value></data>
+  <data name="Contract_Filter_All" xml:space="preserve"><value>All</value></data>
+  <data name="Contract_Household" xml:space="preserve"><value>Household</value></data>
+  <data name="Contract_KindLocked" xml:space="preserve"><value>Can't be changed after the contract is created</value></data>
+  <data name="Contract_MonthlyTotal" xml:space="preserve"><value>Per month, all together</value></data>
+  <data name="Contract_NoMatchFilter" xml:space="preserve"><value>Nothing of this kind yet.</value></data>
+  <data name="Contract_NoPlan" xml:space="preserve"><value>No payment plan yet</value></data>
+  <data name="Contract_OpenEnded" xml:space="preserve"><value>open-ended</value></data>
+  <data name="Contract_OtherCurrencies" xml:space="preserve"><value>Each currency is totalled on its own line — amounts are never converted or combined.</value></data>
+  <data name="Contract_Payment" xml:space="preserve"><value>Payment</value></data>
+  <data name="Contract_PerHalfYear" xml:space="preserve"><value>twice a year</value></data>
+  <data name="Contract_PerMonth" xml:space="preserve"><value>per month</value></data>
+  <data name="Contract_PerQuarter" xml:space="preserve"><value>per quarter</value></data>
+  <data name="Contract_PerYear" xml:space="preserve"><value>per year</value></data>
+  <data name="Contract_Period" xml:space="preserve"><value>Period</value></data>
+  <data name="Contract_Provider" xml:space="preserve"><value>Provider</value></data>
+  <data name="Markdown_Empty" xml:space="preserve"><value>No summary written yet.</value></data>
+  <data name="Nav_Contracts" xml:space="preserve"><value>Contracts</value></data>
+
+  <!-- ── Attachments (shared: Contract/Equipment/Warranty/Service) ── -->
+  <data name="Attachment_Add" xml:space="preserve"><value>Add document</value></data>
+  <data name="Attachment_DeleteFailed" xml:space="preserve"><value>Could not delete the document</value></data>
+  <data name="Attachment_Deleted" xml:space="preserve"><value>Document deleted</value></data>
+  <data name="Attachment_DeleteMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
+  <data name="Attachment_DeleteTitle" xml:space="preserve"><value>Delete document</value></data>
+  <data name="Attachment_Queued" xml:space="preserve"><value>Queued — will upload once you're online</value></data>
+  <data name="Attachment_Saved" xml:space="preserve"><value>Saved — will upload once you're online</value></data>
+  <data name="Attachment_Title" xml:space="preserve"><value>Documents</value></data>
+  <data name="Attachment_Uploaded" xml:space="preserve"><value>Document uploaded</value></data>
+
+  <!-- ── Contract detail and schedule ── -->
+  <data name="Contract_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add the policy PDF or a photo of it.</value></data>
+  <data name="Contract_Balance" xml:space="preserve"><value>Balance</value></data>
+  <data name="Contract_ChangeStatusTitle" xml:space="preserve"><value>Change status</value></data>
+  <data name="Contract_Coverage" xml:space="preserve"><value>Cover</value></data>
+  <data name="Contract_Deductible" xml:space="preserve"><value>Deductible</value></data>
+  <data name="Contract_FromDate" xml:space="preserve"><value>from {0}</value></data>
+  <data name="Contract_GapMissingBalance" xml:space="preserve"><value>Balance unknown — tap to add it</value></data>
+  <data name="Contract_GapMissingRate" xml:space="preserve"><value>Rate unknown — shown without interest</value></data>
+  <data name="Contract_Installments" xml:space="preserve"><value>{0} of {1}</value></data>
+  <data name="Contract_InterestPaid" xml:space="preserve"><value>of which interest: {0}</value></data>
+  <data name="Contract_NewStatus" xml:space="preserve"><value>New status</value></data>
+  <data name="Contract_NextPayment" xml:space="preserve"><value>Next payment</value></data>
+  <data name="Contract_NotFound" xml:space="preserve"><value>This contract no longer exists.</value></data>
+  <data name="Contract_OpeningNote" xml:space="preserve"><value>{0} instalments totalling {1} before {2} are recorded as one entry, not row by row.</value></data>
+  <data name="Contract_OverdueCount" xml:space="preserve"><value>Overdue payments: {0}</value></data>
+  <data name="Contract_PaidSoFar" xml:space="preserve"><value>Paid so far</value></data>
+  <data name="Contract_PayoffBy" xml:space="preserve"><value>Paid off by {0}</value></data>
+  <data name="Contract_Revisions" xml:space="preserve"><value>Plan history</value></data>
+  <data name="Contract_StatusReason" xml:space="preserve"><value>Reason (optional)</value></data>
+  <data name="Contract_StatusReasonHelp" xml:space="preserve"><value>Shown on the contract so anyone reading it later knows why, without having to ask.</value></data>
+  <data name="Contract_Summary" xml:space="preserve"><value>What it covers</value></data>
+  <data name="RevisionReason_AddOn" xml:space="preserve"><value>Add-on</value></data>
+  <data name="RevisionReason_Correction" xml:space="preserve"><value>Correction</value></data>
+  <data name="RevisionReason_EarlyPayment" xml:space="preserve"><value>Early payment</value></data>
+  <data name="RevisionReason_Initial" xml:space="preserve"><value>Initial plan</value></data>
+  <data name="RevisionReason_Pause" xml:space="preserve"><value>Paused</value></data>
+  <data name="RevisionReason_PriceChange" xml:space="preserve"><value>Price change</value></data>
+  <data name="RevisionReason_RateChange" xml:space="preserve"><value>Rate change</value></data>
+  <data name="RevisionReason_TermChange" xml:space="preserve"><value>Term change</value></data>
+  <data name="Schedule_Confirm" xml:space="preserve"><value>Mark as paid</value></data>
+  <data name="Schedule_ConfirmFailed" xml:space="preserve"><value>Could not record the payment.</value></data>
+  <data name="Schedule_Confirmed" xml:space="preserve"><value>Payment recorded.</value></data>
+  <data name="Schedule_Empty" xml:space="preserve"><value>No payments yet.</value></data>
+  <data name="Schedule_Failed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Schedule_Overdue" xml:space="preserve"><value>Overdue</value></data>
+  <data name="Schedule_Paid" xml:space="preserve"><value>Paid</value></data>
+  <data name="Schedule_Planned" xml:space="preserve"><value>Planned</value></data>
+  <data name="Schedule_Projected" xml:space="preserve"><value>Projected</value></data>
+  <data name="Schedule_ShowAll" xml:space="preserve"><value>Show all ({0})</value></data>
+  <data name="Schedule_Skipped" xml:space="preserve"><value>Skipped</value></data>
+  <data name="Schedule_Split" xml:space="preserve"><value>of which principal {0}, interest {1}</value></data>
+  <data name="Schedule_Title" xml:space="preserve"><value>Schedule</value></data>
+  <data name="BudgetLoad_Title" xml:space="preserve"><value>Monthly load</value></data>
+  <data name="BudgetLoad_Empty" xml:space="preserve"><value>Nothing due yet — add a payment plan to see it here.</value></data>
+  <data name="BudgetLoad_PeakLegend" xml:space="preserve"><value>Noticeably above the average month</value></data>
+
+  <!-- ── Contract dialogs ── -->
+  <data name="Contract_AddTitle" xml:space="preserve"><value>New contract</value></data>
+  <data name="Contract_Count" xml:space="preserve"><value>Number of instalments</value></data>
+  <data name="Contract_CountHelp" xml:space="preserve"><value>Leave empty if it runs until cancelled.</value></data>
+  <data name="Contract_Currency" xml:space="preserve"><value>Currency</value></data>
+  <data name="Contract_EditTitle" xml:space="preserve"><value>Edit contract</value></data>
+  <data name="Contract_EndOptional" xml:space="preserve"><value>End date (leave empty for open-ended)</value></data>
+  <data name="Contract_FirstDue" xml:space="preserve"><value>First payment</value></data>
+  <data name="Contract_HasPlan" xml:space="preserve"><value>It is paid on a schedule</value></data>
+  <data name="Contract_Installment" xml:space="preserve"><value>Instalment</value></data>
+  <data name="Contract_Interval" xml:space="preserve"><value>How often</value></data>
+  <data name="Contract_NoticeDays" xml:space="preserve"><value>Notice period, days</value></data>
+  <data name="Contract_NoticeHelp" xml:space="preserve"><value>How long before the end the chance to cancel closes.</value></data>
+  <data name="Contract_Renewal" xml:space="preserve"><value>Renewal</value></data>
+  <data name="Contract_SaveFailed" xml:space="preserve"><value>Could not save the contract.</value></data>
+  <data name="Opening_AmountPaid" xml:space="preserve"><value>Amount paid before</value></data>
+  <data name="Opening_AsOf" xml:space="preserve"><value>Tracking starts</value></data>
+  <data name="Opening_AsOfHelp" xml:space="preserve"><value>Payments can only be entered from this date on.</value></data>
+  <data name="Opening_BalanceHelp" xml:space="preserve"><value>What the lender says is left. Leave empty where a balance means nothing.</value></data>
+  <data name="Opening_Clear" xml:space="preserve"><value>Remove</value></data>
+  <data name="Opening_Explain" xml:space="preserve"><value>For a contract that has been going for years: instead of entering every past payment, record where it stood on one date. Everything before that date is counted here and nowhere else.</value></data>
+  <data name="Opening_InstallmentsPaid" xml:space="preserve"><value>Instalments paid before</value></data>
+  <data name="Opening_OverlapError" xml:space="preserve"><value>A payment is already recorded before this date. Move the date earlier, or delete that payment — otherwise the same money is counted twice.</value></data>
+  <data name="Opening_RemainingBalance" xml:space="preserve"><value>Balance still owed</value></data>
+  <data name="Opening_Title" xml:space="preserve"><value>Already running before this</value></data>
+  <data name="RenewalMode_Auto" xml:space="preserve"><value>Renews automatically</value></data>
+  <data name="RenewalMode_Manual" xml:space="preserve"><value>Renewed by hand</value></data>
+  <data name="RenewalMode_None" xml:space="preserve"><value>Does not renew</value></data>
+  <data name="Revision_After" xml:space="preserve"><value>After</value></data>
+  <data name="Revision_AnnualRate" xml:space="preserve"><value>Annual rate</value></data>
+  <data name="Revision_AnnualRateHelp" xml:space="preserve"><value>As stated in the agreement — a nominal rate, not APR.</value></data>
+  <data name="Revision_BalanceAndRate" xml:space="preserve"><value>Balance &amp; rate</value></data>
+  <data name="Revision_Before" xml:space="preserve"><value>Before</value></data>
+  <data name="Revision_Calculate" xml:space="preserve"><value>Calculate</value></data>
+  <data name="Revision_Commit" xml:space="preserve"><value>Apply</value></data>
+  <data name="Revision_EarlyPaymentAssist" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Revision_EffectReducePayment" xml:space="preserve"><value>Lower the instalment</value></data>
+  <data name="Revision_EffectReduceTerm" xml:space="preserve"><value>Shorten the term</value></data>
+  <data name="Revision_EffectiveFrom" xml:space="preserve"><value>In force from</value></data>
+  <data name="Revision_EffectiveHelp" xml:space="preserve"><value>The first payment this version governs.</value></data>
+  <data name="Revision_ExtraAmount" xml:space="preserve"><value>Extra amount</value></data>
+  <data name="Revision_ExtraPaymentNote" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Revision_GapMissingBalance" xml:space="preserve"><value>No starting balance recorded — add one above to estimate this.</value></data>
+  <data name="Revision_GapMissingRate" xml:space="preserve"><value>No rate recorded — the term is exact, the interest saved is not.</value></data>
+  <data name="Revision_InstallmentsLeft" xml:space="preserve"><value>Payments left: {0} → {1}</value></data>
+  <data name="Revision_InterestSaved" xml:space="preserve"><value>Interest saved: {0}</value></data>
+  <data name="Revision_LastDue" xml:space="preserve"><value>Last payment</value></data>
+  <data name="Revision_OpenEndedNote" xml:space="preserve"><value>The plan has no end, so there is no total to show.</value></data>
+  <data name="Revision_Preview" xml:space="preserve"><value>Before → after</value></data>
+  <data name="Revision_Reason" xml:space="preserve"><value>What changed</value></data>
+  <data name="Revision_Remaining" xml:space="preserve"><value>Payments left</value></data>
+  <data name="Revision_RemainingPrincipal" xml:space="preserve"><value>Balance owed</value></data>
+  <data name="Revision_RemainingPrincipalHelp" xml:space="preserve"><value>What is left to pay right now, before this change.</value></data>
+  <data name="Revision_RemainingTotal" xml:space="preserve"><value>Left to pay</value></data>
+  <data name="Revision_Title" xml:space="preserve"><value>Change the plan</value></data>
+  <data name="Revision_TooEarly" xml:space="preserve"><value>A later version of the plan is already in force. A change cannot start before it — record it as a correction instead.</value></data>
+
+  <!-- ── Payments and the attention strip ── -->
+  <data name="Contract_SectionEmpty" xml:space="preserve"><value>No contracts on this item.</value></data>
+  <data name="Home_Upcoming" xml:space="preserve"><value>Money coming up</value></data>
+  <data name="PaymentKind_DownPayment" xml:space="preserve"><value>Down payment</value></data>
+  <data name="PaymentKind_Extra" xml:space="preserve"><value>Extra payment</value></data>
+  <data name="PaymentKind_Fee" xml:space="preserve"><value>Fee</value></data>
+  <data name="PaymentKind_Refund" xml:space="preserve"><value>Refund</value></data>
+  <data name="PaymentKind_Residual" xml:space="preserve"><value>Final payment</value></data>
+  <data name="PaymentKind_Scheduled" xml:space="preserve"><value>Instalment</value></data>
+  <data name="Payment_Amount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Payment_DueDate" xml:space="preserve"><value>Due</value></data>
+  <data name="Payment_EditTitle" xml:space="preserve"><value>Correct the payment</value></data>
+  <data name="Payment_Kind" xml:space="preserve"><value>Kind</value></data>
+  <data name="Payment_Reopen" xml:space="preserve"><value>Put it back in the schedule</value></data>
+  <data name="Payment_ReopenHelp" xml:space="preserve"><value>Use this when it was marked paid by mistake — the totals go back to what they were.</value></data>
+</root>

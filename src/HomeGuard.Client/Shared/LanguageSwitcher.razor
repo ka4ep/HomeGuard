@@ -1,0 +1,41 @@
+@namespace HomeGuard.Client.Common
+@using HomeGuard.Common.Localization
+@inject LanguagePreference Language
+@inject IStringLocalizer<Strings> L
+
+@*
+    Each language is named in its own language, so the option a person is looking for
+    is readable even when the app is currently in the other one.
+*@
+<MudToggleGroup T="string"
+                Value="@_current"
+                ValueChanged="OnChangedAsync"
+                SelectionMode="SelectionMode.SingleSelection"
+                Color="Color.Primary"
+                Size="Size.Small"
+                CheckMark="false"
+                Disabled="@_switching">
+    @foreach (var lang in AppLanguage.Supported)
+    {
+        var label = L["Language_" + lang];
+        <MudToggleItem Value="@lang" Text="@label" />
+    }
+</MudToggleGroup>
+
+@code {
+    private string _current = AppLanguage.Default;
+    private bool   _switching;
+
+    protected override void OnInitialized() => _current = LanguagePreference.Current;
+
+    private async Task OnChangedAsync(string code)
+    {
+        if (code == _current || _switching) return;
+
+        // ChangeAsync reloads the page — the culture is fixed for the life of the host,
+        // so there is nothing to re-render here, only something to stop double-clicking.
+        _switching = true;
+        _current   = code;
+        await Language.ChangeAsync(code);
+    }
+}

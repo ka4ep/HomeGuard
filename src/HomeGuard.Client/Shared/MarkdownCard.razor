@@ -1,0 +1,50 @@
+@namespace HomeGuard.Client.Common
+@inject IStringLocalizer<Strings> L
+
+@*
+    The summary card: what this contract actually covers, in the household's own words,
+    written by hand from the PDF that sits in the attachments. Rendered as markdown so a
+    list of covered items reads as a list.
+
+    Reused wherever a Notes field is declared markdown — equipment, warranty, service —
+    which today render it as plain text.
+*@
+@if (!string.IsNullOrWhiteSpace(Markdown))
+{
+    <MudCard Elevation="1" Class="mb-4 hg-markdown-card">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        @if (!string.IsNullOrWhiteSpace(Icon))
+                        {
+                            <MudIcon Icon="@Icon" Class="mr-1" />
+                        }
+                        @Title
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+        }
+        <MudCardContent>
+            <div class="hg-markdown">@((MarkupString)Html)</div>
+        </MudCardContent>
+    </MudCard>
+}
+else if (ShowEmpty)
+{
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+        @L["Markdown_Empty"]
+    </MudText>
+}
+
+@code {
+    [Parameter] public string? Markdown { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Icon { get; set; }
+
+    /// <summary>Say so when there is no summary, instead of rendering nothing at all.</summary>
+    [Parameter] public bool ShowEmpty { get; set; }
+
+    private string Html => MarkdownRenderer.ToHtml(Markdown);
+}

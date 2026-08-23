@@ -1,0 +1,212 @@
+@namespace HomeGuard.Client.Common
+@using System.Globalization
+@inject IStringLocalizer<Strings> L
+
+@*
+    The schedule is the spine of the contract screen, not an appendix to it — so it is a
+    component in its own right, shared by the detail page, the equipment section and the
+    Home strip. It takes entries and a density and renders them; it does not fetch.
+
+    Three lifecycle states read as three weights rather than three colours: paid recedes,
+    planned is normal, projected is lighter and marked. Overdue is the only place that
+    spends the ember.
+*@
+
+@if (Entries.Count == 0)
+{
+    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Schedule_Empty"]</MudText>
+}
+else
+{
+    <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="background:transparent">
+        <tbody>
+            @* "Show all" can mean up to 360 rows (contracts-spec's own stated max) — Virtualize
+               keeps only the on-screen rows in the DOM instead of all 360 at once. *@
+            <Virtualize Items="Visible" Context="entry">
+                <tr style="@(RowStyle(entry));@(OnRowClick.HasDelegate ? "cursor:pointer" : "")"
+                    tabindex="@(OnRowClick.HasDelegate ? "0" : null)"
+                    role="@(OnRowClick.HasDelegate ? "button" : null)"
+                    @onclick="@(() => OnRowClick.InvokeAsync(entry))"
+                    @onkeydown="@(e => OnTrKeyDown(e, entry))">
+                    <td style="width:1%; padding-right:0">
+                        <span class="hg-status-dot" style="@DotStyle(entry)"></span>
+                    </td>
+                    <td>
+                        <MudStack Spacing="0">
+                            @if (entry.ContractName is { } name)
+                            {
+                                @* Cross-contract list (Home): identity matters more than lifecycle state here. *@
+                                <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                    @if (entry.IsOverdue)
+                                    {
+                                        <span> · @L["Schedule_Overdue"]</span>
+                                    }
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @StateLabel(entry)
+                                    @if (entry.InstallmentNo is { } no)
+                                    {
+                                        <span> · @no</span>
+                                    }
+                                </MudText>
+                            }
+                        </MudStack>
+                    </td>
+                    <td style="text-align:right">
+                        <MudText Typo="Typo.body2" Class="hg-tabular"
+                                 Style="@AmountStyle(entry)">
+                            @Money(entry.Amount, entry.Currency ?? Currency)
+                        </MudText>
+                        @if (entry.PrincipalPart is { } p && entry.InterestPart is { } i)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                @L["Schedule_Split", Money(p, entry.Currency ?? Currency), Money(i, entry.Currency ?? Currency)]
+                            </MudText>
+                        }
+                    </td>
+                    <td style="width:1%; text-align:right">
+                        @if (CanEdit(entry))
+                        {
+                            <MudTooltip Text="@L["Common_Edit"]">
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
+                                               aria-label="@L["Common_Edit"]"
+                                               OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
+                            </MudTooltip>
+                        }
+                        @if (CanConfirm(entry))
+                        {
+                            <MudTooltip Text="@ConfirmLabel">
+                                <MudIconButton Icon="@Icons.Material.Outlined.CheckCircle"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
+                                               aria-label="@ConfirmLabel"
+                                               Disabled="@(_confirming == entry.PaymentId)"
+                                               OnClick="@(() => ConfirmAsync(entry))" />
+                            </MudTooltip>
+                        }
+                    </td>
+                </tr>
+            </Virtualize>
+        </tbody>
+    </MudSimpleTable>
+
+    @if (Entries.Count > Collapsed && !_showAll)
+    {
+        <MudButton Variant="Variant.Text" Size="Size.Small" Class="mt-1"
+                   OnClick="@(() => _showAll = true)">
+            @L["Schedule_ShowAll", Entries.Count]
+        </MudButton>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ScheduleEntryDto> Entries { get; set; } = [];
+
+    /// <summary>
+    /// Fallback currency for an entry that does not carry its own — every entry does today
+    /// except the cross-contract list (Home's upcoming strip), where each row names its own.
+    /// </summary>
+    [Parameter] public string? Currency { get; set; }
+
+    /// <summary>Raised when a row's "paid" button is used; the page owns the API call.</summary>
+    [Parameter] public EventCallback<ScheduleEntryDto> OnConfirmPayment { get; set; }
+
+    /// <summary>Raised when a stored row is opened for correction.</summary>
+    [Parameter] public EventCallback<ScheduleEntryDto> OnEditPayment { get; set; }
+
+    /// <summary>
+    /// Raised on row click instead of the edit/confirm actions — Home's strip uses this to
+    /// jump to the contract rather than act on the payment inline.
+    /// </summary>
+    [Parameter] public EventCallback<ScheduleEntryDto> OnRowClick { get; set; }
+
+    /// <summary>How many rows to show before the far tail collapses.</summary>
+    [Parameter] public int Collapsed { get; set; } = 12;
+
+    private bool _showAll;
+    private Guid? _confirming;
+
+    private string ConfirmLabel => L["Schedule_Confirm"];
+
+    // Virtualize's Items wants an ICollection, not just IEnumerable.
+    private List<ScheduleEntryDto> Visible
+        => _showAll ? [.. Entries] : [.. Entries.Take(Collapsed)];
+
+    /// <summary>Only a real, still-planned row can be confirmed — a projection has no id yet.</summary>
+    private bool CanConfirm(ScheduleEntryDto e)
+        => OnConfirmPayment.HasDelegate
+        && e.Origin == ScheduleOrigin.Stored
+        && e.PaymentId is not null
+        && e.Status == PaymentStatus.Planned;
+
+    /// <summary>A projection has nothing to edit — it is not a row yet.</summary>
+    private bool CanEdit(ScheduleEntryDto e)
+        => OnEditPayment.HasDelegate && e.Origin == ScheduleOrigin.Stored && e.PaymentId is not null;
+
+    private async Task ConfirmAsync(ScheduleEntryDto entry)
+    {
+        _confirming = entry.PaymentId;
+        await OnConfirmPayment.InvokeAsync(entry);
+        _confirming = null;
+    }
+
+    /// <summary>Only the cross-contract list wires OnRowClick — that is the only row that is a keyboard target.</summary>
+    private async Task OnTrKeyDown(KeyboardEventArgs e, ScheduleEntryDto entry)
+    {
+        if (OnRowClick.HasDelegate && e.Key is "Enter" or " ")
+            await OnRowClick.InvokeAsync(entry);
+    }
+
+    // ── Presentation ─────────────────────────────────────────────────────────
+
+    private static string RowStyle(ScheduleEntryDto e)
+        => e.Status == PaymentStatus.Paid ? "opacity:.62" : string.Empty;
+
+    private static string AmountStyle(ScheduleEntryDto e)
+        => e.Status == PaymentStatus.Paid
+            ? "color:var(--hg-text-muted)"
+            : "color:var(--hg-money); font-weight:600";
+
+    private static string DotStyle(ScheduleEntryDto e)
+    {
+        if (e.IsOverdue && e.Status != PaymentStatus.Paid) return "background:var(--hg-today)";
+
+        return e.Status switch
+        {
+            PaymentStatus.Paid    => "background:var(--hg-success-text)",
+            PaymentStatus.Skipped => "background:var(--hg-text-subtle)",
+            PaymentStatus.Failed  => "background:var(--hg-danger-text)",
+            PaymentStatus.Planned => "background:var(--hg-accent)",
+            // Прогноз: контур, а не заливка — его ещё нет в базе.
+            _ => "background:transparent; box-shadow:inset 0 0 0 1.5px var(--hg-text-subtle)",
+        };
+    }
+
+    private string StateLabel(ScheduleEntryDto e)
+    {
+        if (e.IsOverdue && e.Status == PaymentStatus.Planned) return L["Schedule_Overdue"];
+        if (e.Origin == ScheduleOrigin.Projected)             return L["Schedule_Projected"];
+
+        return e.Status switch
+        {
+            PaymentStatus.Paid    => L["Schedule_Paid"],
+            PaymentStatus.Skipped => L["Schedule_Skipped"],
+            PaymentStatus.Failed  => L["Schedule_Failed"],
+            _                     => L["Schedule_Planned"],
+        };
+    }
+
+    private static string ShortDate(DateOnly date)
+        => date.ToString("d", CultureInfo.CurrentCulture);
+
+    private static string Money(decimal amount, string? currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency ?? "EUR")}";
+}

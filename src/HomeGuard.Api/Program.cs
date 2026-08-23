@@ -60,6 +60,7 @@ try
     // ── Background services ───────────────────────────────────────────────
     builder.Services.AddHostedService<JobRunnerService>();
     builder.Services.AddHostedService<RecurringRuleMaterializationHostedService>();
+    builder.Services.AddHostedService<PaymentMaterializationHostedService>();
     builder.Services.AddHostedService<NotificationSchedulerHostedService>();
     builder.Services.AddHostedService<BlobSyncHostedService>();
 
@@ -91,6 +92,18 @@ try
     // ── Build ─────────────────────────────────────────────────────────────
     app = builder.Build();
 
+    // ── HTTPS redirect/HSTS: only when an HTTPS endpoint is actually configured ────
+    // Without this guard, a stray ASPNETCORE_HTTPS_PORT env var (dotnet run sets it
+    // automatically whenever launchSettings.json's profile lists an https:// URL
+    // alongside the http:// one) makes UseHttpsRedirection() send every request to
+    // that port regardless of what Kestrel is actually bound to — SSL_ERROR_RX_RECORD
+    // _TOO_LONG for anyone on an HTTP-only LAN deployment, which is .env.example's own
+    // documented default (HTTPS origin commented out until a reverse proxy exists).
+    var hasHttpsEndpoint =
+        app.Configuration.GetSection("Kestrel:Endpoints").GetChildren()
+            .Any(e => (e["Url"] ?? "").StartsWith("https:", StringComparison.OrdinalIgnoreCase))
+        || (app.Configuration["ASPNETCORE_URLS"] ?? "").Contains("https:", StringComparison.OrdinalIgnoreCase);
+
     // ── Collect post-build diagnostics ────────────────────────────────────
     diag.CollectFromApp(app);
     // Uncomment when EF migrations are in place:
@@ -106,18 +119,24 @@ try
     if (app.Environment.IsDevelopment())
     {
         app.MapOpenApi();                   // /openapi/v1.json
+        // Neither branch had an exception handler in Development — a genuine unhandled
+        // exception (not the client-abort cancellations Kestrel already treats as normal
+        // and never logs) fell straight through to Kestrel's bare default response with
+        // no stack trace anywhere. This is what UseExceptionHandler("/error") gives the
+        // production branch below, just the dev-page instead of an unmapped /error route.
+        app.UseDeveloperExceptionPage();
     }
     else
     {
         app.UseExceptionHandler("/error");
-        app.UseHsts();
+        if (hasHttpsEndpoint) app.UseHsts();
     }
 
     app.UseRouting();
 
     // CORS must come after UseRouting and before auth.
     app.UseCors("default");
-    app.UseHttpsRedirection();
+    if (hasHttpsEndpoint) app.UseHttpsRedirection();
 
     // Static files: _framework/, _content/, icons, service-worker.js, etc.
     // Must extend MIME mappings — UseStaticFiles() returns 404 for unknown
@@ -144,10 +163,13 @@ try
     app.MapServiceRecordEndpoints();
     app.MapRecurringRuleEndpoints();
     app.MapMeterReadingEndpoints();
+    app.MapContractEndpoints();
     app.MapSyncEndpoints();
     app.MapBlobEndpoints();
+    app.MapDiagnosticsEndpoints();
     app.MapCalendarFeedEndpoint();
     app.MapNotificationEndpoints();
+    app.MapAttentionEndpoint();
 
     // ── SPA fallback — any unmatched GET → Blazor WASM index.html ────────
     // Handles client-side routing (e.g. /equipment/123 on hard refresh).

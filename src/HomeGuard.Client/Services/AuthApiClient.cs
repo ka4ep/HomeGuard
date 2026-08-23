@@ -70,6 +70,32 @@ public sealed class AuthApiClient
         return AuthResult.Ok(body?.DisplayName ?? "User");
     }
 
+    // ── Dev bypass ────────────────────────────────────────────────────────────
+    // Skips the WebAuthn ceremony (useful over RDP, where a platform authenticator
+    // often cannot create a resident key at all). The server route only exists when
+    // it is running in Development with Auth:DevBypassEnabled set — see AuthEndpoints.
+
+    public async Task<bool> IsDevModeEnabledAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var resp = await _http.GetFromJsonAsync<DevModeStatusDto>("api/auth/dev-mode", ct);
+            return resp?.Enabled ?? false;
+        }
+        catch { return false; }
+    }
+
+    public async Task<AuthResult> DevLoginAsync(CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsync("api/auth/dev-login", null, ct);
+
+        if (!resp.IsSuccessStatusCode)
+            return AuthResult.Fail(await resp.Content.ReadAsStringAsync(ct));
+
+        var body = await resp.Content.ReadFromJsonAsync<AuthResultDto>(ct);
+        return AuthResult.Ok(body?.DisplayName ?? "Dev");
+    }
+
     // ── Session ───────────────────────────────────────────────────────────────
 
     public async Task<MeDto?> GetMeAsync(CancellationToken ct = default)
@@ -80,6 +106,22 @@ public sealed class AuthApiClient
 
     public async Task LogoutAsync(CancellationToken ct = default)
         => await _http.PostAsync("api/auth/logout", null, ct);
+
+    /// <summary>
+    /// Persists the interface language on the account. The browser keeps its own copy
+    /// for the next cold start; this one is what push notifications and the calendar
+    /// feed read, since they are rendered without a request to take a header from.
+    /// </summary>
+    public async Task<bool> SetLanguageAsync(string language, CancellationToken ct = default)
+    {
+        try
+        {
+            var resp = await _http.PutAsJsonAsync(
+                "api/auth/me/language", new { Language = language }, ct);
+            return resp.IsSuccessStatusCode;
+        }
+        catch { return false; }
+    }
 
     // ── Credential (device) management ───────────────────────────────────────
 
@@ -149,4 +191,5 @@ public sealed record CredentialDto(
 
 file sealed record AuthResultDto(string? DisplayName);
 file sealed record SetupRequiredDto(bool Required);
-public sealed record MeDto(string Id, string DisplayName);
+file sealed record DevModeStatusDto(bool Enabled);
+public sealed record MeDto(string Id, string DisplayName, string Language);

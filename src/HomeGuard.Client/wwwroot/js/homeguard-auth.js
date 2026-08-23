@@ -24,7 +24,12 @@ window.homeGuardAuth = {
         try {
             credential = await navigator.credentials.create({ publicKey: options });
         } catch (e) {
-            return { error: e.message };
+            // e.name is the standardised DOMException name (NotSupportedError,
+            // NotAllowedError, …) — stable across browsers, unlike e.message, which
+            // varies by vendor and is often too terse to act on ("The operation is not
+            // supported."). Login.razor maps the name to something the household can
+            // actually do something with; detail rides along for the log/console.
+            return { error: e.name, detail: e.message };
         }
 
         // Serialize the response back to base64url for JSON transport.
@@ -58,7 +63,12 @@ window.homeGuardAuth = {
         try {
             assertion = await navigator.credentials.get({ publicKey: options });
         } catch (e) {
-            return { error: e.message };
+            // e.name is the standardised DOMException name (NotSupportedError,
+            // NotAllowedError, …) — stable across browsers, unlike e.message, which
+            // varies by vendor and is often too terse to act on ("The operation is not
+            // supported."). Login.razor maps the name to something the household can
+            // actually do something with; detail rides along for the log/console.
+            return { error: e.name, detail: e.message };
         }
 
         return {

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HomeGuard — Диагностика</title>
+<style>
+  /* Deliberately self-contained: no app.css, no MudBlazor, no Blazor at all. If the
+     app's own render pipeline is what's wedged, this page still has to load and read
+     localStorage on its own. */
+  body {
+    margin: 0; padding: 16px;
+    font-family: -apple-system, system-ui, sans-serif;
+    background: #f4f2f0; color: #1e1c1a;
+  }
+  h1 { font-size: 1.1rem; margin: 0 0 4px; }
+  p.hint { color: #6b6560; font-size: .85rem; margin: 0 0 16px; }
+  .actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  button {
+    font: inherit; font-size: .9rem; padding: 8px 14px; border-radius: 8px;
+    border: 1px solid #b8afa8; background: #fff; color: #1e1c1a; cursor: pointer;
+  }
+  button:active { background: #eee; }
+  #status { font-size: .85rem; color: #2d6040; min-height: 1.2em; }
+  textarea {
+    width: 100%; height: 60vh; box-sizing: border-box;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: .8rem; line-height: 1.4;
+    padding: 10px; border-radius: 8px; border: 1px solid #b8afa8;
+    background: #fff; color: #1e1c1a; white-space: pre; resize: vertical;
+  }
+</style>
+</head>
+<body>
+  <h1>HomeGuard — журнал действий</h1>
+  <p class="hint">
+    Независимая страница — не часть основного приложения, работает даже если оно
+    зависло. Ниже — последние действия и ошибки из этого браузера. Выделите текст и
+    скопируйте вручную, если кнопка «Скопировать» не сработает, или сделайте скриншот.
+  </p>
+  <div class="actions">
+    <button onclick="refresh()">Обновить</button>
+    <button onclick="copyAll()">Скопировать</button>
+    <button onclick="clearLog()">Очистить журнал</button>
+    <button onclick="resetCache()">Сбросить кэш/SW</button>
+  </div>
+  <div id="status"></div>
+  <textarea id="log" readonly></textarea>
+
+<script>
+  var STORAGE_KEY = 'hg_diag_log';
+
+  // Whether "I just published a fix" actually reached this specific browser has been
+  // the real question behind several rounds of "it's still broken" — this answers it
+  // directly instead of inferring it from side effects (a log line's exact wording).
+  async function swInfo() {
+    var lines = [];
+    try {
+      var reg = await navigator.serviceWorker.getRegistration();
+      lines.push('SW controller: ' + (navigator.serviceWorker.controller
+        ? navigator.serviceWorker.controller.scriptURL + ' (state: ' + navigator.serviceWorker.controller.state + ')'
+        : 'none (page not controlled by a service worker)'));
+      if (reg) {
+        lines.push('SW registration: active=' + (reg.active ? reg.active.state : '—') +
+          ', waiting=' + (reg.waiting ? 'YES (an update is installed but not yet active — close every tab/PWA instance and reopen)' : 'no') +
+          ', installing=' + (reg.installing ? 'yes' : 'no'));
+      } else {
+        lines.push('SW registration: none found for this scope.');
+      }
+    } catch (e) { lines.push('SW info unavailable: ' + e); }
+
+    try {
+      var names = await caches.keys();
+      lines.push('Cache Storage entries: ' + (names.length ? names.join(', ') : '(none)'));
+    } catch (e) { lines.push('Cache Storage unavailable: ' + e); }
+
+    return lines.join('\n');
+  }
+
+  // A blank textarea has one reading: "nothing was logged." Origin/storage-access and
+  // "key was never written" look identical to that unless said out loud — this is the
+  // only chance to say it, since there's no DevTools console to check by hand instead.
+  async function format() {
+    var head = 'Адрес: ' + location.origin + location.pathname + '\n' +
+               'User-Agent: ' + navigator.userAgent + '\n' +
+               (await swInfo()) + '\n\n';
+
+    var raw;
+    try { raw = localStorage.getItem(STORAGE_KEY); }
+    catch (e) { return head + 'localStorage недоступен в этом браузере/режиме: ' + e + '\n' +
+                              '(приватный режим и некоторые настройки браузера его отключают)'; }
+
+    if (raw === null) return head + 'Ключ "' + STORAGE_KEY + '" в localStorage не найден — ' +
+      'значит diagnostics.js на странице приложения либо не загрузился, либо ни разу ' +
+      'не записал ни строки. Откройте приложение на этом же адресе и телефоне, ' +
+      'сделайте что-нибудь (откройте любую страницу), затем обновите здесь.';
+
+    var entries;
+    try { entries = JSON.parse(raw); }
+    catch { return head + 'Журнал повреждён (не удалось разобрать JSON):\n\n' + raw; }
+
+    if (!entries || !entries.length) return head + 'Ключ есть, но записей 0.';
+
+    return head + entries.map(function (e) {
+      return e.t + '  [' + e.level + ']  ' + e.category + ': ' + e.message;
+    }).join('\n');
+  }
+
+  async function refresh() {
+    document.getElementById('log').value = await format();
+    setStatus('');
+  }
+
+  // The manual version of what clients.claim()/skipWaiting() are supposed to do
+  // automatically — for when they haven't, and re-explaining "where's cache clearing in
+  // Firefox for Android" one more time isn't going to help faster than a button will.
+  async function resetCache() {
+    setStatus('Сбрасываю…');
+    try {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      for (var i = 0; i < regs.length; i++) await regs[i].unregister();
+      var names = await caches.keys();
+      for (var j = 0; j < names.length; j++) await caches.delete(names[j]);
+      await refresh();
+      setStatus('Сброшено. Полностью закройте вкладку/приложение и откройте заново.');
+    } catch (e) {
+      setStatus('Не всё удалось сбросить: ' + e);
+    }
+  }
+
+  function setStatus(msg) {
+    document.getElementById('status').textContent = msg;
+  }
+
+  function copyAll() {
+    var ta = document.getElementById('log');
+    ta.focus();
+    ta.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value)
+        .then(function () { setStatus('Скопировано.'); })
+        .catch(function () { fallbackCopy(); });
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  function fallbackCopy() {
+    // navigator.clipboard needs a secure context (https/localhost) — this app is often
+    // run plain http:// on the LAN, so execCommand is the real fallback, not a formality.
+    try {
+      var ok = document.execCommand('copy');
+      setStatus(ok ? 'Скопировано.' : 'Не удалось скопировать — выделите текст вручную.');
+    } catch {
+      setStatus('Не удалось скопировать — выделите текст вручную.');
+    }
+  }
+
+  async function clearLog() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    await refresh();
+    setStatus('Журнал очищен.');
+  }
+
+  refresh();
+</script>
+</body>
+</html>

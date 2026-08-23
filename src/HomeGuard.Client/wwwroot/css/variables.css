@@ -43,7 +43,11 @@
     /* Backgrounds — от среднего тона вниз и вверх */
     /*--hg-bg: #9c9590; */ /* страница, основной фон */
     --hg-bg: #BAB2AC;
-    --hg-bg-deep: #7a7672; /* sidebar, nav, header */
+    /* Was #7a7672 — genuinely mid-grey (RGB avg 118), not dark. White text on it measured
+       exactly 4.50:1: passes AA with zero margin, and reads as borderline in practice
+       (confirmed live) even where the math technically clears the bar. Darkened so the
+       chrome is unambiguously dark and white text gets real headroom (7.9:1). */
+    --hg-bg-deep: #55514c; /* sidebar, nav, header */
     --hg-bg-raised: #b0aca7; /* разделители, hover на bg */
     /* Карточки — всплывают над серым фоном */
     --hg-card: #eeeae4; /* стандартная карточка */
@@ -52,14 +56,22 @@
     --hg-border-on-bg: rgba(255, 255, 255, 0.18);
     --hg-border-card: rgba(60, 50, 40, 0.12);
     --hg-border-strong: rgba(60, 50, 40, 0.25);
-    /* Текст на сером фоне */
+    /* Текст на светлом сером фоне (--hg-bg, Clay) — тёмные чернила читаются на нём с
+       запасом (5.6:1). Не путать с --hg-bg-deep (AppBar/Drawer) ниже: это два разных
+       серых, и до аудита этот токен ошибочно ставили на оба сразу. */
     --hg-text-on-bg: #5E5B58;
     --hg-text-on-bg-muted: rgba(255, 255, 255, 0.65);
     --hg-text-on-bg-subtle: rgba(255, 255, 255, 0.38);
+    /* Текст на тёмном сером фоне (--hg-bg-deep, AppBar/Drawer/Nav) — на этом фоне даже
+       белый при 100% непрозрачности едва дотягивает до 4.5:1, так что для реального
+       текста здесь нужен непрозрачный белый, а не полупрозрачный вариант выше. */
+    --hg-text-on-bg-strong: #ffffff;
     /* Текст на карточках */
     --hg-text: #1e1c1a;
     --hg-text-muted: #6b6560;
-    --hg-text-subtle: #9c9590;
+    /* 9c9590 давало 2.46:1 на Paper — не проходит AA даже для мелкого label-текста.
+       78716c — 4.0:1 на Paper, 4.5:1 на Paper Top (родной фон field-well). */
+    --hg-text-subtle: #78716c;
     /* Акцент — slate blue, три варианта под разный фон */
     --hg-accent: #4f6fa0;
     --hg-accent-dark: #3a5278;
@@ -73,6 +85,15 @@
     --hg-warning-text: #7a4f10;
     --hg-danger-bg: #f5e8e8;
     --hg-danger-text: #7a2a2a;
+    /* Сущности — приглушённое семейство из DESIGN.md.
+       Каждый проверен на контраст ≥3:1 против Paper (#eeeae4): это значащая графика,
+       а не украшение, поэтому к ней применяется порог WCAG для нетекстовых элементов. */
+    --hg-warranty: #6E6BA8;
+    --hg-service: #4E8A6B;
+    --hg-meter: #9C752E;
+    --hg-money: #8A5F72;
+    --hg-today: #D85A30; /* dot/mark only — 3.2:1 on Paper, fine for graphics, not for text */
+    --hg-today-text: #ab421f; /* same hue, darkened for actual letters — 5.0:1 on Paper */
     /* Timeline */
     --hg-timeline-line: #d4cfc8;
     --hg-timeline-dot: var(--hg-accent);
@@ -101,4 +122,230 @@ html, body {
     background: var(--hg-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Утилиты --- */
+
+/*
+   Цифры одной ширины. Правило из DESIGN.md: суммы, даты и показания счётчиков
+   сравнивают по столбцу, поэтому в таблицах и любых колонках чисел они выравниваются
+   разряд в разряд, а не по ширине глифа.
+*/
+.hg-tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+/*
+   Типографика внутри markdown-карточки. Правило DESIGN.md — «одна краска»:
+   заголовки внутри summary не заводят новый уровень иерархии, они только чуть
+   плотнее основного текста.
+*/
+.hg-markdown {
+    line-height: 1.65;
+}
+
+.hg-markdown > *:first-child { margin-top: 0; }
+.hg-markdown > *:last-child  { margin-bottom: 0; }
+
+.hg-markdown h1,
+.hg-markdown h2,
+.hg-markdown h3,
+.hg-markdown h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1.1em 0 .4em;
+    color: var(--hg-text);
+}
+
+.hg-markdown p  { margin: .6em 0; }
+.hg-markdown ul,
+.hg-markdown ol { margin: .6em 0; padding-left: 1.4em; }
+.hg-markdown li { margin: .25em 0; }
+
+.hg-markdown a {
+    color: var(--hg-accent-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.hg-markdown code {
+    font-size: .9em;
+    padding: .1em .35em;
+    border-radius: var(--hg-radius-sm);
+    background: var(--hg-bg-raised);
+}
+
+.hg-markdown blockquote {
+    margin: .8em 0;
+    padding-left: .9em;
+    border-left: 2px solid var(--hg-border-card);
+    color: var(--hg-text-muted);
+}
+
+.hg-markdown table {
+    border-collapse: collapse;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+}
+
+.hg-markdown th,
+.hg-markdown td {
+    border-bottom: 1px solid var(--hg-border-card);
+    padding: .35em .5em;
+    text-align: left;
+}
+
+/*
+   A card/row whose only click target is the whole element (MudCard, MudPaper, a
+   PaymentSchedule <tr>) needs its own visible focus ring — browsers don't draw one for
+   an arbitrary element made focusable via tabindex. DESIGN.md: focus rings come from
+   Slate, never the browser default.
+*/
+[role="button"][tabindex]:focus-visible,
+.hg-clickable-card:focus-visible {
+    outline: 2px solid var(--hg-accent);
+    outline-offset: 2px;
+}
+
+/*
+   Scoped, not global: a Size.Small MudIconButton's own box is well under the 44x44
+   PRODUCT.md asks for in the one-handed/outdoor scene. Bumping every small icon
+   button app-wide risked visibly changing rows we haven't looked at since (Warranties,
+   ServiceRecords, ...); this widens the hit area only where it's applied, the icon
+   itself stays the same visual size.
+*/
+.hg-touch-target-sm {
+    min-width: 44px !important;
+    min-height: 44px !important;
+}
+
+/*
+   Density switch (DESIGN.md Components): "a translucent black track at 10px radius
+   holding two 6px pills, the selected one filled with Paper and carrying the Card
+   shadow." DensitySwitch.razor is a bare MudToggleGroup — no CSS in this file ever
+   targeted it before, so it rendered as stock MudBlazor (unstyled track, no pill fill,
+   no shadow) rather than this. Icons, not text, are the pill content, so contrast is
+   judged against the 3:1 non-text floor, not the 4.5:1 text floor.
+
+   Track darkness: black at only 20% over Clay reads as a *light* warm grey (a common
+   first guess for "translucent black" that measures ~2.2:1 for anything on it) — 35%
+   is what actually gets a track dark enough for its icons to clear 3:1.
+
+   MudToggleItem has no dedicated "-selected" class in this MudBlazor version — its
+   selected look comes entirely from the Color prop's utility classes. There is
+   nothing to hang a background/shadow on without this block.
+*/
+/* Live check: a filled dark track read as heavier than intended next to the plain
+   header buttons around it — left transparent instead, with a hairline so it still
+   reads as one control and not two loose icons. 36px read 2-3px taller than the "Add"
+   button next to it; the first correction (30px) overshot the other way by 3-5px.
+   34px split the difference and matched in the browser. */
+.hg-density-switch {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    background: transparent;
+    border: .5px solid var(--hg-border-on-bg);
+    border-radius: var(--hg-radius-md);
+    padding: 2px;
+    gap: 2px;
+}
+
+.hg-density-switch .mud-toggle-item {
+    height: 100%;
+    border-radius: var(--hg-radius-sm) !important;
+    align-items: center;
+    /* Transparent track sits directly on the Clay page ground, not on its own dark
+       surface — this is the token already tuned for that exact context (5.6:1). */
+    color: var(--hg-text-on-bg);
+    transition: background var(--hg-transition), box-shadow var(--hg-transition);
+}
+
+/* The icon has no trailing label in this component; MudBlazor's default right-margin
+   (meant to space an icon from adjacent text) just pushes it off-centre here.
+   vertical-align:middle is belt-and-braces against the icon's own inline-block
+   baseline alignment in case an ancestor's flex context doesn't fully override it. */
+.hg-density-switch .mud-icon-root {
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* MudTooltip's wrapper is inline-block by default, which does not participate in the
+   parent's flex centring — this is what reads as "icon sits a little high/left". */
+.hg-density-switch .mud-tooltip-root {
+    display: inline-flex;
+    align-items: center;
+}
+
+.hg-density-switch .mud-toggle-item[aria-pressed="true"] {
+    background: var(--hg-card) !important;
+    color: var(--hg-text) !important;
+    box-shadow: var(--hg-shadow-card);
+}
+
+.hg-density-switch .mud-toggle-item[aria-pressed="true"] .mud-icon-root {
+    color: var(--hg-text);
+}
+
+/*
+   Статус строки — точка, а не цветная полоса у края (бриф на этом настаивает):
+   статус это факт о записи, а не второй фон под ней.
+*/
+.hg-status-dot {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+/*
+   Field well — DESIGN.md's Label-Over-Value Rule, the system's signature pattern: every
+   fact is a label over a tinted value, never a bare number in a paragraph. Two per row on
+   a phone, four in a desktop pane (the caller's MudGrid decides that); this only owns the
+   box, the label, and the value's type.
+*/
+.hg-field-well {
+    background: var(--hg-card-top);
+    border-radius: var(--hg-radius-sm);
+    padding: 7px 9px;
+}
+
+.hg-field-well-label {
+    display: block;
+    font-family: var(--hg-font);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--hg-text-subtle);
+    margin-bottom: 2px;
+}
+
+.hg-field-well-value {
+    display: block;
+    font-family: var(--hg-font);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--hg-text);
+}
+
+/*
+   The budget-load chart's month/value micro-labels — repeated once per column, so they
+   live here rather than as inline styles on every column.
+*/
+.hg-budget-axis-label {
+    font-family: var(--hg-font);
+    font-size: 9.5px; /* DESIGN.md "label" step */
+    color: var(--hg-text-subtle);
+}
+
+.hg-budget-value-label {
+    font-family: var(--hg-font);
+    font-size: 9.5px; /* DESIGN.md "label" step */
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--hg-text);
+    white-space: nowrap;
 }

@@ -15,7 +15,7 @@ namespace HomeGuard.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.11");
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.AppUser", b =>
                 {
@@ -30,6 +30,13 @@ namespace HomeGuard.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("ru");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -100,6 +107,91 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.HasIndex("OwnerEntityId", "OwnerEntityType");
 
                     b.ToTable("BlobEntries");
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.Contract", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CancellationNoticeDays")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContractNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("CoverageAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("Deductible")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("EquipmentId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PreviousContractId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Renewal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StartDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("StatusReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SummaryMarkdown")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("_tags")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Tags");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipmentId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Contracts");
                 });
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.Equipment", b =>
@@ -236,6 +328,127 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Credentials");
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("AmountDue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("AmountPaid")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DueDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("InstallmentNo")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("InterestPart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PaidDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("PlanRevisionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("PrincipalPart")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "DueDate");
+
+                    b.HasIndex("Status", "DueDate");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.PaymentPlanRevision", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("AnnualInterestRate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ContractId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EffectiveFrom")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstDueDate")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("InstallmentAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("InstallmentCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("IntervalMonths")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("RemainingPrincipal")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("ResidualAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ResidualDueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("PlanRevisions");
                 });
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.RecurringRule", b =>
@@ -515,6 +728,73 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasForeignKey("WarrantyId");
                 });
 
+            modelBuilder.Entity("HomeGuard.Domain.Entities.Contract", b =>
+                {
+                    b.HasOne("HomeGuard.Domain.Entities.Equipment", null)
+                        .WithMany()
+                        .HasForeignKey("EquipmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.OwnsMany("HomeGuard.Domain.ValueObjects.NotificationRule", "NotificationRules", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<Guid>("ContractId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<bool>("IsEnabled")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<int>("Offset")
+                                .HasColumnType("INTEGER");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ContractId");
+
+                            b1.ToTable("Contracts_NotificationRules");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ContractId");
+                        });
+
+                    b.OwnsOne("HomeGuard.Domain.ValueObjects.OpeningPosition", "Opening", b1 =>
+                        {
+                            b1.Property<Guid>("ContractId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<decimal>("AmountPaid")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("OpeningAmountPaid");
+
+                            b1.Property<string>("AsOfDate")
+                                .IsRequired()
+                                .HasColumnType("TEXT")
+                                .HasColumnName("OpeningAsOfDate");
+
+                            b1.Property<int>("InstallmentsPaid")
+                                .HasColumnType("INTEGER")
+                                .HasColumnName("OpeningInstallmentsPaid");
+
+                            b1.Property<decimal?>("RemainingBalance")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("OpeningRemainingBalance");
+
+                            b1.HasKey("ContractId");
+
+                            b1.ToTable("Contracts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ContractId");
+                        });
+
+                    b.Navigation("NotificationRules");
+
+                    b.Navigation("Opening");
+                });
+
             modelBuilder.Entity("HomeGuard.Domain.Entities.MeterReading", b =>
                 {
                     b.HasOne("HomeGuard.Domain.Entities.Equipment", null)
@@ -531,6 +811,53 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("HomeGuard.Domain.Entities.Contract", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.PaymentPlanRevision", b =>
+                {
+                    b.HasOne("HomeGuard.Domain.Entities.Contract", null)
+                        .WithMany("Revisions")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("HomeGuard.Domain.Entities.PlanAdjustment", "Adjustments", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("TEXT");
+
+                            b1.Property<Guid>("PlanRevisionId")
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("PlanRevisionId");
+
+                            b1.ToTable("PlanRevisions_Adjustments", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlanRevisionId");
+                        });
+
+                    b.Navigation("Adjustments");
                 });
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.RecurringRule", b =>
@@ -648,6 +975,13 @@ namespace HomeGuard.Infrastructure.Migrations
             modelBuilder.Entity("HomeGuard.Domain.Entities.AppUser", b =>
                 {
                     b.Navigation("Credentials");
+                });
+
+            modelBuilder.Entity("HomeGuard.Domain.Entities.Contract", b =>
+                {
+                    b.Navigation("Payments");
+
+                    b.Navigation("Revisions");
                 });
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.Equipment", b =>

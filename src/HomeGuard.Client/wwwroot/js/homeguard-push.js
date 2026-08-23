@@ -35,4 +35,12 @@ window.homeGuardPush = {
         const raw     = atob(base64);
         return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
     },
+
+    // setAppBadge is unsupported on Linux/Firefox and simply no-ops there — called
+    // unconditionally, per contracts-spec.md §10.1: "a no-op where unsupported."
+    setBadge(count) {
+        if (!('setAppBadge' in navigator)) return;
+        if (count > 0) navigator.setAppBadge(count).catch(() => {});
+        else navigator.clearAppBadge().catch(() => {});
+    },
 };
