@@ -49,14 +49,30 @@
 <script>
   var STORAGE_KEY = 'hg_diag_log';
 
+  // A blank textarea has one reading: "nothing was logged." Origin/storage-access and
+  // "key was never written" look identical to that unless said out loud — this is the
+  // only chance to say it, since there's no DevTools console to check by hand instead.
   function format() {
+    var head = 'Адрес: ' + location.origin + location.pathname + '\n' +
+               'User-Agent: ' + navigator.userAgent + '\n\n';
+
     var raw;
-    try { raw = localStorage.getItem(STORAGE_KEY); } catch { raw = null; }
-    if (!raw) return 'Пока ничего не записано.';
+    try { raw = localStorage.getItem(STORAGE_KEY); }
+    catch (e) { return head + 'localStorage недоступен в этом браузере/режиме: ' + e + '\n' +
+                              '(приватный режим и некоторые настройки браузера его отключают)'; }
+
+    if (raw === null) return head + 'Ключ "' + STORAGE_KEY + '" в localStorage не найден — ' +
+      'значит diagnostics.js на странице приложения либо не загрузился, либо ни разу ' +
+      'не записал ни строки. Откройте приложение на этом же адресе и телефоне, ' +
+      'сделайте что-нибудь (откройте любую страницу), затем обновите здесь.';
+
     var entries;
-    try { entries = JSON.parse(raw); } catch { return 'Журнал повреждён (не удалось разобрать JSON):\n\n' + raw; }
-    if (!entries || !entries.length) return 'Пока ничего не записано.';
-    return entries.map(function (e) {
+    try { entries = JSON.parse(raw); }
+    catch { return head + 'Журнал повреждён (не удалось разобрать JSON):\n\n' + raw; }
+
+    if (!entries || !entries.length) return head + 'Ключ есть, но записей 0.';
+
+    return head + entries.map(function (e) {
       return e.t + '  [' + e.level + ']  ' + e.category + ': ' + e.message;
     }).join('\n');
   }
