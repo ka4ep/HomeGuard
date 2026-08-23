@@ -1,4 +1,5 @@
 using HomeGuard.Client.Services;
+using Microsoft.Extensions.Localization;
 
 namespace HomeGuard.Client.Common;
 
@@ -38,13 +39,15 @@ public class WarrantyFormModel
     public DateTime? EndDateNullable   { get; set; } = DateTime.Today.AddYears(2);
 
     /// <summary>
-    /// The picked preset (1/2/3/5 years) — most warranties are a round number of years,
-    /// so this drives EndDate off StartDate instead of making every warranty need its own
-    /// end-date math. The end date itself stays directly editable for the rare
-    /// months-based or custom case; picking a duration (or moving the start date) again
-    /// afterward simply recomputes it from the preset.
+    /// A slider (0-10), not a fixed 1/2/3/5 list — most warranties are a round number of
+    /// years, so this drives EndDate off StartDate instead of making every warranty need
+    /// its own end-date math. The end date itself stays directly editable for the rare
+    /// months-based or custom case; moving the slider (or the start date) again afterward
+    /// simply recomputes it. 0 has no "no warranty" meaning here — only the equipment-add
+    /// flow's slider treats 0 as opting out, since only there is skipping the whole record
+    /// a real choice.
     /// </summary>
-    public int? DurationYears { get; set; } = 2;
+    public int DurationYears { get; set; } = 2;
 
     public DateOnly StartDate
         => StartDateNullable.HasValue ? DateOnly.FromDateTime(StartDateNullable.Value) : DateOnly.FromDateTime(DateTime.Today);
@@ -54,8 +57,30 @@ public class WarrantyFormModel
 
     /// <summary>Whole-years-minus-a-day is the usual convention: 2 years from a purchase
     /// on the 5th covers up to and including the 4th two years later, not one day into a
-    /// third year.</summary>
+    /// third year. AddYears itself already clamps Feb 29 correctly (a leap-year purchase
+    /// landing on a non-leap end year gets Feb 28, same as .NET's own convention
+    /// elsewhere) — no special-casing needed here.</summary>
     public static DateTime ComputeEnd(DateTime start, int years) => start.AddYears(years).AddDays(-1);
+
+    /// <summary>Russian has three plural forms and resx has no plural rules (same problem
+    /// the warranty countdown labels already sidestep) — so the three forms are picked
+    /// here and resx only carries the already-correct string for each.</summary>
+    public static string YearsLabel(IStringLocalizer<Strings> L, int years)
+    {
+        if (years <= 0) return L["Warranty_NoWarranty"];
+
+        var mod100 = years % 100;
+        var mod10  = years % 10;
+        var key = mod100 is >= 11 and <= 14
+            ? "Warranty_YearsMany"
+            : mod10 switch
+            {
+                1                 => "Warranty_YearsOne",
+                >= 2 and <= 4     => "Warranty_YearsFew",
+                _                 => "Warranty_YearsMany",
+            };
+        return L[key, years];
+    }
 }
 
 // ── ServiceRecord ─────────────────────────────────────────────────────────────

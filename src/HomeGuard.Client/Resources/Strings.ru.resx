@@ -132,11 +132,11 @@
   <data name="Warranty_Notes" xml:space="preserve"><value>Заметки</value></data>
   <data name="Warranty_Period" xml:space="preserve"><value>Срок</value></data>
   <data name="Warranty_Provider" xml:space="preserve"><value>Кто выдал</value></data>
+  <data name="Warranty_NoWarranty" xml:space="preserve"><value>Без гарантии</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Осталось</value></data>
-  <data name="Warranty_Years_1" xml:space="preserve"><value>1 год</value></data>
-  <data name="Warranty_Years_2" xml:space="preserve"><value>2 года</value></data>
-  <data name="Warranty_Years_3" xml:space="preserve"><value>3 года</value></data>
-  <data name="Warranty_Years_5" xml:space="preserve"><value>5 лет</value></data>
+  <data name="Warranty_YearsFew" xml:space="preserve"><value>{0} года</value></data>
+  <data name="Warranty_YearsMany" xml:space="preserve"><value>{0} лет</value></data>
+  <data name="Warranty_YearsOne" xml:space="preserve"><value>{0} год</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Действующие</value></data>
   <data name="Warranty_TabExpiring" xml:space="preserve"><value>Скоро истекают</value></data>
 

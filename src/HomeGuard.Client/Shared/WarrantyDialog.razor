@@ -26,13 +26,11 @@
                 <MudTextField @bind-Value="_form.Name" Label=@(L["Form_Name"]) Required="true" />
             </MudItem>
             <MudItem xs="12" sm="4">
-                <MudSelect Value="_form.DurationYears" ValueChanged="OnDurationChanged"
-                           Label=@(L["Warranty_Duration"]) T="int?">
-                    <MudSelectItem T="int?" Value="1">@L["Warranty_Years_1"]</MudSelectItem>
-                    <MudSelectItem T="int?" Value="2">@L["Warranty_Years_2"]</MudSelectItem>
-                    <MudSelectItem T="int?" Value="3">@L["Warranty_Years_3"]</MudSelectItem>
-                    <MudSelectItem T="int?" Value="5">@L["Warranty_Years_5"]</MudSelectItem>
-                </MudSelect>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @L["Warranty_Duration"]: @WarrantyFormModel.YearsLabel(L, _form.DurationYears)
+                </MudText>
+                <MudSlider T="int" Value="_form.DurationYears" ValueChanged="OnDurationChanged"
+                           Min="0" Max="10" Step="1" Color="Color.Primary" />
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudDatePicker Date="_form.StartDateNullable" DateChanged="OnStartDateChanged"
@@ -102,7 +100,7 @@
         if (ResolvePurchaseDate(_equipmentId) is { } start)
         {
             _form.StartDateNullable = start.ToDateTime(TimeOnly.MinValue);
-            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears!.Value);
+            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears);
         }
 
         _visible = true;
@@ -119,23 +117,22 @@
         if (ResolvePurchaseDate(id) is { } purchase)
         {
             _form.StartDateNullable = purchase.ToDateTime(TimeOnly.MinValue);
-            if (_form.DurationYears is { } years)
-                _form.EndDateNullable = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, years);
+            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears);
         }
     }
 
-    private void OnDurationChanged(int? years)
+    private void OnDurationChanged(int years)
     {
         _form.DurationYears = years;
-        if (years is { } y && _form.StartDateNullable is { } start)
-            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(start, y);
+        if (_form.StartDateNullable is { } start)
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(start, years);
     }
 
     private void OnStartDateChanged(DateTime? start)
     {
         _form.StartDateNullable = start;
-        if (start is { } s && _form.DurationYears is { } years)
-            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(s, years);
+        if (start is { } s)
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(s, _form.DurationYears);
     }
 
     public void OpenEdit(WarrantyDto w)

@@ -135,11 +135,11 @@
   <data name="Warranty_Notes" xml:space="preserve"><value>Notes</value></data>
   <data name="Warranty_Period" xml:space="preserve"><value>Period</value></data>
   <data name="Warranty_Provider" xml:space="preserve"><value>Provider</value></data>
+  <data name="Warranty_NoWarranty" xml:space="preserve"><value>No warranty</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Remaining</value></data>
-  <data name="Warranty_Years_1" xml:space="preserve"><value>1 year</value></data>
-  <data name="Warranty_Years_2" xml:space="preserve"><value>2 years</value></data>
-  <data name="Warranty_Years_3" xml:space="preserve"><value>3 years</value></data>
-  <data name="Warranty_Years_5" xml:space="preserve"><value>5 years</value></data>
+  <data name="Warranty_YearsFew" xml:space="preserve"><value>{0} years</value></data>
+  <data name="Warranty_YearsMany" xml:space="preserve"><value>{0} years</value></data>
+  <data name="Warranty_YearsOne" xml:space="preserve"><value>{0} year</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Active</value></data>
   <data name="Warranty_TabExpiring" xml:space="preserve"><value>Expiring soon</value></data>
 

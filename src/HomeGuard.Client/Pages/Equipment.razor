@@ -130,21 +130,15 @@ else
         <EquipmentForm Model="_form" />
 
         <MudDivider Class="my-3" />
-        <MudSwitch @bind-Value="_addWarranty" Color="Color.Primary"
-                   Label="@L["Equipment_AddWarranty"]" />
-        <MudCollapse Expanded="_addWarranty">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            @L["Equipment_AddWarranty"]: @WarrantyFormModel.YearsLabel(L, _warrantyForm.DurationYears)
+        </MudText>
+        <MudSlider T="int" Value="_warrantyForm.DurationYears" ValueChanged="OnWarrantyYearsChanged"
+                   Min="0" Max="10" Step="1" Color="Color.Primary" />
+        <MudCollapse Expanded="_warrantyForm.DurationYears > 0">
             <MudGrid Class="mt-1">
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_warrantyForm.Name" Label=@(L["Form_Name"]) Required="true" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudSelect @bind-Value="_warrantyForm.DurationYears"
-                               Label=@(L["Warranty_Duration"]) T="int?">
-                        <MudSelectItem T="int?" Value="1">@L["Warranty_Years_1"]</MudSelectItem>
-                        <MudSelectItem T="int?" Value="2">@L["Warranty_Years_2"]</MudSelectItem>
-                        <MudSelectItem T="int?" Value="3">@L["Warranty_Years_3"]</MudSelectItem>
-                        <MudSelectItem T="int?" Value="5">@L["Warranty_Years_5"]</MudSelectItem>
-                    </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudTextField @bind-Value="_warrantyForm.Provider" Label=@(L["Warranty_Provider"]) />
@@ -181,13 +175,14 @@ else
     private DensityMode _density = DensityMode.Cards;
 
     // Most equipment gets exactly one warranty, starting on the purchase date, for a
-    // round number of years — the toggle just lets "no warranty" or "I'll add it later"
-    // opt out instead of making that the default someone has to build every time.
-    private bool _addWarranty = true;
+    // round number of years — dragging the slider to 0 is "no warranty" or "I'll add it
+    // later", instead of that being the default someone has to build every time.
     private WarrantyFormModel _warrantyForm = new();
 
+    private void OnWarrantyYearsChanged(int years) => _warrantyForm.DurationYears = years;
+
     private DateOnly ComputedWarrantyEnd
-        => _form.PurchaseDate.AddYears(_warrantyForm.DurationYears ?? 2).AddDays(-1);
+        => _form.PurchaseDate.AddYears(_warrantyForm.DurationYears).AddDays(-1);
 
     // Attribute values cannot nest the localizer's own quotes, so the labels the table
     // needs in attributes are read once here.
@@ -221,7 +216,6 @@ else
     private void OpenAddDialog()
     {
         _form         = new EquipmentFormModel();
-        _addWarranty  = true;
         _warrantyForm = new WarrantyFormModel { Name = L["Warranty_DefaultName"] };
         _showAdd = true;
     }
@@ -243,7 +237,7 @@ else
         {
             _items?.Insert(0, result);
 
-            if (_addWarranty)
+            if (_warrantyForm.DurationYears > 0)
             {
                 await WarrantyApi.CreateAsync(new CreateWarrantyDto(
                     result.Id, _warrantyForm.Name, _form.PurchaseDate, ComputedWarrantyEnd,
