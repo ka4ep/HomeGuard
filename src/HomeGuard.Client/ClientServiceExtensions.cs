@@ -17,7 +17,15 @@ public static class ClientServiceExtensions
         services.AddHttpClient<MeterReadingApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<SyncApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<NotificationApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
-        services.AddHttpClient<BlobApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
+        // HttpClient's own default (100s) let a stalled upload over a weak mobile
+        // connection spin the "uploading" indicator for a very long time before falling
+        // back to "queued, will retry" — a shorter timeout fails fast into that same
+        // fallback, which is the outbox's actual point.
+        services.AddHttpClient<BlobApiClient>(c =>
+        {
+            c.BaseAddress = new Uri(apiBaseAddress);
+            c.Timeout     = TimeSpan.FromSeconds(30);
+        }).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<ContractApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
         services.AddHttpClient<AttentionApiClient>(c => c.BaseAddress = new Uri(apiBaseAddress)).AddHttpMessageHandler<ApiAuthHandler>();
