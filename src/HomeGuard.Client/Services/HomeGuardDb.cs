@@ -131,10 +131,26 @@ public sealed class HomeGuardDb
             }
             catch (Exception ex)
             {
+                // Two guesses at the actual wire shape have both been wrong — dump the
+                // real thing instead of a third guess. Capped well short of the full
+                // payload (a photo's base64 alone can run six figures of characters);
+                // enough to show the property names/shape, not the file itself.
+                string dataShape;
+                try
+                {
+                    var text = e.TryGetProperty("data", out var data) ? data.GetRawText() : "<no data property>";
+                    dataShape = text.Length > 200 ? text[..200] + "…" : text;
+                }
+                catch (Exception shapeEx)
+                {
+                    dataShape = $"<failed to read shape: {shapeEx.Message}>";
+                }
+
                 // One row this defensive a parse still can't make sense of is genuinely
                 // corrupt — drop it (and remove it, if its id was even readable) instead
                 // of taking every other queued upload down with it.
-                _logger.LogWarning(ex, "Dropping unreadable blobOutbox entry {ClientOperationId}", clientOperationId);
+                _logger.LogWarning(ex, "Dropping unreadable blobOutbox entry {ClientOperationId} — data shape: {DataShape}",
+                    clientOperationId, dataShape);
                 if (clientOperationId is not null)
                     await BlobOutboxRemoveAsync(clientOperationId);
             }
