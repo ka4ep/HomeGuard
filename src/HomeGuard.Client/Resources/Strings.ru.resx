@@ -121,8 +121,12 @@
   <data name="Category_Vehicle" xml:space="preserve"><value>Транспорт</value></data>
 
   <!-- ── Гарантии ──────────────────────────────────────────────────────────── -->
+  <data name="Warranty_AddRelated" xml:space="preserve"><value>Добавить продолжение гарантии</value>
+    <comment>Button on an existing warranty row — opens Add pre-filled to start the day this one ends, for a device with several independently-timed warranties (e.g. different parts).</comment>
+  </data>
   <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>Пока нет документов. Добавьте фото чека или гарантийного талона.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Номер договора</value></data>
+  <data name="Warranty_Cost" xml:space="preserve"><value>Стоимость</value></data>
   <data name="Warranty_DefaultName" xml:space="preserve"><value>Гарантия</value>
     <comment>Pre-filled into the Name field on Add — a household rarely has more than one warranty per item, so this is usually left as-is.</comment>
   </data>
@@ -134,16 +138,20 @@
   <data name="Warranty_Provider" xml:space="preserve"><value>Кто выдал</value></data>
   <data name="Warranty_NoWarranty" xml:space="preserve"><value>Без гарантии</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Осталось</value></data>
+  <data name="Warranty_StartsOn" xml:space="preserve"><value>С {0}</value>
+    <comment>Shown instead of a countdown while a warranty hasn't started yet (e.g. a follow-on chained after one still active) — a "months left" count would otherwise bundle in the wait before coverage begins, reading as a wrong number next to a same-duration warranty that already started.</comment>
+  </data>
   <data name="Warranty_YearsFew" xml:space="preserve"><value>{0} года</value></data>
+  <data name="Warranty_YearsFraction" xml:space="preserve"><value>{0} года</value></data>
   <data name="Warranty_YearsMany" xml:space="preserve"><value>{0} лет</value></data>
   <data name="Warranty_YearsOne" xml:space="preserve"><value>{0} год</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Действующие</value></data>
   <data name="Warranty_TabExpiring" xml:space="preserve"><value>Скоро истекают</value></data>
 
   <!-- Сокращения намеренные — у русского три формы множественного числа, а resx их не умеет. -->
-  <data name="Warranty_DaysLeft" xml:space="preserve"><value>{0} дн.</value></data>
+  <data name="Warranty_DaysLeft" xml:space="preserve"><value>Ещё {0} дн.</value></data>
   <data name="Warranty_Expired" xml:space="preserve"><value>Истекла</value></data>
-  <data name="Warranty_MonthsLeft" xml:space="preserve"><value>{0} мес.</value></data>
+  <data name="Warranty_MonthsLeft" xml:space="preserve"><value>Ещё {0} мес.</value></data>
   <data name="Warranty_Today" xml:space="preserve"><value>Сегодня</value></data>
   <data name="Warranty_Tomorrow" xml:space="preserve"><value>Завтра</value></data>
 
@@ -362,7 +370,9 @@
   <data name="Attachment_Deleted" xml:space="preserve"><value>Документ удалён</value></data>
   <data name="Attachment_DeleteMessage" xml:space="preserve"><value>Удалить «{0}»? Это нельзя отменить.</value></data>
   <data name="Attachment_DeleteTitle" xml:space="preserve"><value>Удалить документ</value></data>
-  <data name="Attachment_Queued" xml:space="preserve"><value>В очереди — загрузится, когда появится связь</value></data>
+  <data name="Attachment_Queued" xml:space="preserve"><value>В очереди</value>
+    <comment>Chip text on a not-yet-uploaded attachment row — kept short (unlike Attachment_Saved's full sentence, used as a one-off Snackbar toast) since it sits in a tight row next to the filename and a delete button; a long sentence here squeezed the filename into a single vertical column of characters.</comment>
+  </data>
   <data name="Attachment_Saved" xml:space="preserve"><value>Сохранено — загрузится, когда появится связь</value></data>
   <data name="Attachment_Title" xml:space="preserve"><value>Документы</value></data>
   <data name="Attachment_Uploaded" xml:space="preserve"><value>Документ загружен</value></data>

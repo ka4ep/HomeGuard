@@ -49,7 +49,7 @@ public static class WarrantyEndpoints
     {
         var cmd = new CreateWarrantyCommand(
             req.EquipmentId, req.Name, req.StartDate, req.EndDate,
-            req.Provider, req.ContractNumber, req.Notes);
+            req.Provider, req.ContractNumber, req.Notes, req.Cost);
 
         var result = await svc.CreateAsync(cmd, ct);
         return Results.Created($"/api/warranties/{result.Id}", WarrantyDto.From(result));
@@ -63,7 +63,7 @@ public static class WarrantyEndpoints
         {
             var cmd = new UpdateWarrantyCommand(
                 id, req.Name, req.StartDate, req.EndDate,
-                req.Provider, req.ContractNumber, req.Notes);
+                req.Provider, req.ContractNumber, req.Notes, req.Cost);
 
             var result = await svc.UpdateAsync(cmd, ct);
             return Results.Ok(WarrantyDto.From(result));
@@ -106,7 +106,8 @@ public sealed record CreateWarrantyRequest(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record UpdateWarrantyRequest(
@@ -115,7 +116,8 @@ public sealed record UpdateWarrantyRequest(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record NotificationRuleRequest(NotificationOffset Offset, bool Enabled);
@@ -136,7 +138,8 @@ public sealed record WarrantyDto(
     bool IsActive,
     int DaysRemaining,
     IReadOnlyList<NotificationRuleDto> NotificationRules,
-    DateTimeOffset UpdatedAt)
+    DateTimeOffset UpdatedAt,
+    decimal? Cost = null)
 {
     public static WarrantyDto From(Domain.Entities.Warranty w)
     {
@@ -147,7 +150,7 @@ public sealed record WarrantyDto(
             w.Provider, w.ContractNumber, w.Notes,
             w.IsActive(today), w.DaysRemaining(today),
             w.NotificationRules.Select(NotificationRuleDto.From).ToList(),
-            w.UpdatedAt);
+            w.UpdatedAt, w.Cost);
     }
 }
 

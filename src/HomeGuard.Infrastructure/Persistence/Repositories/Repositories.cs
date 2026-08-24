@@ -15,7 +15,6 @@ public sealed class EquipmentRepository : RepositoryBase<Equipment>, IEquipmentR
         => await Set
             .Include(e => e.Warranties).ThenInclude(w => w.NotificationRules)
             .Include(e => e.ServiceRecords).ThenInclude(sr => sr.NotificationRules)
-            .Include(e => e.Attachments)
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
     public async Task<IReadOnlyList<Equipment>> GetAllAsync(CancellationToken ct = default)
@@ -52,7 +51,6 @@ public sealed class WarrantyRepository : RepositoryBase<Warranty>, IWarrantyRepo
     public async Task<Warranty?> GetWithDetailsAsync(Guid id, CancellationToken ct = default)
         => await Set
             .Include(w => w.NotificationRules)
-            .Include(w => w.Attachments)
             .FirstOrDefaultAsync(w => w.Id == id, ct);
 
     public async Task<IReadOnlyList<Warranty>> GetByEquipmentAsync(
@@ -104,7 +102,6 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
     public async Task<ServiceRecord?> GetWithDetailsAsync(Guid id, CancellationToken ct = default)
         => await Set
             .Include(sr => sr.NotificationRules)
-            .Include(sr => sr.Attachments)
             .FirstOrDefaultAsync(sr => sr.Id == id, ct);
 
     public async Task<IReadOnlyList<ServiceRecord>> GetByEquipmentAsync(

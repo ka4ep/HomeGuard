@@ -81,9 +81,6 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("ServiceRecordId")
-                        .HasColumnType("TEXT");
-
                     b.Property<long>("SizeBytes")
                         .HasColumnType("INTEGER");
 
@@ -93,16 +90,9 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("WarrantyId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceRecordId");
-
                     b.HasIndex("SyncStatus");
-
-                    b.HasIndex("WarrantyId");
 
                     b.HasIndex("OwnerEntityId", "OwnerEntityType");
 
@@ -614,6 +604,9 @@ namespace HomeGuard.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("Cost")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -709,23 +702,6 @@ namespace HomeGuard.Infrastructure.Migrations
                     b.HasIndex("ProcessedAt");
 
                     b.ToTable("ProcessedOperations");
-                });
-
-            modelBuilder.Entity("HomeGuard.Domain.Entities.BlobEntry", b =>
-                {
-                    b.HasOne("HomeGuard.Domain.Entities.Equipment", null)
-                        .WithMany("Attachments")
-                        .HasForeignKey("OwnerEntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HomeGuard.Domain.Entities.ServiceRecord", null)
-                        .WithMany("Attachments")
-                        .HasForeignKey("ServiceRecordId");
-
-                    b.HasOne("HomeGuard.Domain.Entities.Warranty", null)
-                        .WithMany("Attachments")
-                        .HasForeignKey("WarrantyId");
                 });
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.Contract", b =>
@@ -986,21 +962,9 @@ namespace HomeGuard.Infrastructure.Migrations
 
             modelBuilder.Entity("HomeGuard.Domain.Entities.Equipment", b =>
                 {
-                    b.Navigation("Attachments");
-
                     b.Navigation("ServiceRecords");
 
                     b.Navigation("Warranties");
-                });
-
-            modelBuilder.Entity("HomeGuard.Domain.Entities.ServiceRecord", b =>
-                {
-                    b.Navigation("Attachments");
-                });
-
-            modelBuilder.Entity("HomeGuard.Domain.Entities.Warranty", b =>
-                {
-                    b.Navigation("Attachments");
                 });
 #pragma warning restore 612, 618
         }

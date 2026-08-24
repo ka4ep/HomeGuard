@@ -1,6 +1,6 @@
 @* Add/edit warranty dialog — shared by the Warranties page (equipment select)
    and WarrantySection on EquipmentDetail (fixed equipment). Owns the save call;
-   parents open it via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
+   parents open it via @ref (OpenAdd/OpenEdit/OpenAddFollowOn) and reload on OnSaved. *@
 @namespace HomeGuard.Client.Common
 @inject WarrantyApiClient Api
 @inject IStringLocalizer<Strings> L
@@ -27,24 +27,28 @@
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @L["Warranty_Duration"]: @WarrantyFormModel.YearsLabel(L, _form.DurationYears)
+                    @L["Warranty_Duration"]: @WarrantyFormModel.YearsLabel(L, _form.DurationHalfYears)
                 </MudText>
-                <MudSlider T="int" Value="_form.DurationYears" ValueChanged="OnDurationChanged"
-                           Min="0" Max="10" Step="1" Color="Color.Primary" />
+                <MudSlider T="int" Value="_form.DurationHalfYears" ValueChanged="OnDurationChanged"
+                           Min="0" Max="20" Step="1" Color="Color.Primary" />
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudDatePicker Date="_form.StartDateNullable" DateChanged="OnStartDateChanged"
                                Label=@(L["Form_StartDate"]) DateFormat="yyyy-MM-dd" />
             </MudItem>
             <MudItem xs="12" sm="4">
-                <MudDatePicker @bind-Date="_form.EndDateNullable" Label=@(L["Form_EndDate"])
-                               DateFormat="yyyy-MM-dd" />
+                <MudDatePicker Date="_form.EndDateNullable" DateChanged="OnEndDateChanged"
+                               Label=@(L["Form_EndDate"]) DateFormat="yyyy-MM-dd" />
             </MudItem>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12" sm="4">
                 <MudTextField @bind-Value="_form.Provider" Label=@(L["Warranty_Provider"]) />
             </MudItem>
-            <MudItem xs="12" sm="6">
+            <MudItem xs="12" sm="4">
                 <MudTextField @bind-Value="_form.ContractNumber" Label=@(L["Warranty_ContractNumber"]) />
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudNumericField @bind-Value="_form.Cost" Label="@L["Warranty_Cost"]" Format="F2"
+                                 Adornment="Adornment.Start" AdornmentText="€" />
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Notes" Label=@(L["Form_Notes"])
@@ -100,8 +104,26 @@
         if (ResolvePurchaseDate(_equipmentId) is { } start)
         {
             _form.StartDateNullable = start.ToDateTime(TimeOnly.MinValue);
-            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears);
+            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationHalfYears);
         }
+
+        _visible = true;
+        StateHasChanged();
+    }
+
+    /// <summary>Pre-fills a new warranty as the continuation of an existing one — for a
+    /// device where different parts carry their own separately-timed warranties, each
+    /// chain is started from the specific warranty it continues, not from some single
+    /// "the equipment's latest warranty" guess.</summary>
+    public void OpenAddFollowOn(WarrantyDto previous)
+    {
+        _editId      = null;
+        _equipmentId = previous.EquipmentId;
+
+        _form = new WarrantyFormModel { Name = previous.Name, Provider = previous.Provider };
+        var start = previous.EndDate.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        _form.StartDateNullable = start;
+        _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(start, _form.DurationHalfYears);
 
         _visible = true;
         StateHasChanged();
@@ -117,36 +139,49 @@
         if (ResolvePurchaseDate(id) is { } purchase)
         {
             _form.StartDateNullable = purchase.ToDateTime(TimeOnly.MinValue);
-            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationYears);
+            _form.EndDateNullable   = WarrantyFormModel.ComputeEnd(_form.StartDateNullable.Value, _form.DurationHalfYears);
         }
     }
 
-    private void OnDurationChanged(int years)
+    private void OnDurationChanged(int halfYears)
     {
-        _form.DurationYears = years;
+        _form.DurationHalfYears = halfYears;
         if (_form.StartDateNullable is { } start)
-            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(start, years);
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(start, halfYears);
     }
 
     private void OnStartDateChanged(DateTime? start)
     {
         _form.StartDateNullable = start;
         if (start is { } s)
-            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(s, _form.DurationYears);
+            _form.EndDateNullable = WarrantyFormModel.ComputeEnd(s, _form.DurationHalfYears);
+    }
+
+    /// <summary>Typing an end date directly (rather than via the slider) moves the slider
+    /// to match — rounded down to the nearest half-year mark it doesn't overshoot.</summary>
+    private void OnEndDateChanged(DateTime? end)
+    {
+        _form.EndDateNullable = end;
+        if (_form.StartDateNullable is { } start && end is { } e)
+            _form.DurationHalfYears = WarrantyFormModel.InferDurationHalfYears(start, e);
     }
 
     public void OpenEdit(WarrantyDto w)
     {
         _editId      = w.Id;
         _equipmentId = w.EquipmentId;
+        var start = w.StartDate.ToDateTime(TimeOnly.MinValue);
+        var end   = w.EndDate.ToDateTime(TimeOnly.MinValue);
         _form = new WarrantyFormModel
         {
             Name              = w.Name,
             Provider          = w.Provider,
             ContractNumber    = w.ContractNumber,
+            Cost              = w.Cost,
             Notes             = w.Notes,
-            StartDateNullable = w.StartDate.ToDateTime(TimeOnly.MinValue),
-            EndDateNullable   = w.EndDate.ToDateTime(TimeOnly.MinValue),
+            StartDateNullable = start,
+            EndDateNullable   = end,
+            DurationHalfYears = WarrantyFormModel.InferDurationHalfYears(start, end),
         };
         _visible = true;
         StateHasChanged();
@@ -158,10 +193,10 @@
         var result = _editId.HasValue
             ? await Api.UpdateAsync(_editId.Value, new UpdateWarrantyDto(
                 _form.Name, _form.StartDate, _form.EndDate,
-                _form.Provider, _form.ContractNumber, _form.Notes))
+                _form.Provider, _form.ContractNumber, _form.Notes, _form.Cost))
             : await Api.CreateAsync(new CreateWarrantyDto(
                 _equipmentId, _form.Name, _form.StartDate, _form.EndDate,
-                _form.Provider, _form.ContractNumber, _form.Notes));
+                _form.Provider, _form.ContractNumber, _form.Notes, _form.Cost));
         _saving  = false;
         _visible = false;
         await OnSaved.InvokeAsync(result);

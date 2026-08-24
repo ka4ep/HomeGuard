@@ -30,6 +30,10 @@ public sealed class Warranty : Entity
     /// <summary>Policy / contract number for quick reference.</summary>
     public string? ContractNumber { get; private set; }
 
+    /// <summary>What this warranty itself cost — separate from Equipment.PurchasePrice, since an
+    /// extended warranty is often bought separately (and later) from the equipment itself.</summary>
+    public decimal? Cost { get; private set; }
+
     /// <summary>Freeform notes in Markdown: conditions, exclusions, hotline numbers.</summary>
     public string? Notes { get; private set; }
 
@@ -68,7 +72,8 @@ public sealed class Warranty : Entity
         DateOnly endDate,
         string? provider = null,
         string? contractNumber = null,
-        string? notes = null)
+        string? notes = null,
+        decimal? cost = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -79,6 +84,7 @@ public sealed class Warranty : Entity
         w.Period = new DateRange(startDate, endDate);
         w.Provider = provider?.Trim();
         w.ContractNumber = contractNumber?.Trim();
+        w.Cost = cost;
         w.Notes = notes;
         w.ApplyDefaultNotificationRules();
         return w;
@@ -92,13 +98,15 @@ public sealed class Warranty : Entity
         DateOnly endDate,
         string? provider = null,
         string? contractNumber = null,
-        string? notes = null)
+        string? notes = null,
+        decimal? cost = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name.Trim();
         Period = new DateRange(startDate, endDate);
         Provider = provider?.Trim();
         ContractNumber = contractNumber?.Trim();
+        Cost = cost;
         Notes = notes;
         Touch();
     }

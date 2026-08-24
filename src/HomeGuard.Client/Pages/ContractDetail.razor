@@ -7,6 +7,7 @@
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
 @inject IDialogService Dialog
+@inject IJSRuntime JS
 @inject IStringLocalizer<Strings> L
 @implements IDisposable
 
@@ -186,6 +187,7 @@
                   ShowEmpty="true" />
 
     @* ── Документы ───────────────────────────────────────────────────────── *@
+    <div @ref="_attachmentsCardRef">
     <MudCard Elevation="1" Class="mb-4">
         <MudCardHeader>
             <CardHeaderContent>
@@ -197,7 +199,7 @@
             <CardHeaderActions>
                 <MudIconButton Icon="@(_showCapture ? Icons.Material.Filled.Close : Icons.Material.Filled.Add)"
                                aria-label="@(_showCapture ? L["Common_Close"] : L["Attachment_Add"])"
-                               OnClick="@(() => _showCapture = !_showCapture)" />
+                               OnClick="ToggleCaptureAsync" />
             </CardHeaderActions>
         </MudCardHeader>
         <MudCardContent>
@@ -211,16 +213,16 @@
                 {
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
-                            <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" />
-                            <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank" Style="overflow-wrap:anywhere">
+                            <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" Style="flex-shrink:0" />
+                            <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank" Style="overflow-wrap:anywhere; min-width:0">
                                 @a.FileName
                             </MudLink>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular" Style="flex-shrink:0">
                                 @FormatSize(a.SizeBytes)
                             </MudText>
                         </MudStack>
                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
-                                       Size="Size.Small" Class="hg-touch-target-sm"
+                                       Size="Size.Small" Class="hg-touch-target-sm" Style="flex-shrink:0"
                                        aria-label="@L["Common_Delete"]"
                                        OnClick="@(() => DeleteAttachmentAsync(a))" />
                     </MudStack>
@@ -229,14 +231,14 @@
                 {
                     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
-                            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" />
-                            <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@p.FileName</MudText>
-                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text">
+                            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" Style="flex-shrink:0" />
+                            <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere; min-width:0; flex-shrink:1">@p.FileName</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Style="flex-shrink:0">
                                 @L["Attachment_Queued"]
                             </MudChip>
                         </MudStack>
                         <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
-                                       Size="Size.Small" Class="hg-touch-target-sm"
+                                       Size="Size.Small" Class="hg-touch-target-sm" Style="flex-shrink:0"
                                        aria-label="@L["Common_Delete"]"
                                        OnClick="@(() => RemovePendingAttachmentAsync(p))" />
                     </MudStack>
@@ -245,7 +247,7 @@
 
             <MudCollapse Expanded="_showCapture">
                 <div class="mt-2">
-                    <DocumentCapture OnCapture="OnDocumentCapturedAsync" Label="@L["Attachment_Add"]" />
+                    <DocumentCapture @ref="_captureRef" OnCapture="OnDocumentCapturedAsync" Label="@L["Attachment_Add"]" />
                     @if (_uploading)
                     {
                         <MudProgressLinear Indeterminate="true" Class="mt-2" />
@@ -254,6 +256,7 @@
             </MudCollapse>
         </MudCardContent>
     </MudCard>
+    </div>
 
     @if (c.Kind == ContractKind.Insurance
          && (_detail.CoverageAmount is not null || _detail.Deductible is not null))
@@ -368,6 +371,9 @@
     private bool _loading = true;
     private bool _showCapture;
     private bool _uploading;
+    private ElementReference _attachmentsCardRef;
+    private DocumentCapture? _captureRef;
+    private bool _disposed;
 
     private ContractDialog _contractDialog = null!;
     private ContractStatusDialog _statusDialog = null!;
@@ -388,7 +394,11 @@
 
     protected override async Task OnParametersSetAsync() => await LoadAsync();
 
-    public void Dispose() => Outbox.OutboxChanged -= OnOutboxChanged;
+    public void Dispose()
+    {
+        _disposed = true;
+        Outbox.OutboxChanged -= OnOutboxChanged;
+    }
 
     private void OnOutboxChanged() => InvokeAsync(async () =>
     {
@@ -415,12 +425,34 @@
 
     // ── Documents ────────────────────────────────────────────────────────────
 
+    /// <summary>Scrolls the whole card into view (centered) when the capture panel opens
+    /// — on a phone the camera preview below the attachment list can otherwise expand
+    /// entirely off-screen with nothing telling the user to scroll for it. Navigating away
+    /// during the delay below disposes this page — StateHasChanged()/JS interop after that
+    /// throws, so both are guarded rather than left to surface as the red error banner
+    /// over a purely cosmetic scroll.</summary>
+    private async Task ToggleCaptureAsync()
+    {
+        _showCapture = !_showCapture;
+        if (!_showCapture) return;
+
+        StateHasChanged();
+        await Task.Delay(350); // let MudCollapse's expand transition finish first
+        if (_disposed || !_showCapture) return;
+
+        try { await JS.InvokeVoidAsync("homeGuardDom.scrollIntoView", _attachmentsCardRef); }
+        catch { /* page navigated away mid-scroll — nothing to recover */ }
+    }
+
     /// <summary>
     /// DocumentCapture fires OnCapture the instant a file is picked or a photo is taken —
     /// there is no separate "confirm" step on its side, so the upload starts right here.
     /// Going through the outbox (rather than BlobApiClient directly) means a capture made
     /// with no signal is not lost: it is queued in IndexedDB and FlushAsync sends it the
     /// moment a connection is available, same as everything else offline-first in this app.
+    /// The capture panel stays open (and its widget resets) instead of collapsing — with it
+    /// collapsing, MudCollapse doesn't destroy the DocumentCapture instance, so reopening
+    /// it to add a second file just showed the first one's stale preview again.
     /// </summary>
     private async Task OnDocumentCapturedAsync(CapturedDocument doc)
     {
@@ -430,14 +462,16 @@
         await Outbox.EnqueueBlobUploadAsync(doc.Data, doc.MimeType, doc.FileName, Id, "Contract");
         var result = await Outbox.FlushAsync();
 
-        _uploading   = false;
-        _showCapture = false;
+        _uploading = false;
 
         Snackbar.Add(
             result.Committed > 0 ? L["Attachment_Uploaded"] : L["Attachment_Saved"],
             Severity.Success);
 
         await LoadAsync();
+
+        if (_captureRef is not null)
+            await _captureRef.ClearCapture();
     }
 
     private async Task DeleteAttachmentAsync(BlobDto blob)

@@ -242,7 +242,11 @@
         cameraStarted = false;
     }
 
-    private async Task ClearCapture()
+    /// <summary>Public so a parent (AttachmentsCard) can reset the widget after a
+    /// successful upload — otherwise the same captured file/photo just sits here across
+    /// collapse/expand cycles, since Blazor doesn't destroy the component when its
+    /// MudCollapse wrapper hides it, making a second capture look impossible to start.</summary>
+    public async Task ClearCapture()
     {
         captured       = null;
         previewDataUrl = null;

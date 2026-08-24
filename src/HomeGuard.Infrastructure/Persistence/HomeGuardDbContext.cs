@@ -75,11 +75,13 @@ public sealed class HomeGuardDbContext : DbContext
                 .HasForeignKey(sr => sr.EquipmentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            e.HasMany(x => x.Attachments)
-                .WithOne()
-                .HasForeignKey(b => b.OwnerEntityId)
-                .HasPrincipalKey(x => x.Id)
-                .OnDelete(DeleteBehavior.Cascade);
+            // BlobEntry points back with OwnerEntityId + OwnerEntityType, which is a
+            // polymorphic link and not a foreign key: the same column also answers to
+            // Warranty and ServiceRecord, so a real FK to Equipment here would reject
+            // any attachment whose owner isn't Equipment — exactly what broke warranty
+            // and service-record photo uploads. Left unmapped here and resolved in the
+            // repository instead, matching Contract/Payment below.
+            e.Ignore(x => x.Attachments);
         });
 
         // ── Warranty ──────────────────────────────────────────────────────────
@@ -90,6 +92,7 @@ public sealed class HomeGuardDbContext : DbContext
             e.Property(x => x.Provider).HasMaxLength(200);
             e.Property(x => x.ContractNumber).HasMaxLength(100);
             e.Property(x => x.GoogleCalendarEventId).HasMaxLength(500);
+            e.Property(x => x.Cost).HasColumnType("TEXT");
 
             // DateRange as owned type — flattened to two columns.
             e.OwnsOne(x => x.Period, p =>
@@ -110,6 +113,8 @@ public sealed class HomeGuardDbContext : DbContext
                 r.Property<int>("Id");
                 r.Property(x => x.Offset).HasConversion<int>();
             });
+
+            e.Ignore(x => x.Attachments);   // polymorphic, see the note on Equipment
         });
 
         // ── ServiceRecord ─────────────────────────────────────────────────────
@@ -141,6 +146,8 @@ public sealed class HomeGuardDbContext : DbContext
                 r.Property<int>("Id");
                 r.Property(x => x.Offset).HasConversion<int>();
             });
+
+            e.Ignore(x => x.Attachments);   // polymorphic, see the note on Equipment
         });
 
         // ── RecurringRule ─────────────────────────────────────────────────────

@@ -139,6 +139,9 @@ else
             _editForm.Name, _editForm.Category, _editForm.PurchaseDate,
             _editForm.Brand, _editForm.Model, _editForm.SerialNumber,
             _editForm.PurchasePrice, _editForm.Notes, _editForm.MeterUnit));
+        // Tags live behind a separate PATCH endpoint (Equipment.SetTags is its own
+        // aggregate mutation) — Update() alone never touches them.
+        await EquipmentApi.SetTagsAsync(Id, _editForm.ParsedTags);
         _detail   = await EquipmentApi.GetAsync(Id);
         _saving   = false;
         _showEdit = false;

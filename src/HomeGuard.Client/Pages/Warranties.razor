@@ -48,9 +48,9 @@ else if (_density == DensityMode.List)
         <RowTemplate Context="w">
             <MudTd DataLabel="@NameLabel">
                 <MudStack Spacing="0">
-                    <MudText Typo="Typo.body2" Style="font-weight:600">@w.Name</MudText>
+                    <MudText Typo="Typo.body2" Style="font-weight:600">@EquipmentName(w.EquipmentId)</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
-                        @EquipmentName(w.EquipmentId)
+                        @w.Name
                     </MudText>
                 </MudStack>
             </MudTd>
@@ -58,12 +58,16 @@ else if (_density == DensityMode.List)
                 @ShortDate(w.StartDate) → @ShortDate(w.EndDate)
             </MudTd>
             <MudTd DataLabel="@RemainingLabel">
-                <MudChip T="string" Size="Size.Small" Color="@Display.WarrantyColor(w.DaysRemaining)">
-                    @Display.WarrantyLabel(L, w.DaysRemaining)
+                <MudChip T="string" Size="Size.Small" Color="@Display.WarrantyColor(w)">
+                    @Display.WarrantyLabel(L, w)
                 </MudChip>
             </MudTd>
             <MudTd>
                 <MudStack Row="true" Spacing="0" Justify="Justify.FlexEnd">
+                    <MudIconButton Icon="@Icons.Material.Outlined.AddLink"
+                                   Size="Size.Small"
+                                   aria-label="@L["Warranty_AddRelated"]"
+                                   OnClick="() => _dialog.OpenAddFollowOn(w)" />
                     <MudIconButton Icon="@Icons.Material.Outlined.Edit"
                                    Size="Size.Small"
                                    OnClick="() => _dialog.OpenEdit(w)" />
@@ -87,9 +91,9 @@ else
                               Style="flex-wrap:wrap; width:100%">
 
                         <MudStack Spacing="0" Style="min-width:160px; flex:1">
-                            <MudText Typo="Typo.body1" Style="font-weight:600">@w.Name</MudText>
+                            <MudText Typo="Typo.body1" Style="font-weight:600">@EquipmentName(w.EquipmentId)</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @EquipmentName(w.EquipmentId)
+                                @w.Name
                             </MudText>
                         </MudStack>
 
@@ -100,8 +104,8 @@ else
                             </MudText>
                         </MudStack>
 
-                        <MudChip T="string" Size="Size.Small" Color="@Display.WarrantyColor(w.DaysRemaining)">
-                            @Display.WarrantyLabel(L, w.DaysRemaining)
+                        <MudChip T="string" Size="Size.Small" Color="@Display.WarrantyColor(w)">
+                            @Display.WarrantyLabel(L, w)
                         </MudChip>
 
                     </MudStack>
@@ -110,7 +114,7 @@ else
                 <ChildContent>
                     <MudStack Spacing="3">
 
-                        @if (w.Provider is not null || w.ContractNumber is not null)
+                        @if (w.Provider is not null || w.ContractNumber is not null || w.Cost.HasValue)
                         {
                             <MudStack Row="true" Spacing="4" Style="flex-wrap:wrap">
                                 @if (w.Provider is not null)
@@ -127,6 +131,13 @@ else
                                         <MudText Typo="Typo.body2">@w.ContractNumber</MudText>
                                     </MudStack>
                                 }
+                                @if (w.Cost.HasValue)
+                                {
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Warranty_Cost"]</MudText>
+                                        <MudText Typo="Typo.body2" Class="hg-tabular">@Money(w.Cost.Value)</MudText>
+                                    </MudStack>
+                                }
                             </MudStack>
                         }
 
@@ -139,6 +150,10 @@ else
                         }
 
                         <MudStack Row="true" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Outlined.AddLink"
+                                           Size="Size.Small"
+                                           aria-label="@L["Warranty_AddRelated"]"
+                                           OnClick="() => _dialog.OpenAddFollowOn(w)" />
                             <MudIconButton Icon="@Icons.Material.Outlined.Edit"
                                            Size="Size.Small"
                                            OnClick="() => _dialog.OpenEdit(w)" />
@@ -198,4 +213,7 @@ else
 
     private static string ShortDate(DateOnly date)
         => date.ToString("d", CultureInfo.CurrentCulture);
+
+    private static string Money(decimal amount)
+        => "€ " + amount.ToString("N2", CultureInfo.CurrentCulture);
 }

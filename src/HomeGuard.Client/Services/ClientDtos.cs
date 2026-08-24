@@ -57,6 +57,8 @@ public sealed record UpdateEquipmentDto(
     string? MeterUnit = null
 );
 
+public sealed record SetTagsDto(IReadOnlyList<string> Tags);
+
 // ── Warranty ──────────────────────────────────────────────────────────────────
 
 public sealed record WarrantyDto(
@@ -71,7 +73,8 @@ public sealed record WarrantyDto(
     bool IsActive,
     int DaysRemaining,
     IReadOnlyList<NotificationRuleDto> NotificationRules,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    decimal? Cost = null
 );
 
 public sealed record CreateWarrantyDto(
@@ -81,7 +84,8 @@ public sealed record CreateWarrantyDto(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record UpdateWarrantyDto(
@@ -90,7 +94,8 @@ public sealed record UpdateWarrantyDto(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 // ── ServiceRecord ─────────────────────────────────────────────────────────────

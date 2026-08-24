@@ -53,6 +53,12 @@ public sealed class EquipmentApiClient
 
     public Task DeleteAsync(Guid id, CancellationToken ct = default)
         => _http.DeleteAsync($"api/equipment/{id}", ct);
+
+    public async Task<bool> SetTagsAsync(Guid id, IReadOnlyList<string> tags, CancellationToken ct = default)
+    {
+        var resp = await _http.PatchAsJsonAsync($"api/equipment/{id}/tags", new SetTagsDto(tags), ct);
+        return resp.IsSuccessStatusCode;
+    }
 }
 
 // ── Warranty ──────────────────────────────────────────────────────────────────

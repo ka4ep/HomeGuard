@@ -124,8 +124,12 @@
   <data name="Category_Vehicle" xml:space="preserve"><value>Vehicle</value></data>
 
   <!-- ── Warranties ────────────────────────────────────────────────────────── -->
+  <data name="Warranty_AddRelated" xml:space="preserve"><value>Add a follow-on warranty</value>
+    <comment>Button on an existing warranty row — opens Add pre-filled to start the day this one ends, for a device with several independently-timed warranties (e.g. different parts).</comment>
+  </data>
   <data name="Warranty_AttachmentsEmpty" xml:space="preserve"><value>No documents yet. Add a photo of the receipt or warranty card.</value></data>
   <data name="Warranty_ContractNumber" xml:space="preserve"><value>Contract №</value></data>
+  <data name="Warranty_Cost" xml:space="preserve"><value>Cost</value></data>
   <data name="Warranty_DefaultName" xml:space="preserve"><value>Warranty</value>
     <comment>Pre-filled into the Name field on Add — a household rarely has more than one warranty per item, so this is usually left as-is.</comment>
   </data>
@@ -137,7 +141,11 @@
   <data name="Warranty_Provider" xml:space="preserve"><value>Provider</value></data>
   <data name="Warranty_NoWarranty" xml:space="preserve"><value>No warranty</value></data>
   <data name="Warranty_Remaining" xml:space="preserve"><value>Remaining</value></data>
+  <data name="Warranty_StartsOn" xml:space="preserve"><value>Starts {0}</value>
+    <comment>Shown instead of a countdown while a warranty hasn't started yet (e.g. a follow-on chained after one still active) — a "months left" count would otherwise bundle in the wait before coverage begins, reading as a wrong number next to a same-duration warranty that already started.</comment>
+  </data>
   <data name="Warranty_YearsFew" xml:space="preserve"><value>{0} years</value></data>
+  <data name="Warranty_YearsFraction" xml:space="preserve"><value>{0} years</value></data>
   <data name="Warranty_YearsMany" xml:space="preserve"><value>{0} years</value></data>
   <data name="Warranty_YearsOne" xml:space="preserve"><value>{0} year</value></data>
   <data name="Warranty_TabActive" xml:space="preserve"><value>Active</value></data>
@@ -369,7 +377,9 @@
   <data name="Attachment_Deleted" xml:space="preserve"><value>Document deleted</value></data>
   <data name="Attachment_DeleteMessage" xml:space="preserve"><value>Delete "{0}"? This cannot be undone.</value></data>
   <data name="Attachment_DeleteTitle" xml:space="preserve"><value>Delete document</value></data>
-  <data name="Attachment_Queued" xml:space="preserve"><value>Queued — will upload once you're online</value></data>
+  <data name="Attachment_Queued" xml:space="preserve"><value>Queued</value>
+    <comment>Chip text on a not-yet-uploaded attachment row — kept short (unlike Attachment_Saved's full sentence, used as a one-off Snackbar toast) since it sits in a tight row next to the filename and a delete button; a long sentence here squeezed the filename into a single vertical column of characters.</comment>
+  </data>
   <data name="Attachment_Saved" xml:space="preserve"><value>Saved — will upload once you're online</value></data>
   <data name="Attachment_Title" xml:space="preserve"><value>Documents</value></data>
   <data name="Attachment_Uploaded" xml:space="preserve"><value>Document uploaded</value></data>
