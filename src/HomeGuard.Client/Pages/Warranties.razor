@@ -145,7 +145,7 @@ else
                         {
                             <MudStack Spacing="1">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Warranty_Notes"]</MudText>
-                                <MudText Typo="Typo.body2" Style="white-space:pre-line">@w.Notes</MudText>
+                                <div class="hg-markdown">@((MarkupString)MarkdownRenderer.ToHtml(w.Notes))</div>
                             </MudStack>
                         }
 

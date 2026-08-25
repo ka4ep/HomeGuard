@@ -67,7 +67,7 @@ else
             @if (!string.IsNullOrWhiteSpace(_detail.Notes))
             {
                 <MudDivider Class="my-3" />
-                <MudText Typo="Typo.body2" Style="white-space:pre-wrap">@_detail.Notes</MudText>
+                <div class="hg-markdown">@((MarkupString)MarkdownRenderer.ToHtml(_detail.Notes))</div>
             }
         </MudCardContent>
     </MudCard>

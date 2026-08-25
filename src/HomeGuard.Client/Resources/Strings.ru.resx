@@ -212,8 +212,10 @@
   <data name="Rule_Active" xml:space="preserve"><value>Включён</value></data>
   <data name="Rule_AnchorToPurchase" xml:space="preserve"><value>Было с покупки</value></data>
   <data name="Rule_AnchorToPurchaseHelp" xml:space="preserve"><value>Включено: средний интервал считается от даты покупки, поэтому для прогноза хватает одной записи. Выключено: считается только от первого записанного обслуживания этой вещи.</value></data>
+  <data name="Rule_AnchorToPurchaseIrrelevant" xml:space="preserve"><value>Не используется — задан фиксированный интервал, история обслуживания не нужна.</value></data>
   <data name="Rule_IntervalDaysLabel" xml:space="preserve"><value>Интервал (дни)</value></data>
   <data name="Rule_IntervalHelp" xml:space="preserve"><value>Оставьте пустым — посчитается по истории</value></data>
+  <data name="Rule_IntervalIntro" xml:space="preserve"><value>Можно задать одно или оба — сработает то, что наступит раньше: по дням или по счётчику.</value></data>
   <data name="Rule_IntervalMeterLabel" xml:space="preserve"><value>Интервал</value></data>
   <data name="Rule_MaterializeDays" xml:space="preserve"><value>Создавать запись за столько дней</value></data>
   <data name="Rule_PredictionsAhead" xml:space="preserve"><value>Сколько прогнозов показывать</value></data>

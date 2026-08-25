@@ -1,10 +1,8 @@
 @* Add/edit service record dialog — shared by the ServiceRecords page (equipment select)
-   and ServiceSection on EquipmentDetail (fixed equipment). Owns the save call and the
-   title autocomplete (rules + past records of the selected equipment); parents open it
-   via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
+   and ServiceSection on EquipmentDetail (fixed equipment). Owns the save call; parents
+   open it via @ref (OpenAdd/OpenEdit) and reload on OnSaved. *@
 @namespace HomeGuard.Client.Common
 @inject ServiceRecordApiClient Api
-@inject RecurringRuleApiClient RuleApi
 @inject IStringLocalizer<Strings> L
 
 <MudDialog @bind-Visible="_visible">
@@ -24,9 +22,7 @@
                 </MudItem>
             }
             <MudItem xs="12">
-                <MudAutocomplete T="string" @bind-Value="_form.Title" Label=@(L["Service_Title"]) Required="true"
-                                 SearchFunc="SearchTitles" Strict="false" CoerceText="true"
-                                 ResetValueOnEmptyText="true" ShowProgressIndicator="false" />
+                <MudTextField @bind-Value="_form.Title" Label=@(L["Service_Title"]) Required="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudDatePicker @bind-Date="_form.ServiceDateNullable"
@@ -141,24 +137,5 @@
         _saving  = false;
         _visible = false;
         await OnSaved.InvokeAsync(result);
-    }
-
-    private async Task<IEnumerable<string>> SearchTitles(string? search, CancellationToken ct)
-    {
-        if (_equipmentId == Guid.Empty) return [];
-
-        var rulesTask   = RuleApi.GetByEquipmentAsync(_equipmentId, ct);
-        var recordsTask = Api.GetByEquipmentAsync(_equipmentId, ct);
-        await Task.WhenAll(rulesTask, recordsTask);
-
-        var titles = (rulesTask.Result ?? []).Select(r => r.Title)
-            .Concat((recordsTask.Result ?? []).Select(s => s.Title))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(t => t);
-
-        if (!string.IsNullOrWhiteSpace(search))
-            titles = titles.Where(t => t.Contains(search, StringComparison.OrdinalIgnoreCase)).OrderBy(t => t);
-
-        return titles;
     }
 }

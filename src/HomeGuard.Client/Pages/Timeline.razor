@@ -189,24 +189,28 @@
         }
 
         // ── Service records — one row per (equipment, canonical title) cluster ─────
+        // Equipment ids come from both records and rules: a freshly set-up rule with no
+        // service history yet must still get a row, otherwise its predictions have nowhere
+        // to attach and silently never appear (see BuildRows notes on orphan rules below).
         if (_showServices)
         {
-            var byEquip = _services
-                .GroupBy(s => s.EquipmentId)
-                .OrderBy(g => _equipMap.GetValueOrDefault(g.Key, ""));
+            var equipIds = _services.Select(s => s.EquipmentId)
+                .Concat(_rules.Select(r => r.Rule.EquipmentId))
+                .Distinct()
+                .OrderBy(id => _equipMap.GetValueOrDefault(id, ""));
 
-            foreach (var grp in byEquip)
+            foreach (var equipId in equipIds)
             {
-                var equipName = _equipMap.GetValueOrDefault(grp.Key, grp.Key.ToString());
-                var meterUnit = _equipMeterUnit.GetValueOrDefault(grp.Key);
-                var sorted = grp.OrderBy(s => s.ServiceDate).ToList();
+                var equipName = _equipMap.GetValueOrDefault(equipId, equipId.ToString());
+                var meterUnit = _equipMeterUnit.GetValueOrDefault(equipId);
+                var sorted = _services.Where(s => s.EquipmentId == equipId).OrderBy(s => s.ServiceDate).ToList();
 
                 var canonicalsForEquip = sorted
                     .Select(s => _canonicals.GetValueOrDefault(s.Id, s.Title))
                     .Distinct()
                     .ToList();
 
-                var firstCanonical = canonicalsForEquip.FirstOrDefault();
+                var isFirstRowForEquip = true;
 
                 foreach (var canonical in canonicalsForEquip)
                 {
@@ -217,7 +221,7 @@
                             DateIso: s.ServiceDate.ToString("yyyy-MM-dd", null),
                             Title: s.Title,
                             EquipmentName: equipName,
-                            EquipmentId: grp.Key,
+                            EquipmentId: equipId,
                             MeterReading: s.MeterReading,
                             MeterUnit: meterUnit,
                             Cost: s.Cost,
@@ -229,7 +233,7 @@
 
                     // Predicted (dashed) points — computed ahead, not stored records.
                     var rule = _rules.FirstOrDefault(x =>
-                        x.Rule.EquipmentId == grp.Key &&
+                        x.Rule.EquipmentId == equipId &&
                         string.Equals(x.Rule.Title.Trim(), canonical.Trim(), StringComparison.OrdinalIgnoreCase));
                     if (rule is not null)
                     {
@@ -238,7 +242,7 @@
                             DateIso: p.Date.ToString("yyyy-MM-dd", null),
                             Title: canonical,
                             EquipmentName: equipName,
-                            EquipmentId: grp.Key,
+                            EquipmentId: equipId,
                             MeterReading: p.MeterReading,
                             MeterUnit: meterUnit,
                             IsPredicted: true,
@@ -247,7 +251,7 @@
 
                     // Standalone readings — ticks on the first row of the equipment's cluster only
                     List<TimelineMark>? marks = null;
-                    if (canonical == firstCanonical && _readings.TryGetValue(grp.Key, out var rds) && rds.Count > 0)
+                    if (isFirstRowForEquip && _readings.TryGetValue(equipId, out var rds) && rds.Count > 0)
                         marks = rds
                             .OrderBy(r => r.ReadingDate)
                             .Select(r => new TimelineMark(
@@ -259,13 +263,58 @@
                             .ToList();
 
                     rows.Add(new TimelineRow(
-                        Id: $"equip-{grp.Key}-{Math.Abs(canonical.GetHashCode()):x8}",
+                        Id: $"equip-{equipId}-{Math.Abs(canonical.GetHashCode()):x8}",
                         Label: canonical,
-                        Group: canonical == firstCanonical ? equipName : null,
+                        Group: isFirstRowForEquip ? equipName : null,
                         Color: ServiceColor,
                         Events: events,
                         Marks: marks
                     ));
+                    isFirstRowForEquip = false;
+                }
+
+                // Orphan rules — a recurring rule whose title doesn't match any of this
+                // equipment's existing service records (most commonly: none exist yet).
+                // Its predictions still deserve their own row instead of vanishing until
+                // the first matching record is entered.
+                var orphanRules = _rules.Where(x =>
+                    x.Rule.EquipmentId == equipId &&
+                    !canonicalsForEquip.Any(c => string.Equals(c.Trim(), x.Rule.Title.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+                foreach (var rule in orphanRules)
+                {
+                    var events = rule.Predictions.Select(p => new TimelineEvent(
+                        Id: $"pred-{rule.Rule.Id}-{p.Date:yyyyMMdd}",
+                        DateIso: p.Date.ToString("yyyy-MM-dd", null),
+                        Title: rule.Rule.Title,
+                        EquipmentName: equipName,
+                        EquipmentId: equipId,
+                        MeterReading: p.MeterReading,
+                        MeterUnit: meterUnit,
+                        IsPredicted: true,
+                        RuleId: rule.Rule.Id)).ToList();
+
+                    List<TimelineMark>? marks = null;
+                    if (isFirstRowForEquip && _readings.TryGetValue(equipId, out var rds) && rds.Count > 0)
+                        marks = rds
+                            .OrderBy(r => r.ReadingDate)
+                            .Select(r => new TimelineMark(
+                                DateIso: r.ReadingDate.ToString("yyyy-MM-dd", null),
+                                Value: r.Value,
+                                Unit: meterUnit,
+                                Source: r.Source,
+                                Note: r.Note))
+                            .ToList();
+
+                    rows.Add(new TimelineRow(
+                        Id: $"rule-{rule.Rule.Id}",
+                        Label: rule.Rule.Title,
+                        Group: isFirstRowForEquip ? equipName : null,
+                        Color: ServiceColor,
+                        Events: events,
+                        Marks: marks
+                    ));
+                    isFirstRowForEquip = false;
                 }
             }
         }
