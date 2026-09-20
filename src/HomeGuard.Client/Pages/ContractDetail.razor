@@ -94,6 +94,13 @@
             <MudMenuItem OnClick="@(() => _revisionDialog.Open())">
                 @L["Revision_Title"]
             </MudMenuItem>
+            @if (c.Kind is ContractKind.Loan or ContractKind.Lease)
+            {
+                <MudMenuItem OnClick="@(() => _earlyDialog.Open())"
+                             Disabled="@(_summary?.RemainingBalance is null)">
+                    @L["Early_Menu"]
+                </MudMenuItem>
+            }
         </MudMenu>
     </MudStack>
 
@@ -127,10 +134,10 @@
                             ? L["Contract_Installments", _summary.InstallmentsPaid, total]
                             : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
                     </MudText>
-                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
+                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate is > 0 and { } paidInterest)
                     {
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
-                            @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
+                            @L["Contract_InterestPaid", Money(paidInterest)]
                         </MudText>
                     }
                 </FieldWell>
@@ -148,6 +155,12 @@
                             @(_summary.EstimateGap == LoanEstimateGap.MissingBalance
                                 ? L["Contract_GapMissingBalance"]
                                 : L["Contract_GapMissingRate"])
+                        </MudText>
+                    }
+                    @if (_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()?.AnnualInterestRate is { } rate)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block hg-tabular">
+                            @L["Contract_RatePerYear", (rate * 100m).ToString("0.##", CultureInfo.CurrentCulture)]
                         </MudText>
                     }
                 </FieldWell>
@@ -171,6 +184,28 @@
                 </FieldWell>
             </MudItem>
         </MudGrid>
+
+        @if (IsLoanLike(c.Kind) && (_summary.InterestRemaining is not null || _summary.TotalCost is not null))
+        {
+            <MudGrid Class="mb-4">
+                @if (_summary.InterestRemaining is { } leftInterest)
+                {
+                    <MudItem xs="6" md="3">
+                        <FieldWell Label="@L["Contract_InterestLeft"]">
+                            <span class="hg-field-well-value hg-tabular">@Money(leftInterest)</span>
+                        </FieldWell>
+                    </MudItem>
+                }
+                @if (_summary.TotalCost is { } cost)
+                {
+                    <MudItem xs="6" md="3">
+                        <FieldWell Label="@L["Contract_TotalCost"]">
+                            <span class="hg-field-well-value hg-tabular">@Money(cost)</span>
+                        </FieldWell>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
 
         @if (_summary.OverdueCount > 0)
         {
@@ -354,8 +389,14 @@
                     Kind="c.Kind"
                     Currency="@c.Currency"
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
-                    InstallmentsPaid="@(_summary?.InstallmentsPaid ?? 0)"
+                    InstallmentsRemaining="@_summary?.InstallmentsRemaining"
+                    CurrentBalance="@_summary?.RemainingBalance"
                     OnSaved="LoadAsync" />
+    <EarlyPaymentDialog @ref="_earlyDialog"
+                        ContractId="Id"
+                        Currency="@c.Currency"
+                        Balance="@_summary?.RemainingBalance"
+                        OnSaved="LoadAsync" />
     }
     </div>
 </div>
@@ -379,6 +420,7 @@
     private ContractStatusDialog _statusDialog = null!;
     private OpeningPositionDialog _openingDialog = null!;
     private RevisionDialog _revisionDialog = null!;
+    private EarlyPaymentDialog _earlyDialog = null!;
     private PaymentDialog _paymentDialog = null!;
 
     private string SummaryTitle => L["Contract_Summary"];

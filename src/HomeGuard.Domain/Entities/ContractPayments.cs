@@ -261,9 +261,11 @@ public sealed class Payment : Entity
     /// <summary>Puts a payment back in the schedule after it was marked paid or skipped by mistake.</summary>
     public void Reopen()
     {
-        Status     = PaymentStatus.Planned;
-        PaidDate   = null;
-        AmountPaid = null;
+        Status        = PaymentStatus.Planned;
+        PaidDate      = null;
+        AmountPaid    = null;
+        PrincipalPart = null;
+        InterestPart  = null;
         Touch();
     }
 

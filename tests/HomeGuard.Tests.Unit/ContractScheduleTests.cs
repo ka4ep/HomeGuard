@@ -159,7 +159,7 @@ public sealed class ContractScheduleTests
         summary.InstallmentsPaid.Should().Be(4);
         summary.InstallmentsTotal.Should().Be(60);
         summary.InstallmentsRemaining.Should().Be(56);
-        summary.RemainingBalance.Should().Be(14_250m);
+        summary.RemainingBalance.Should().Be(14_000m);    // 14 250 на срез минус 250 после него
         summary.CurrentInstallment.Should().Be(250m);
         summary.Currency.Should().Be("EUR");
     }
@@ -244,12 +244,11 @@ public sealed class ContractScheduleTests
             .Should().Throw<InvalidOperationException>();
     }
 
-    // ── Amortization math ────────────────────────────────────────────────────
+    // ── Amortization ─────────────────────────────────────────────────────────
 
     private static Contract AmortizedLoan(decimal principal, decimal annualRate, int months)
     {
-        var monthlyRate = AmortizationMath.MonthlyRate(annualRate);
-        var installment  = AmortizationMath.AnnuityInstallment(principal, monthlyRate, months);
+        var installment = LoanMath.Annuity(principal, LoanMath.PeriodRate(annualRate, 1), months);
 
         var c = Contract.Create(ContractKind.Loan, "Car loan", Start, "EUR");
         c.AddRevision(
@@ -259,46 +258,48 @@ public sealed class ContractScheduleTests
         return c;
     }
 
+    private static EarlyPaymentPreview Preview(Contract c, decimal extra, EarlyPaymentEffect effect)
+        => LoanMath.TryGetPosition(c) is { } position
+            ? LoanMath.PreviewEarlyPayment(position, extra, Start.AddDays(-1), effect)
+            : LoanMath.PreviewWithoutBalance(c, extra, Start.AddDays(-1), effect);
+
     [Fact]
     public void The_annuity_instalment_fully_amortizes_the_balance_to_zero()
     {
-        var rate        = AmortizationMath.MonthlyRate(0.06m);
-        var installment = AmortizationMath.AnnuityInstallment(12_000m, rate, 24);
+        var contract = AmortizedLoan(12_000m, 0.06m, 24);
 
-        var balance = AmortizationMath.BalanceAfter(12_000m, rate, installment, 24);
+        var rows = LoanMath.TryGetPosition(contract)!.Forward;
 
-        balance.Should().BeApproximately(0m, 0.5m);   // a few cents of rounding over 24 instalments
+        rows.Should().HaveCount(24);
+        rows[^1].BalanceAfter.Should().Be(0m);
     }
 
     [Fact]
     public void A_zero_rate_falls_back_to_straight_line_arithmetic()
     {
-        var rate = AmortizationMath.MonthlyRate(0m);
+        LoanMath.Annuity(1_200m, 0m, 12).Should().Be(100m);
 
-        AmortizationMath.AnnuityInstallment(1_200m, rate, 12).Should().Be(100m);
-        AmortizationMath.BalanceAfter(1_200m, rate, 100m, 6).Should().Be(600m);
-        AmortizationMath.TermFor(600m, rate, 100m).Should().Be(6);
-        AmortizationMath.SplitInstallment(600m, rate, 100m).Should().Be((100m, 0m));
+        var rows = LoanMath.Amortize(600m, 0m, 100m, null, Start, 1);
+
+        rows.Should().HaveCount(6);
+        rows.Should().OnlyContain(r => r.Interest == 0m && r.Principal == 100m);
     }
 
     [Fact]
     public void Splitting_an_instalment_always_adds_back_to_the_instalment()
     {
-        var rate = AmortizationMath.MonthlyRate(0.06m);
+        var rows = LoanMath.Amortize(10_000m, 0.005m, 500m, null, Start, 1);
 
-        var (principal, interest) = AmortizationMath.SplitInstallment(10_000m, rate, 500m);
-
-        (principal + interest).Should().Be(500m);
-        interest.Should().BeGreaterThan(0m);
+        rows.Should().OnlyContain(r => r.Principal + r.Interest == r.Payment);
+        rows[0].Interest.Should().BeGreaterThan(0m);
     }
 
     [Fact]
-    public void TermFor_inverts_AnnuityInstallment()
+    public void Amortizing_at_the_annuity_instalment_takes_exactly_the_original_term()
     {
-        var rate        = AmortizationMath.MonthlyRate(0.08m);
-        var installment = AmortizationMath.AnnuityInstallment(50_000m, rate, 60);
+        var installment = LoanMath.Annuity(50_000m, 0.08m / 12m, 60);
 
-        AmortizationMath.TermFor(50_000m, rate, installment).Should().Be(60);
+        LoanMath.Amortize(50_000m, 0.08m / 12m, installment, null, Start, 1).Should().HaveCount(60);
     }
 
     // ── Early payoff preview ─────────────────────────────────────────────────
@@ -308,12 +309,11 @@ public sealed class ContractScheduleTests
     {
         var contract = AmortizedLoan(principal: 12_000m, annualRate: 0.06m, months: 24);
 
-        var preview = ContractService.PreviewEarlyPayment(
-            contract, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+        var preview = Preview(contract, 3_000m, EarlyPaymentEffect.ReduceTerm);
 
         preview.Gap.Should().Be(LoanEstimateGap.None);
-        preview.InstallmentAmountAfter.Should().Be(preview.InstallmentAmountBefore);
-        preview.InstallmentsAfter.Should().BeLessThan(preview.InstallmentsBefore);
+        preview.After.Installment.Should().Be(preview.Before.Installment);
+        preview.After.InstallmentsLeft.Should().BeLessThan(preview.Before.InstallmentsLeft);
         preview.InterestSaved.Should().BeGreaterThan(0m);
     }
 
@@ -322,11 +322,10 @@ public sealed class ContractScheduleTests
     {
         var contract = AmortizedLoan(principal: 12_000m, annualRate: 0.06m, months: 24);
 
-        var preview = ContractService.PreviewEarlyPayment(
-            contract, extraAmount: 3_000m, EarlyPaymentEffect.ReducePayment);
+        var preview = Preview(contract, 3_000m, EarlyPaymentEffect.ReducePayment);
 
-        preview.InstallmentsAfter.Should().Be(preview.InstallmentsBefore);
-        preview.InstallmentAmountAfter.Should().BeLessThan(preview.InstallmentAmountBefore);
+        preview.After.InstallmentsLeft.Should().Be(preview.Before.InstallmentsLeft);
+        preview.After.Installment.Should().BeLessThan(preview.Before.Installment);
         preview.InterestSaved.Should().BeGreaterThan(0m);
     }
 
@@ -339,11 +338,11 @@ public sealed class ContractScheduleTests
             intervalMonths: 1, installmentAmount: 500m, installmentCount: 24,
             remainingPrincipal: 12_000m);   // no AnnualInterestRate
 
-        var preview = ContractService.PreviewEarlyPayment(c, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+        var preview = Preview(c, 3_000m, EarlyPaymentEffect.ReduceTerm);
 
         preview.Gap.Should().Be(LoanEstimateGap.MissingRate);
         preview.InterestSaved.Should().BeNull();
-        preview.InstallmentsAfter.Should().BeLessThan(preview.InstallmentsBefore);
+        preview.After.InstallmentsLeft.Should().BeLessThan(preview.Before.InstallmentsLeft);
     }
 
     [Fact]
@@ -351,12 +350,27 @@ public sealed class ContractScheduleTests
     {
         var contract = Loan(installments: 24, amount: 500m);   // no RemainingPrincipal recorded
 
-        var preview = ContractService.PreviewEarlyPayment(contract, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+        var preview = Preview(contract, 3_000m, EarlyPaymentEffect.ReduceTerm);
 
         preview.Gap.Should().Be(LoanEstimateGap.MissingBalance);
         preview.InterestSaved.Should().BeNull();
-        preview.InstallmentsAfter.Should().Be(preview.InstallmentsBefore);
-        preview.PayoffDateAfter.Should().Be(preview.PayoffDateBefore);
+        preview.After.InstallmentsLeft.Should().Be(preview.Before.InstallmentsLeft);
+        preview.After.PayoffDate.Should().Be(preview.Before.PayoffDate);
+    }
+
+    [Fact]
+    public void The_estimate_gap_follows_what_the_plan_records()
+    {
+        var full    = AmortizedLoan(12_000m, 0.06m, 24);
+        var noRate  = Contract.Create(ContractKind.Loan, "L", Start, "EUR");
+        noRate.AddRevision(Start, RevisionReason.Initial, Start, 1, 500m, 24, remainingPrincipal: 12_000m);
+        var nothing = Loan();
+        var sub     = Contract.Create(ContractKind.Subscription, "S", Start, "EUR");
+
+        ContractService.EstimateGapOf(full, full.ActiveRevision).Should().Be(LoanEstimateGap.None);
+        ContractService.EstimateGapOf(noRate, noRate.ActiveRevision).Should().Be(LoanEstimateGap.MissingRate);
+        ContractService.EstimateGapOf(nothing, nothing.ActiveRevision).Should().Be(LoanEstimateGap.MissingBalance);
+        ContractService.EstimateGapOf(sub, null).Should().Be(LoanEstimateGap.None);
     }
 
     // ── Monthly cash-flow rollup ─────────────────────────────────────────────

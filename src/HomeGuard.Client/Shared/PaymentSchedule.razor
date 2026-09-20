@@ -65,7 +65,11 @@ else
                                  Style="@AmountStyle(entry)">
                             @Money(entry.Amount, entry.Currency ?? Currency)
                         </MudText>
-                        @if (entry.PrincipalPart is { } p && entry.InterestPart is { } i)
+                        @if (entry.Kind == PaymentKind.Extra)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Schedule_Extra"]</MudText>
+                        }
+                        else if (entry.PrincipalPart is { } p && entry.InterestPart is { } i)
                         {
                             <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
                                 @L["Schedule_Split", Money(p, entry.Currency ?? Currency), Money(i, entry.Currency ?? Currency)]

@@ -745,7 +745,7 @@ Still genuinely open, decide when the code gets there:
    somewhere else. This is a widening of the original guardrail, not a reversal of it:
    the app still never invents a number it was not given.
 
-2. **Amortization math lives in `AmortizationMath`** (`HomeGuard.Application/Services`),
+2. **Amortization math lives in `AmortizationMath`** _(superseded by §16.1–16.2)_ (`HomeGuard.Application/Services`),
    a pure static class: the standard fixed-rate annuity formulas (instalment,
    balance-after-k, principal/interest split, term-for-a-balance), each falling back to
    straight-line arithmetic at a 0% rate. `ContractService.BalanceBeforeInstallment` /
@@ -759,7 +759,7 @@ Still genuinely open, decide when the code gets there:
    `PaymentSchedule.razor` renders it as a small caption under the amount, never
    competing with it.
 
-3. **Early payoff is a preview, not a new commit endpoint.**
+3. **Early payoff is a preview, not a new commit endpoint.** _(superseded by §16.3)_
    `ContractService.PreviewEarlyPayment` (pure, `POST /api/contracts/{id}/early-payment/preview`)
    answers "what would this lump sum change" — before/after term, instalment, payoff
    date, and interest saved (`null` under a gap, not zero — zero would claim there is
@@ -887,3 +887,38 @@ job was plugging contracts and payments into it, not building it:
   terms (§10.1): a number on iOS 16.4+/Windows/macOS Chrome, a dot on Android, nothing
   visible on Linux/Firefox (expected, not a bug).
 - **Offline outbox** — not wired to any dialog yet; nothing to verify here until it is.
+
+---
+
+## 16. Reconciliation — 2026-09-20 (two Phase 3 implementations become one)
+
+Phase 3 was built twice in parallel: once on `main` (2026-08-15, §14: `AmortizationMath`,
+a pure `PreviewEarlyPayment`, `LoanEstimateGap`, the monthly rollup) and once on
+`feature/contracts-and-i18n` (`LoanMath`: balance replayed from payments, an atomic
+early-payment commit). Merging them left both in the same files and `main` did not
+compile. They are now one engine, and this section supersedes the parts of §14 it names.
+
+1. **One engine: `LoanMath`** (`HomeGuard.Application/Services`). `AmortizationMath` and
+   `ContractService.BalanceBeforeInstallment` / `SplitInstallmentAt` / the static
+   `PreviewEarlyPayment` are removed; their tests were ported, not dropped
+   (`ContractScheduleTests`, "Amortization" and "Early payoff preview").
+2. **The balance follows the payments, and honours `Opening`.** This reverses §14.2's
+   "never from `Opening`": a contract entered halfway through its life has a bank balance
+   at the cut-off, and walking forward from the plan's original principal ignores it.
+   `LoanMath.TryGetPosition` anchors on the most recent thing anyone actually knows —
+   the bank's balance at the cut-off, or the principal of a later revision — and replays
+   confirmed payments from there. Without a rate it runs at 0 % ("simple mode").
+3. **Early payment is committed atomically on the server** (`POST …/early-payment`),
+   reversing §14.3's "preview only, composed client-side": one call records the paid
+   `Payment(Kind=Extra)` and appends the `EarlyPayment` revision, so the two halves cannot
+   disagree. The preview (`…/early-payment/preview`) keeps §14.1's fallback ladder: a
+   missing rate or balance is reported as `Gap`, never as a failure.
+4. **Kept from §14 unchanged:** `LoanEstimateGap` (now also on `ContractSummary` and on
+   the early-payment preview), the monthly cash-flow rollup and `/api/finance/monthly`,
+   the split caption under each schedule row, status reasons, attachments.
+5. **`RevisionDialog` no longer offers "Early payment"** as a reason; the lump sum has its
+   own dialog. The revision's instalment count is "from this revision's first due date",
+   and the dialog is pre-filled with what is left and the balance now owed.
+6. **`InterestPaidToDate` is nullable.** It is computed as paid − principal repaid − fees
+   and needs the first revision's original principal; a loan entered by balance alone
+   shows nothing rather than a number covering only the tracked months.

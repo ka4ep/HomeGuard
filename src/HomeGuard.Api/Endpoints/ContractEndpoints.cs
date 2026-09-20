@@ -31,7 +31,9 @@ public static class ContractEndpoints
 
         grp.MapGet   ("/{id:guid}/revisions",       GetRevisions);
         grp.MapPost  ("/{id:guid}/revisions",       AddRevision);
+
         grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
+        grp.MapPost  ("/{id:guid}/early-payment",         CommitEarlyPayment);
 
         grp.MapGet   ("/{id:guid}/payments",        GetPayments);
         grp.MapPost  ("/{id:guid}/payments",        AddPayment);
@@ -250,27 +252,49 @@ public static class ContractEndpoints
         }
     }
 
-    /// <summary>
-    /// A dry run: what paying <c>req.ExtraAmount</c> today would change, without writing
-    /// anything. The dialog turns this into the "было → станет" table before the household
-    /// commits to it via <see cref="AddRevision"/>.
-    /// </summary>
-    private static async Task<IResult> PreviewEarlyPayment(
-        Guid id, [FromBody] EarlyPaymentPreviewRequest req, ContractService svc, CancellationToken ct)
-    {
-        var contract = await svc.GetAsync(id, ct);
-        if (contract is null) return Results.NotFound();
+    // ── Early payment ─────────────────────────────────────────────────────────
 
+    private static async Task<IResult> PreviewEarlyPayment(
+        Guid id, [FromBody] EarlyPaymentRequest req, ContractService svc, CancellationToken ct)
+    {
         try
         {
-            var preview = ContractService.PreviewEarlyPayment(contract, req.ExtraAmount, req.Effect);
-            return Results.Ok(preview);
+            var preview = await svc.PreviewEarlyPaymentAsync(
+                new EarlyPaymentCommand(id, req.Amount, req.PaidOn, req.Effect, req.Note), ct);
+
+            return preview is null ? Results.NotFound() : Results.Ok(preview);
         }
-        catch (ArgumentOutOfRangeException ex)
+        catch (InvalidOperationException ex)
+        {
+            return Results.Problem(
+                title: "The early payment cannot be worked out",
+                detail: ex.Message,
+                statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (ArgumentException ex)
         {
             return Results.BadRequest(ex.Message);
         }
+    }
+
+    private static async Task<IResult> CommitEarlyPayment(
+        Guid id, [FromBody] EarlyPaymentRequest req, ContractService svc, CancellationToken ct)
+    {
+        try
+        {
+            var contract = await svc.CommitEarlyPaymentAsync(
+                new EarlyPaymentCommand(id, req.Amount, req.PaidOn, req.Effect, req.Note), ct);
+
+            return contract is null ? Results.NotFound() : Results.Ok(ContractDetailDto.From(contract));
+        }
         catch (InvalidOperationException ex)
+        {
+            return Results.Problem(
+                title: "The early payment cannot be recorded",
+                detail: ex.Message,
+                statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (ArgumentException ex)
         {
             return Results.BadRequest(ex.Message);
         }
@@ -401,6 +425,12 @@ public sealed record AddRevisionRequest(
     string? Note = null,
     IReadOnlyList<PlanAdjustmentRequest>? Adjustments = null);
 
+public sealed record EarlyPaymentRequest(
+    decimal Amount,
+    DateOnly PaidOn,
+    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm,
+    string? Note = null);
+
 public sealed record AddPaymentRequest(
     DateOnly DueDate,
     decimal AmountDue,
@@ -419,10 +449,6 @@ public sealed record ConfirmPaymentRequest(
     DateOnly PaidDate,
     decimal? AmountPaid = null,
     string? Note = null);
-
-public sealed record EarlyPaymentPreviewRequest(
-    decimal ExtraAmount,
-    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm);
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 

@@ -172,6 +172,17 @@ public sealed class ContractFormModel
     public int?     InstallmentCount  { get; set; }
     public DateTime? FirstDueDateNullable { get; set; } = DateTime.Today;
 
+    // Loans and leases only.
+    public decimal?  LoanPrincipal       { get; set; }
+    public decimal?  InterestRatePercent { get; set; }
+    public decimal?  ResidualAmount      { get; set; }
+    public DateTime? ResidualDueDateNullable { get; set; }
+
+    public decimal? AnnualInterestRate => InterestRatePercent / 100m;
+
+    public DateOnly? ResidualDueDate
+        => ResidualDueDateNullable is { } d ? DateOnly.FromDateTime(d) : null;
+
     public DateOnly StartDate
         => StartDateNullable is { } d ? DateOnly.FromDateTime(d) : DateOnly.FromDateTime(DateTime.Today);
 
@@ -204,16 +215,16 @@ public sealed class RevisionFormModel
     public int?           InstallmentCount { get; set; }
     public string?        Note           { get; set; }
 
-    /// <summary>Balance owed at <see cref="EffectiveFrom"/> — loans and leases only.</summary>
-    public decimal? RemainingPrincipal { get; set; }
+    // Loans and leases only.
+    public decimal?  RemainingPrincipal  { get; set; }
+    public decimal?  InterestRatePercent { get; set; }
+    public decimal?  ResidualAmount      { get; set; }
+    public DateTime? ResidualDueDateNullable { get; set; }
 
-    /// <summary>Nominal annual rate as a whole-number percentage (6.5 for 6.5%), the way a household reads it off a statement.</summary>
-    public decimal? AnnualInterestRatePercent { get; set; }
+    public decimal? AnnualInterestRate => InterestRatePercent / 100m;
 
-    /// <summary>A lump sum paid today, ahead of schedule. Zero/empty means "no early payment" — a plain plan edit.</summary>
-    public decimal? ExtraAmount { get; set; }
-
-    public EarlyPaymentEffect Effect { get; set; } = EarlyPaymentEffect.ReduceTerm;
+    public DateOnly? ResidualDueDate
+        => ResidualDueDateNullable is { } d ? DateOnly.FromDateTime(d) : null;
 
     public DateTime? EffectiveFromNullable { get; set; } = DateTime.Today;
 
