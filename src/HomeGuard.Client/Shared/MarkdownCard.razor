@@ -6,8 +6,10 @@
     written by hand from the PDF that sits in the attachments. Rendered as markdown so a
     list of covered items reads as a list.
 
-    Reused wherever a Notes field is declared markdown — equipment, warranty, service —
-    which today render it as plain text.
+    Equipment/warranty/service Notes fields are also markdown, but sit inside an existing
+    card/section rather than needing one of their own — those render straight through
+    MarkdownRenderer.ToHtml() into a bare "hg-markdown" div instead of wrapping this
+    component.
 *@
 @if (!string.IsNullOrWhiteSpace(Markdown))
 {

@@ -70,6 +70,32 @@ public sealed class AuthApiClient
         return AuthResult.Ok(body?.DisplayName ?? "User");
     }
 
+    // ── Dev bypass ────────────────────────────────────────────────────────────
+    // Skips the WebAuthn ceremony (useful over RDP, where a platform authenticator
+    // often cannot create a resident key at all). The server route only exists when
+    // it is running in Development with Auth:DevBypassEnabled set — see AuthEndpoints.
+
+    public async Task<bool> IsDevModeEnabledAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            var resp = await _http.GetFromJsonAsync<DevModeStatusDto>("api/auth/dev-mode", ct);
+            return resp?.Enabled ?? false;
+        }
+        catch { return false; }
+    }
+
+    public async Task<AuthResult> DevLoginAsync(CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsync("api/auth/dev-login", null, ct);
+
+        if (!resp.IsSuccessStatusCode)
+            return AuthResult.Fail(await resp.Content.ReadAsStringAsync(ct));
+
+        var body = await resp.Content.ReadFromJsonAsync<AuthResultDto>(ct);
+        return AuthResult.Ok(body?.DisplayName ?? "Dev");
+    }
+
     // ── Session ───────────────────────────────────────────────────────────────
 
     public async Task<MeDto?> GetMeAsync(CancellationToken ct = default)
@@ -165,4 +191,5 @@ public sealed record CredentialDto(
 
 file sealed record AuthResultDto(string? DisplayName);
 file sealed record SetupRequiredDto(bool Required);
+file sealed record DevModeStatusDto(bool Enabled);
 public sealed record MeDto(string Id, string DisplayName, string Language);

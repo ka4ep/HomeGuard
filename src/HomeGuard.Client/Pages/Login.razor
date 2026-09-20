@@ -1,8 +1,10 @@
 @page "/login"
 @inject AuthApiClient AuthApi
+@inject SessionService Session
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject ISnackbar Snackbar
+@inject ILogger<Login> Logger
 @inject IStringLocalizer<Strings> L
 
 <PageTitle>HomeGuard — @L["Nav_SignIn"]</PageTitle>
@@ -82,13 +84,26 @@
                         </MudButton>
                     </MudStack>
                 }
+            }
 
-                @if (_error is not null)
-                {
-                    <MudAlert Severity="Severity.Error" Class="mt-4" Dense="true">
-                        @_error
-                    </MudAlert>
-                }
+            @if (_error is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-4" Dense="true">
+                    @_error
+                </MudAlert>
+            }
+
+            @if (_devModeEnabled)
+            {
+                <MudDivider Class="mt-4 mb-3" />
+                <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-2">
+                    @L["Login_DevModeWarning"]
+                </MudAlert>
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.BugReport"
+                           OnClick="DevLoginAsync" Disabled="_busy">
+                    @L["Login_DevSignIn"]
+                </MudButton>
             }
 
         </MudCardContent>
@@ -106,6 +121,7 @@
     private Mode   _mode = Mode.Login;
     private bool   _busy;
     private bool   _supported;
+    private bool   _devModeEnabled;
     private string _displayName = string.Empty;
     private string _deviceName  = string.Empty;
     private string? _error;
@@ -113,7 +129,8 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender) return;
-        _supported = await JS.InvokeAsync<bool>("homeGuardAuth.isSupported");
+        _supported      = await JS.InvokeAsync<bool>("homeGuardAuth.isSupported");
+        _devModeEnabled = await AuthApi.IsDevModeEnabledAsync();
         StateHasChanged();
     }
 
@@ -140,7 +157,7 @@
 
             if (assertionElement.TryGetProperty("error", out var err))
             {
-                _error = err.GetString();
+                _error = WebAuthnErrorMessage(assertionElement, err);
                 return;
             }
 
@@ -155,12 +172,46 @@
                 return;
             }
 
+            // SessionService is a singleton that caches the first answer it gets. Without
+            // dropping it here, the layout's auth gate would still be holding the "nobody
+            // is signed in" from a moment ago and bounce straight back to /login.
+            Session.Invalidate();
+
             Snackbar.Add($"Welcome back, {result.DisplayName}!", Severity.Success);
             Nav.NavigateTo("/");
         }
         catch (Exception ex)
         {
             _error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    // ── Dev bypass ────────────────────────────────────────────────────────────
+    // Only ever rendered when the server says Auth:DevBypassEnabled is set AND it is
+    // running in Development — see AuthEndpoints.MapAuthEndpoints. The route this calls
+    // does not exist at all outside Development, regardless of config.
+
+    private async Task DevLoginAsync()
+    {
+        _busy  = true;
+        _error = null;
+
+        try
+        {
+            var result = await AuthApi.DevLoginAsync();
+            if (!result.Success)
+            {
+                _error = result.Error ?? L["Login_AuthFailed"];
+                return;
+            }
+
+            Session.Invalidate();   // same reason as in LoginAsync above
+            Snackbar.Add($"Dev sign-in: {result.DisplayName}", Severity.Warning);
+            Nav.NavigateTo("/");
         }
         finally
         {
@@ -199,7 +250,7 @@
 
             if (attestationElement.TryGetProperty("error", out var err))
             {
-                _error = err.GetString();
+                _error = WebAuthnErrorMessage(attestationElement, err);
                 return;
             }
 
@@ -214,6 +265,8 @@
                 return;
             }
 
+            Session.Invalidate();   // same reason as in LoginAsync above
+
             Snackbar.Add($"Welcome, {result.DisplayName}! Passkey registered.", Severity.Success);
             Nav.NavigateTo("/");
         }
@@ -225,5 +278,32 @@
         {
             _busy = false;
         }
+    }
+
+    // ── WebAuthn error mapping ───────────────────────────────────────────────
+
+    /// <summary>
+    /// homeguard-auth.js returns the browser's DOMException name in "error" (stable
+    /// across browsers) and its free-text message in "detail" (varies by vendor, often
+    /// as unhelpful as "The operation is not supported."). This turns the name into
+    /// something the household can act on; the raw detail still goes to the console for
+    /// whoever ends up diagnosing it.
+    /// </summary>
+    private string WebAuthnErrorMessage(System.Text.Json.JsonElement result, System.Text.Json.JsonElement errorName)
+    {
+        var name   = errorName.GetString();
+        var detail = result.TryGetProperty("detail", out var d) ? d.GetString() : null;
+
+        Logger.LogWarning("WebAuthn ceremony failed: {Name} — {Detail}", name, detail);
+
+        return name switch
+        {
+            "NotSupportedError"  => L["Login_ErrorNotSupported"],
+            "NotAllowedError"    => L["Login_ErrorNotAllowed"],
+            "SecurityError"      => L["Login_ErrorSecurity"],
+            "InvalidStateError"  => L["Login_ErrorInvalidState"],
+            "AbortError"         => L["Login_ErrorAbort"],
+            _                    => detail ?? name ?? L["Login_AuthFailed"],
+        };
     }
 }

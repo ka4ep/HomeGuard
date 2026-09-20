@@ -83,8 +83,11 @@ export async function startCamera(videoEl) {
                     height: { ideal: 1080 }
                 }
             });
-        } catch {
-            // Fallback: любая доступная камера
+        } catch (err) {
+            // Fallback: любая доступная камера. Залогировано — иначе непонятно, почему
+            // вместо задней открылась передняя (ideal — мягкое ограничение, обычно не
+            // должно падать; если падает часто, значит не в этом дело).
+            console.warn('[documentCapture] задняя камера недоступна, откат на любую:', err);
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
         }
 

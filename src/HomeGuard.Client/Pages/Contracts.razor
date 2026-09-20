@@ -74,7 +74,7 @@ else
             <RowTemplate Context="c">
                 <MudTd DataLabel="@NameLabel">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                        <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                        <ContractStatusChip Status="c.Status" />
                         <MudStack Spacing="0">
                             <MudText Typo="Typo.body2" Style="font-weight:600">@c.Name</MudText>
                             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -95,8 +95,10 @@ else
             @foreach (var c in _items)
             {
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard Elevation="1" Style="cursor:pointer; height:100%"
-                             @onclick="() => OpenDetail(c.Id)">
+                    <MudCard Elevation="1" Class="hg-clickable-card" Style="cursor:pointer; height:100%"
+                             tabindex="0" role="button" aria-label="@c.Name"
+                             @onclick="() => OpenDetail(c.Id)"
+                             @onkeydown="@(e => OnCardKeyDown(e, c.Id))">
                         <MudCardContent>
                             <MudStack Row="true" AlignItems="AlignItems.Start"
                                       Justify="Justify.SpaceBetween" Spacing="2">
@@ -110,7 +112,7 @@ else
                                         }
                                     </MudText>
                                 </MudStack>
-                                <span class="hg-status-dot" style="@StatusDotStyle(c)"></span>
+                                <ContractStatusChip Status="c.Status" />
                             </MudStack>
 
                             <MudText Typo="Typo.h6" Class="hg-tabular mt-3"
@@ -128,7 +130,7 @@ else
                             @if (c.CancellationDeadline is { } deadline)
                             {
                                 <MudText Typo="Typo.caption" Class="mt-1 d-block"
-                                         Style="color:var(--hg-today)">
+                                         Style="color:var(--hg-today-text)">
                                     @L["Contract_CancelBy", ShortDate(deadline)]
                                 </MudText>
                             }
@@ -151,6 +153,12 @@ else
                 </MudText>
             </MudStack>
         }
+        @if (MonthlyTotals.Count() > 1)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                @L["Contract_OtherCurrencies"]
+            </MudText>
+        }
         @if (WithoutPlanCount > 0)
         {
             <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -158,10 +166,13 @@ else
             </MudText>
         }
     </MudPaper>
+
+    <BudgetLoadChart Entries="_monthlyLoad" />
 }
 
 @code {
     private List<ContractDto>? _items;
+    private List<MonthlyLoadEntryDto> _monthlyLoad = [];
     private ContractDialog _dialog = null!;
     private ContractKind? _kind;
     private DensityMode _density = DensityMode.Cards;
@@ -179,6 +190,7 @@ else
     {
         _density = await Density.GetAsync(DensitySurface.Contracts);
         await LoadAsync();
+        _monthlyLoad = await Api.GetMonthlyLoadAsync(6) ?? [];
     }
 
     private async Task LoadAsync()
@@ -199,6 +211,12 @@ else
 
     private void OpenDetail(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
+    /// <summary>Cards mode has no native button under the click handler — Enter/Space stand in.</summary>
+    private void OnCardKeyDown(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ") OpenDetail(id);
+    }
+
     private void OnRowClick(TableRowClickEventArgs<ContractDto> args)
     {
         if (args.Item is not null) OpenDetail(args.Item.Id);
@@ -216,32 +234,13 @@ else
             ? Money(amount, c.Currency)
             : "—";
 
-    private string IntervalLabel(ContractDto c) => c.IntervalMonths switch
-    {
-        null  => string.Empty,
-        1     => L["Contract_PerMonth"],
-        3     => L["Contract_PerQuarter"],
-        6     => L["Contract_PerHalfYear"],
-        12    => L["Contract_PerYear"],
-        var n => L["Contract_EveryNMonths", n],
-    };
+    private string IntervalLabel(ContractDto c)
+        => c.IntervalMonths is { } months ? ContractFormat.IntervalLabel(L, months) : string.Empty;
 
     private string PeriodLabelFor(ContractDto c)
         => c.EndDate is { } end
             ? $"{ShortDate(c.StartDate)} → {ShortDate(end)}"
             : $"{ShortDate(c.StartDate)} → {L["Contract_OpenEnded"]}";
-
-    /// <summary>
-    /// A 7px dot rather than a coloured edge bar (the brief is explicit about this):
-    /// status is a fact about the row, not a second background.
-    /// </summary>
-    private static string StatusDotStyle(ContractDto c) => c.Status switch
-    {
-        ContractStatus.Active    => "background:var(--hg-success-text)",
-        ContractStatus.Suspended => "background:var(--hg-warning-text)",
-        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
-        _                        => "background:var(--hg-text-subtle)",
-    };
 
     // ── Totals ───────────────────────────────────────────────────────────────
 
@@ -265,14 +264,5 @@ else
         => date.ToString("d", CultureInfo.CurrentCulture);
 
     private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 }

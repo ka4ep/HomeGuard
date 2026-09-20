@@ -28,10 +28,13 @@ else
 {
     @foreach (var c in _contracts)
     {
-        <MudPaper @key="@c.Id" Elevation="1" Class="mb-1 px-4 py-2"
+        <MudPaper @key="@c.Id" Elevation="1" Class="mb-1 px-4 py-2 hg-clickable-card"
                   Style="border-radius:var(--hg-radius-md); cursor:pointer"
-                  @onclick="() => OpenContract(c.Id)">
+                  tabindex="0" role="button" aria-label="@c.Name"
+                  @onclick="() => OpenContract(c.Id)"
+                  @onkeydown="@(e => OnRowKeyDown(e, c.Id))">
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Style="flex-wrap:wrap">
+                <ContractStatusChip Status="c.Status" />
                 <MudStack Spacing="0" Style="flex:1; min-width:140px">
                     <MudText Typo="Typo.body1" Style="font-weight:600">@c.Name</MudText>
                     <MudText Typo="Typo.caption" Color="Color.Secondary">
@@ -63,6 +66,12 @@ else
             </MudText>
         </MudStack>
     }
+    @if (MonthlyTotals.Count() > 1)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="px-4 d-block">
+            @L["Contract_OtherCurrencies"]
+        </MudText>
+    }
 }
 
 <ContractDialog @ref="_dialog" FixedEquipmentId="EquipmentId" OnSaved="OnSavedAsync" />
@@ -82,6 +91,11 @@ else
 
     private void OpenContract(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
+    private void OnRowKeyDown(KeyboardEventArgs e, Guid id)
+    {
+        if (e.Key is "Enter" or " ") OpenContract(id);
+    }
+
     private IEnumerable<(string Currency, decimal Total)> MonthlyTotals
         => _contracts
             .Where(c => c.Status == ContractStatus.Active
@@ -90,25 +104,9 @@ else
             .GroupBy(c => c.Currency)
             .Select(g => (g.Key, g.Sum(c => c.CurrentInstallment!.Value / c.IntervalMonths!.Value)));
 
-    private string IntervalLabel(ContractDto c) => c.IntervalMonths switch
-    {
-        null  => string.Empty,
-        1     => L["Contract_PerMonth"],
-        3     => L["Contract_PerQuarter"],
-        6     => L["Contract_PerHalfYear"],
-        12    => L["Contract_PerYear"],
-        var n => L["Contract_EveryNMonths", n],
-    };
+    private string IntervalLabel(ContractDto c)
+        => c.IntervalMonths is { } months ? ContractFormat.IntervalLabel(L, months) : string.Empty;
 
     private static string Money(decimal amount, string currency)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
 }

@@ -1,3 +1,4 @@
+using HomeGuard.Application.Interfaces.Repositories;
 using HomeGuard.Application.Services;
 using HomeGuard.Domain.Entities;
 using HomeGuard.Domain.Enums;
@@ -9,7 +10,7 @@ public static class ContractEndpoints
 {
     public static void MapContractEndpoints(this WebApplication app)
     {
-        var grp = app.MapGroup("/api/contracts").WithTags("Contracts");
+        var grp = app.MapGroup("/api/contracts").WithTags("Contracts").RequireAuthorization();
 
         grp.MapGet   ("/",                          GetAll);
         grp.MapGet   ("/expiring",                  GetExpiring);
@@ -30,6 +31,7 @@ public static class ContractEndpoints
 
         grp.MapGet   ("/{id:guid}/revisions",       GetRevisions);
         grp.MapPost  ("/{id:guid}/revisions",       AddRevision);
+        grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
 
         grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
         grp.MapPost  ("/{id:guid}/early-payment",         CommitEarlyPayment);
@@ -37,10 +39,13 @@ public static class ContractEndpoints
         grp.MapGet   ("/{id:guid}/payments",        GetPayments);
         grp.MapPost  ("/{id:guid}/payments",        AddPayment);
 
-        var payments = app.MapGroup("/api/payments").WithTags("Contracts");
+        var payments = app.MapGroup("/api/payments").WithTags("Contracts").RequireAuthorization();
         payments.MapPost  ("/{id:guid}/confirm",    ConfirmPayment);
         payments.MapPut   ("/{id:guid}",            UpdatePayment);
         payments.MapDelete("/{id:guid}",            DeletePayment);
+
+        var finance = app.MapGroup("/api/finance").WithTags("Contracts").RequireAuthorization();
+        finance.MapGet("/monthly", GetMonthlyLoad);
     }
 
     // ── Contracts ─────────────────────────────────────────────────────────────
@@ -77,10 +82,17 @@ public static class ContractEndpoints
         return Results.Ok(list.Select(ContractDto.From));
     }
 
-    private static async Task<IResult> Get(Guid id, ContractService svc, CancellationToken ct)
+    private static async Task<IResult> Get(
+        Guid id, ContractService svc, IBlobEntryRepository blobs, CancellationToken ct)
     {
         var contract = await svc.GetAsync(id, ct);
-        return contract is null ? Results.NotFound() : Results.Ok(ContractDetailDto.From(contract));
+        if (contract is null) return Results.NotFound();
+
+        // Contract.Attachments is intentionally unmapped in EF (see the comment on
+        // HomeGuardDbContext's Contract config) — resolved here instead.
+        var attachments = await blobs.GetByOwnerAsync(id, ct);
+        return Results.Ok(ContractDetailDto.From(
+            contract, [.. attachments.Select(BlobDto.From)]));
     }
 
     private static async Task<IResult> Create(
@@ -126,7 +138,7 @@ public static class ContractEndpoints
     private static async Task<IResult> SetStatus(
         Guid id, [FromBody] SetContractStatusRequest req, ContractService svc, CancellationToken ct)
     {
-        var contract = await svc.SetStatusAsync(id, req.Status, ct);
+        var contract = await svc.SetStatusAsync(id, req.Status, req.Reason, ct);
         return contract is null ? Results.NotFound() : Results.Ok(ContractDto.From(contract));
     }
 
@@ -342,6 +354,15 @@ public static class ContractEndpoints
 
     private static async Task<IResult> DeletePayment(Guid id, ContractService svc, CancellationToken ct)
         => await svc.DeletePaymentAsync(id, ct) ? Results.NoContent() : Results.NotFound();
+
+    // ── Finance rollup ───────────────────────────────────────────────────────
+
+    private static async Task<IResult> GetMonthlyLoad(
+        ContractService svc, CancellationToken ct, [FromQuery] int months = 12)
+    {
+        var entries = await svc.GetMonthlyLoadAsync(Math.Clamp(months, 1, 36), ct);
+        return Results.Ok(entries);
+    }
 }
 
 // ── Requests ──────────────────────────────────────────────────────────────────
@@ -378,7 +399,7 @@ public sealed record UpdateContractRequest(
     decimal? Deductible = null,
     IReadOnlyList<string>? Tags = null);
 
-public sealed record SetContractStatusRequest(ContractStatus Status);
+public sealed record SetContractStatusRequest(ContractStatus Status, string? Reason = null);
 public sealed record SetSummaryMarkdownRequest(string? SummaryMarkdown);
 public sealed record ContractNotificationRuleRequest(NotificationOffset Offset, bool Enabled);
 public sealed record SetContractNotificationsRequest(IReadOnlyList<ContractNotificationRuleRequest> Rules);
@@ -430,6 +451,10 @@ public sealed record ConfirmPaymentRequest(
     decimal? AmountPaid = null,
     string? Note = null);
 
+public sealed record EarlyPaymentPreviewRequest(
+    decimal ExtraAmount,
+    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm);
+
 // ── Responses ─────────────────────────────────────────────────────────────────
 
 public sealed record ContractDto(
@@ -463,17 +488,23 @@ public sealed record ContractDetailDto(
     ContractDto Contract,
     string? SummaryMarkdown,
     string? Notes,
+    string? StatusReason,
     decimal? CoverageAmount,
     decimal? Deductible,
     OpeningPositionDto? Opening,
     IReadOnlyList<PlanRevisionDto> Revisions,
     IReadOnlyList<PaymentDto> Payments,
-    IReadOnlyList<ContractNotificationRuleRequest> NotificationRules)
+    IReadOnlyList<ContractNotificationRuleRequest> NotificationRules,
+    IReadOnlyList<BlobDto> Attachments)
 {
-    public static ContractDetailDto From(Contract c) => new(
+    // attachments defaults to empty for the handful of write endpoints (SetOpening,
+    // ClearOpening) that return a ContractDetailDto without re-querying blobs — the
+    // client always follows those with a full reload, so the field is never read stale.
+    public static ContractDetailDto From(Contract c, IReadOnlyList<BlobDto>? attachments = null) => new(
         ContractDto.From(c),
         c.SummaryMarkdown,
         c.Notes,
+        c.StatusReason,
         c.CoverageAmount,
         c.Deductible,
         c.Opening is null ? null : new OpeningPositionDto(
@@ -481,7 +512,8 @@ public sealed record ContractDetailDto(
             c.Opening.AmountPaid, c.Opening.RemainingBalance),
         [.. c.Revisions.OrderBy(r => r.Version).Select(PlanRevisionDto.From)],
         [.. c.Payments.OrderBy(p => p.DueDate).Select(PaymentDto.From)],
-        [.. c.NotificationRules.Select(r => new ContractNotificationRuleRequest(r.Offset, r.IsEnabled))]);
+        [.. c.NotificationRules.Select(r => new ContractNotificationRuleRequest(r.Offset, r.IsEnabled))],
+        attachments ?? []);
 }
 
 public sealed record OpeningPositionDto(

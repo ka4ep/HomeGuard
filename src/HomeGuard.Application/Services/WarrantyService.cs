@@ -14,7 +14,8 @@ public sealed record CreateWarrantyCommand(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record UpdateWarrantyCommand(
@@ -24,7 +25,8 @@ public sealed record UpdateWarrantyCommand(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record SetNotificationRulesCommand(
@@ -64,7 +66,7 @@ public sealed class WarrantyService
         var warranty = Warranty.Create(
             cmd.EquipmentId, cmd.Name,
             cmd.StartDate, cmd.EndDate,
-            cmd.Provider, cmd.ContractNumber, cmd.Notes);
+            cmd.Provider, cmd.ContractNumber, cmd.Notes, cmd.Cost);
 
         await _repo.AddAsync(warranty, ct);
         await _uow.SaveChangesAsync(ct);
@@ -81,7 +83,7 @@ public sealed class WarrantyService
             ?? throw new KeyNotFoundException($"Warranty {cmd.Id} not found.");
 
         warranty.Update(cmd.Name, cmd.StartDate, cmd.EndDate,
-            cmd.Provider, cmd.ContractNumber, cmd.Notes);
+            cmd.Provider, cmd.ContractNumber, cmd.Notes, cmd.Cost);
 
         await _uow.SaveChangesAsync(ct);
         _ = SyncToCalendarsAsync(warranty, ct);

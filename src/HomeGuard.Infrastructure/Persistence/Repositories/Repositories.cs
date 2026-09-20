@@ -15,7 +15,6 @@ public sealed class EquipmentRepository : RepositoryBase<Equipment>, IEquipmentR
         => await Set
             .Include(e => e.Warranties).ThenInclude(w => w.NotificationRules)
             .Include(e => e.ServiceRecords).ThenInclude(sr => sr.NotificationRules)
-            .Include(e => e.Attachments)
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
     public async Task<IReadOnlyList<Equipment>> GetAllAsync(CancellationToken ct = default)
@@ -52,7 +51,6 @@ public sealed class WarrantyRepository : RepositoryBase<Warranty>, IWarrantyRepo
     public async Task<Warranty?> GetWithDetailsAsync(Guid id, CancellationToken ct = default)
         => await Set
             .Include(w => w.NotificationRules)
-            .Include(w => w.Attachments)
             .FirstOrDefaultAsync(w => w.Id == id, ct);
 
     public async Task<IReadOnlyList<Warranty>> GetByEquipmentAsync(
@@ -104,7 +102,6 @@ public sealed class ServiceRecordRepository : RepositoryBase<ServiceRecord>, ISe
     public async Task<ServiceRecord?> GetWithDetailsAsync(Guid id, CancellationToken ct = default)
         => await Set
             .Include(sr => sr.NotificationRules)
-            .Include(sr => sr.Attachments)
             .FirstOrDefaultAsync(sr => sr.Id == id, ct);
 
     public async Task<IReadOnlyList<ServiceRecord>> GetByEquipmentAsync(
@@ -201,10 +198,12 @@ public sealed class BlobEntryRepository : RepositoryBase<BlobEntry>, IBlobEntryR
 
     public async Task<IReadOnlyList<BlobEntry>> GetByOwnerAsync(
         Guid ownerEntityId, CancellationToken ct = default)
-        => await Set
-            .Where(b => b.OwnerEntityId == ownerEntityId)
-            .OrderBy(b => b.CreatedAt)
-            .ToListAsync(ct);
+    {
+        // SQLite can't translate ORDER BY over DateTimeOffset (see GetPendingSyncAsync
+        // below, which already works around this the same way) — order client-side.
+        var owned = await Set.Where(b => b.OwnerEntityId == ownerEntityId).ToListAsync(ct);
+        return [.. owned.OrderBy(b => b.CreatedAt)];
+    }
 
     public async Task<IReadOnlyList<BlobEntry>> GetPendingSyncAsync(CancellationToken ct = default)
     {
@@ -366,5 +365,16 @@ public sealed class ContractRepository : RepositoryBase<Contract>, IContractRepo
             .Where(p => p.DueDate >= fromDate && p.DueDate <= toDate)
             .OrderBy(p => p.DueDate)
             .ToList();
+    }
+
+    public async Task<IReadOnlyList<Contract>> GetActiveWithSchedulesAsync(CancellationToken ct = default)
+    {
+        var all = await Set
+            .Include(c => c.Revisions).ThenInclude(r => r.Adjustments)
+            .Include(c => c.Payments)
+            .Where(c => c.Status == ContractStatus.Active)
+            .ToListAsync(ct);
+
+        return all.OrderBy(c => c.Name).ToList();
     }
 }

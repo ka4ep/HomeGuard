@@ -20,30 +20,50 @@ else
 {
     <MudSimpleTable Dense="true" Hover="true" Elevation="0" Style="background:transparent">
         <tbody>
-            @foreach (var entry in Visible)
-            {
-                <tr style="@RowStyle(entry)">
+            @* "Show all" can mean up to 360 rows (contracts-spec's own stated max) — Virtualize
+               keeps only the on-screen rows in the DOM instead of all 360 at once. *@
+            <Virtualize Items="Visible" Context="entry">
+                <tr style="@(RowStyle(entry));@(OnRowClick.HasDelegate ? "cursor:pointer" : "")"
+                    tabindex="@(OnRowClick.HasDelegate ? "0" : null)"
+                    role="@(OnRowClick.HasDelegate ? "button" : null)"
+                    @onclick="@(() => OnRowClick.InvokeAsync(entry))"
+                    @onkeydown="@(e => OnTrKeyDown(e, entry))">
                     <td style="width:1%; padding-right:0">
                         <span class="hg-status-dot" style="@DotStyle(entry)"></span>
                     </td>
                     <td>
                         <MudStack Spacing="0">
-                            <MudText Typo="Typo.body2" Class="hg-tabular">
-                                @ShortDate(entry.DueDate)
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                @StateLabel(entry)
-                                @if (entry.InstallmentNo is { } no)
-                                {
-                                    <span> · @no</span>
-                                }
-                            </MudText>
+                            @if (entry.ContractName is { } name)
+                            {
+                                @* Cross-contract list (Home): identity matters more than lifecycle state here. *@
+                                <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere">@name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                    @if (entry.IsOverdue)
+                                    {
+                                        <span> · @L["Schedule_Overdue"]</span>
+                                    }
+                                </MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body2" Class="hg-tabular">
+                                    @ShortDate(entry.DueDate)
+                                </MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @StateLabel(entry)
+                                    @if (entry.InstallmentNo is { } no)
+                                    {
+                                        <span> · @no</span>
+                                    }
+                                </MudText>
+                            }
                         </MudStack>
                     </td>
                     <td style="text-align:right">
                         <MudText Typo="Typo.body2" Class="hg-tabular"
                                  Style="@AmountStyle(entry)">
-                            @Money(entry.Amount)
+                            @Money(entry.Amount, entry.Currency ?? Currency)
                         </MudText>
                         @if (entry is { Interest: { } interest, Principal: { } principal }
                              && entry.Kind == PaymentKind.Scheduled)
@@ -60,22 +80,26 @@ else
                     <td style="width:1%; text-align:right">
                         @if (CanEdit(entry))
                         {
-                            <MudIconButton Icon="@Icons.Material.Outlined.Edit"
-                                           Size="Size.Small"
-                                           OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
+                            <MudTooltip Text="@L["Common_Edit"]">
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
+                                               aria-label="@L["Common_Edit"]"
+                                               OnClick="@(() => OnEditPayment.InvokeAsync(entry))" />
+                            </MudTooltip>
                         }
                         @if (CanConfirm(entry))
                         {
                             <MudTooltip Text="@ConfirmLabel">
                                 <MudIconButton Icon="@Icons.Material.Outlined.CheckCircle"
-                                               Size="Size.Small"
+                                               Size="Size.Small" Class="hg-touch-target-sm"
+                                               aria-label="@ConfirmLabel"
                                                Disabled="@(_confirming == entry.PaymentId)"
                                                OnClick="@(() => ConfirmAsync(entry))" />
                             </MudTooltip>
                         }
                     </td>
                 </tr>
-            }
+            </Virtualize>
         </tbody>
     </MudSimpleTable>
 
@@ -91,13 +115,23 @@ else
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<ScheduleEntryDto> Entries { get; set; } = [];
 
-    [Parameter, EditorRequired] public string Currency { get; set; } = "EUR";
+    /// <summary>
+    /// Fallback currency for an entry that does not carry its own — every entry does today
+    /// except the cross-contract list (Home's upcoming strip), where each row names its own.
+    /// </summary>
+    [Parameter] public string? Currency { get; set; }
 
     /// <summary>Raised when a row's "paid" button is used; the page owns the API call.</summary>
     [Parameter] public EventCallback<ScheduleEntryDto> OnConfirmPayment { get; set; }
 
     /// <summary>Raised when a stored row is opened for correction.</summary>
     [Parameter] public EventCallback<ScheduleEntryDto> OnEditPayment { get; set; }
+
+    /// <summary>
+    /// Raised on row click instead of the edit/confirm actions — Home's strip uses this to
+    /// jump to the contract rather than act on the payment inline.
+    /// </summary>
+    [Parameter] public EventCallback<ScheduleEntryDto> OnRowClick { get; set; }
 
     /// <summary>How many rows to show before the far tail collapses.</summary>
     [Parameter] public int Collapsed { get; set; } = 12;
@@ -107,8 +141,9 @@ else
 
     private string ConfirmLabel => L["Schedule_Confirm"];
 
-    private IEnumerable<ScheduleEntryDto> Visible
-        => _showAll ? Entries : Entries.Take(Collapsed);
+    // Virtualize's Items wants an ICollection, not just IEnumerable.
+    private List<ScheduleEntryDto> Visible
+        => _showAll ? [.. Entries] : [.. Entries.Take(Collapsed)];
 
     /// <summary>Only a real, still-planned row can be confirmed — a projection has no id yet.</summary>
     private bool CanConfirm(ScheduleEntryDto e)
@@ -126,6 +161,13 @@ else
         _confirming = entry.PaymentId;
         await OnConfirmPayment.InvokeAsync(entry);
         _confirming = null;
+    }
+
+    /// <summary>Only the cross-contract list wires OnRowClick — that is the only row that is a keyboard target.</summary>
+    private async Task OnTrKeyDown(KeyboardEventArgs e, ScheduleEntryDto entry)
+    {
+        if (OnRowClick.HasDelegate && e.Key is "Enter" or " ")
+            await OnRowClick.InvokeAsync(entry);
     }
 
     // ── Presentation ─────────────────────────────────────────────────────────
@@ -170,15 +212,6 @@ else
     private static string ShortDate(DateOnly date)
         => date.ToString("d", CultureInfo.CurrentCulture);
 
-    private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+    private static string Money(decimal amount, string? currency)
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency ?? "EUR")}";
 }

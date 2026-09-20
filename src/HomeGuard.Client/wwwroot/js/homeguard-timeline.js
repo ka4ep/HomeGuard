@@ -371,7 +371,7 @@ window.homeGuardTimeline = {
                 mkEl.addEventListener('mouseenter', () => {
                     inst.hovId = `mk-${row.id}-${mi}`;
                     mkEl.classList.add('hg-tl-meter-mark-hov');
-                    const src = mk.source === 'Auto' ? ' · auto' : '';
+                    const src = mk.source ? ` · ${this._esc(mk.source.toLowerCase())}` : '';
                     inst.dateBadge.textContent =
                         `${this._fmtDate(mk.dateObj)} · ${this._fmtNum(mk.value)}${mk.unit ? ' ' + mk.unit : ''}${src}`;
                     inst.dateBadge.style.display = 'block';
@@ -571,10 +571,12 @@ window.homeGuardTimeline = {
         if (ev.isPredicted) items.push([this._lbl('status', 'Status'), this._lbl('predicted', 'Predicted')]);
         else if (ev.status) items.push([this._lbl('status', 'Status'), this._statuses[ev.status] || ev.status]);
         if (ev.meterReading != null) items.push([this._lbl('meterReading', 'Meter reading'), this._fmtNum(ev.meterReading) + (ev.meterUnit ? ' ' + ev.meterUnit : '')]);
-        if (ev.cost != null) items.push([this._lbl('cost', 'Cost'), this._fmtNum(ev.cost, 2) + ' €']);
+        if (ev.cost != null) items.push([this._lbl('cost', 'Cost'), this._fmtNum(ev.cost, 2) + ' ' + (ev.currency || '€')]);
         if (ev.serviceProvider) items.push([this._lbl('provider', 'Provider'), ev.serviceProvider]);
-        if (ev.isStart) items.push([this._lbl('event', 'Event'), this._lbl('warrantyStart', 'Warranty start')]);
-        if (ev.isExpiry) items.push([this._lbl('event', 'Event'), this._lbl('warrantyExpiry', 'Warranty expiry')]);
+        if (ev.isStart) items.push([this._lbl('event', 'Event'),
+            ev.contractId ? this._lbl('contractStart', 'Contract starts') : this._lbl('warrantyStart', 'Warranty start')]);
+        if (ev.isExpiry) items.push([this._lbl('event', 'Event'),
+            ev.contractId ? this._lbl('contractEnd', 'Contract ends') : this._lbl('warrantyExpiry', 'Warranty expiry')]);
         if (ev.notes) items.push([this._lbl('notes', 'Notes'), ev.notes]);
 
         inst.cardFields.innerHTML = items.map(([k, v]) =>
@@ -592,6 +594,8 @@ window.homeGuardTimeline = {
             }
         } else if (ev.recordId && ev.equipmentId) {
             this._addCardAction(inst, '✎', this._lbl('editRecord', 'Edit record'), `/equipment/${ev.equipmentId}?editService=${ev.recordId}`);
+        } else if (ev.contractId) {
+            this._addCardAction(inst, '✎', this._lbl('openContract', 'Open contract'), `/contracts/${ev.contractId}`);
         }
     },
 

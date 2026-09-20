@@ -12,6 +12,15 @@ internal static class Json
     {
         PropertyNamingPolicy        = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,
+        // The Api side's own comment states the policy plainly: "enums travel as
+        // strings ... in both directions" (ConfigureHttpJsonOptions in its Program.cs).
+        // Nothing on this side ever actually enforced the other direction — confirmed
+        // live: BlobDto.SyncStatus ("LocalOnly") failed exactly the way a bare
+        // JsonSerializerDefaults.Web deserialize of a string-valued enum always does
+        // with no converter registered. Every *ApiClient.GetFromJsonAsync call in this
+        // file still uses the bare framework default without this, same latent gap —
+        // just not yet hit for any of those the same way.
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     };
 }
 
@@ -44,6 +53,12 @@ public sealed class EquipmentApiClient
 
     public Task DeleteAsync(Guid id, CancellationToken ct = default)
         => _http.DeleteAsync($"api/equipment/{id}", ct);
+
+    public async Task<bool> SetTagsAsync(Guid id, IReadOnlyList<string> tags, CancellationToken ct = default)
+    {
+        var resp = await _http.PatchAsJsonAsync($"api/equipment/{id}/tags", new SetTagsDto(tags), ct);
+        return resp.IsSuccessStatusCode;
+    }
 }
 
 // ── Warranty ──────────────────────────────────────────────────────────────────
@@ -211,6 +226,15 @@ public sealed class SyncApiClient
 
 // ── Notification ──────────────────────────────────────────────────────────────
 
+public sealed class AttentionApiClient
+{
+    private readonly HttpClient _http;
+    public AttentionApiClient(HttpClient http) => _http = http;
+
+    public Task<AttentionDto?> GetAsync(int days = 7, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<AttentionDto>($"api/attention?days={days}", ct);
+}
+
 public sealed class NotificationApiClient
 {
     private readonly HttpClient _http;
@@ -292,6 +316,15 @@ public sealed class ContractApiClient
 
     public async Task DeleteAsync(Guid id, CancellationToken ct = default)
         => await _http.DeleteAsync($"api/contracts/{id}", ct);
+
+    public async Task<ContractDto?> SetStatusAsync(
+        Guid id, SetStatusDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PatchAsJsonAsync($"api/contracts/{id}/status", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<ContractDto>(ct)
+            : null;
+    }
 
     public async Task<ContractDetailDto?> SetOpeningAsync(
         Guid id, SetOpeningDto dto, CancellationToken ct = default)
@@ -381,4 +414,16 @@ public sealed class ContractApiClient
             ? await resp.Content.ReadFromJsonAsync<PaymentDto>(ct)
             : null;
     }
+
+    public async Task<EarlyPaymentPreviewDto?> PreviewEarlyPaymentAsync(
+        Guid id, EarlyPaymentPreviewRequestDto dto, CancellationToken ct = default)
+    {
+        var resp = await _http.PostAsJsonAsync($"api/contracts/{id}/early-payment/preview", dto, ct);
+        return resp.IsSuccessStatusCode
+            ? await resp.Content.ReadFromJsonAsync<EarlyPaymentPreviewDto>(ct)
+            : null;
+    }
+
+    public Task<List<MonthlyLoadEntryDto>?> GetMonthlyLoadAsync(int months = 12, CancellationToken ct = default)
+        => _http.GetFromJsonAsync<List<MonthlyLoadEntryDto>>($"api/finance/monthly?months={months}", ct);
 }

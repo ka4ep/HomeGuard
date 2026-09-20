@@ -47,4 +47,10 @@ public interface IContractRepository : IRepository<Contract>
     /// </summary>
     Task<IReadOnlyList<(Payment Payment, Contract Contract)>> GetPaymentsDueWithContractAsync(
         DateOnly fromDate, DateOnly toDate, CancellationToken ct = default);
+
+    /// <summary>
+    /// Every active contract with its revisions and payments loaded — one query for the
+    /// monthly cash-flow rollup instead of one per contract.
+    /// </summary>
+    Task<IReadOnlyList<Contract>> GetActiveWithSchedulesAsync(CancellationToken ct = default);
 }

@@ -721,3 +721,167 @@ Still genuinely open, decide when the code gets there:
 
 - Whether `PreviousContractId` needs a UI (a "renewal chain" view) or stays a pure link.
 - `AttentionHorizonDays` default — 7 is a guess; adjust after a month of real use.
+
+---
+
+## 14. Decisions taken — 2026-08-15 (Phase 3)
+
+1. **The "stay silent without a rate" stance from §1's original Phase 3 note is
+   replaced by a fallback ladder.** Interest math is genuinely optional data, and a
+   loan with none of it recorded yet is the common case for a contract entered from an
+   old paper file, not the exception. So every loan/lease figure now reports one of
+   three states rather than one:
+
+   | `LoanEstimateGap` | What is missing | What still shows |
+   |---|---|---|
+   | `None` | nothing | exact term, balance, and interest figures |
+   | `MissingRate` | `AnnualInterestRate` | exact term and balance (simple/interest-free math); no interest-saved figure |
+   | `MissingBalance` | `RemainingPrincipal` | nothing new — inventing a balance is exactly the case §1 warned against |
+
+   The UI never blocks on a gap — it shows what it can and names what is missing,
+   with the field to fill sitting in the same dialog rather than behind a link to
+   somewhere else. This is a widening of the original guardrail, not a reversal of it:
+   the app still never invents a number it was not given.
+
+2. **Amortization math lives in `AmortizationMath`** (`HomeGuard.Application/Services`),
+   a pure static class: the standard fixed-rate annuity formulas (instalment,
+   balance-after-k, principal/interest split, term-for-a-balance), each falling back to
+   straight-line arithmetic at a 0% rate. `ContractService.BalanceBeforeInstallment` /
+   `SplitInstallmentAt` adapt it to a `PaymentPlanRevision`, walking forward from
+   `RemainingPrincipal` at that revision's `EffectiveFrom` — never from `Opening`,
+   which is a separate, coarser backfill number and stays exactly as inert as it was
+   in Phase 2 (`ContractSummary.RemainingBalance`'s existing precedence is untouched).
+   `ContractService.ConfirmPaymentAsync` now calls `SetLoanSplit` on a loan/lease
+   instalment when its revision carries a rate; `BuildSchedule` shows the same split as
+   an estimate on projected and not-yet-paid rows, and the real number once paid —
+   `PaymentSchedule.razor` renders it as a small caption under the amount, never
+   competing with it.
+
+3. **Early payoff is a preview, not a new commit endpoint.**
+   `ContractService.PreviewEarlyPayment` (pure, `POST /api/contracts/{id}/early-payment/preview`)
+   answers "what would this lump sum change" — before/after term, instalment, payoff
+   date, and interest saved (`null` under a gap, not zero — zero would claim there is
+   provably nothing to save). `RevisionDialog`'s "Calculate" button folds the result
+   straight into the existing instalment/count fields, so the plain "было → станет"
+   table built in Phase 2 shows the consequence without a second diff view. Committing
+   still goes through the existing `POST /revisions`; the lump sum itself is recorded
+   as a `Payment(Kind=Extra)` via the existing payment endpoints, composed client-side
+   rather than through a new atomic server call — §4.1's "sugar" endpoint was judged
+   not worth a second code path for what two existing calls already do correctly.
+   Not built this pass: `ResidualAmount`/`ResidualDueDate` have no dialog fields yet
+   (domain and API already carry them, from Phase 2), and the price-history sparkline
+   from §4.2 is still just revisions in a list, not a chart.
+
+4. **The monthly cash-flow rollup was pulled forward from Phase 4**, on the household's
+   own request: not just "how much per month" (Phase 2 already answers that from the
+   *current* instalment) but "which future month do several obligations land on at
+   once." `ContractService.BuildMonthlyLoad` (pure) merges every active contract's
+   `BuildSchedule` output into month × currency buckets — cheap, because it is the same
+   engine the detail page's schedule already uses, not new machinery. `GET
+   /api/finance/monthly` and a `BudgetLoadChart` component (on the contracts list page)
+   render it: one bar per month, `--hg-money` for the fill — the app's one established
+   "this is about payments" colour — and the existing `--hg-today` ember for a month
+   running ≥25% above the average, the same token overdue rows already use for
+   "needs attention." Deliberately not a stacked-by-contract-kind chart: HomeGuard has
+   no categorical palette for that yet (§11's warning about a design pass introducing
+   colours that fight `mud-overrides.css` applies here too), so which contracts make up
+   a month lives in a tap-to-expand breakdown instead of five new hues. A real
+   categorical treatment, if it is ever worth it, is `/impeccable shape` work, not a
+   byproduct of this pass.
+
+5. **What §11 flagged in advance held up.** `/impeccable document` and `shape
+   contracts` were both already run before Phase 2 (2026-08-10), so this pass extended
+   an already-recorded look rather than inventing one. The next natural checkpoint is
+   still `critique` → `polish` (§11's table) — better timed now than before, since
+   Phase 3 is what finally produces the long schedules (a 360-row mortgage) and the
+   real interest figures that `polish` needs real data to react to. The budget-load
+   chart is new information architecture in the sense §11 means it — a short `shape`
+   pass on it specifically, before it grows a second chart type or a categorical
+   palette, is worth doing before it is not a one-screen change anymore.
+
+---
+
+## 15. Decisions taken — 2026-08-15 (Phases 4–6)
+
+Most of what these phases described as new infrastructure already existed — built
+generically for warranties and service records in earlier, unrelated work. The actual
+job was plugging contracts and payments into it, not building it:
+
+1. **Materialization, notifications, and the iCal feed all reused existing patterns
+   line-for-line.** `PaymentMaterializationService` mirrors `RecurringRuleMaterializationService`
+   (and gets idempotency for free from `BuildSchedule` already excluding covered dates —
+   no separate "already pending" check needed, unlike the service it mirrors).
+   `NotificationSchedulerService` gained `ScheduleContractNotificationsAsync` (the
+   household's own `NotificationRules`, already on `Contract` since Phase 2) and
+   `SchedulePaymentNotificationsAsync` (fixed 1w/1d/same-day offsets — nobody wants to
+   configure reminders per instalment). `ICalFeedGenerator` gained contract and payment
+   events the same way. All three ride the pre-existing `ScheduledJob` /
+   `JobRunnerService` / `WebPushNotificationSender` pipeline; none of it is new.
+2. **Timeline: payments are marks on the contract's bar, not a second row.** The literal
+   reading of "payments as markers (like services)" would have meant a full second row
+   per contract using the anchor/interval-bar machinery — but Paid payments becoming
+   "anchors" would fragment the contract's one continuous bar into spurious sub-bars
+   between consecutive payment dates. Reusing the *existing* `TimelineMark` tick
+   mechanism (already built for standalone meter readings) instead needed zero new JS
+   rendering code, keeps one row per contract, and is arguably the more literal reading
+   of "no new timeline concepts needed." Two small, adjacent bugs fixed while in this
+   code: the timeline's `WarrantyColor`/`ServiceColor` constants had drifted from
+   `DESIGN.md` (a stale purple pre-dating the current palette) — now match
+   `--hg-warranty`/`--hg-service`; and the detail card's cost line hard-coded `€` — now
+   takes the event's own currency, defaulting to `€` so existing warranty/service cards
+   are unaffected.
+3. **`GET /api/attention` is genuinely new** — no aggregate endpoint existed to extend.
+   It merges `WarrantyService.GetExpiringAsync`, `ServiceRecordService.GetOverdueAsync`/
+   `GetDueSoonAsync`, and `ContractService.GetUpcomingAsync`/`GetExpiringAsync`
+   (cancellation-window items only) into one `{count, urgent, soon, items}` shape. Only
+   the **foreground** half of §10.3 is built: `MainLayout.razor` calls it once per app
+   open and sets the icon badge (`navigator.setAppBadge`, feature-detected, a no-op
+   where unsupported) plus caches it via the IndexedDB `cache` store that already
+   existed (`HomeGuardDb.CacheSetAsync` — nothing new needed there). The **background**
+   half — a push arriving while the app is closed re-badging the icon, and the
+   tag-replaced summary notification — is not built. Piggybacking it onto the existing
+   per-reminder push (having the service worker re-fetch `/api/attention` on any push
+   delivery) would have been a plausible shortcut, but it conflates two different
+   concerns for a mechanism nobody can watch fire on a real device from here — better
+   built deliberately in the pass that can.
+4. **Offline outbox: server-side dispatch only, not client wiring.** `OutboxSyncService`
+   (client) and `SyncProcessorService` (server) already existed — but adopted by
+   *nothing*: every existing entity dialog (Equipment, Warranty, ServiceRecord,
+   MeterReading) still calls its `*ApiClient` directly, and the server dispatcher itself
+   had gaps predating this work (`DeleteWarranty` and all `ServiceRecord` operation
+   types are declared but unhandled — not touched here, not this feature's regression to
+   fix). `SyncOperationTypes` gained `CreateContract`/`UpdateContract`/`DeleteContract`/
+   `AddPlanRevision`/`CreatePayment`/`ConfirmPayment`/`SetOpeningPosition`, each handled
+   in `SyncProcessorService.DispatchAsync` the same way the existing ones are — bringing
+   contracts to full declared-and-handled parity, ahead of where the entities it mirrors
+   currently sit. The non-commutative `AddPlanRevision` ordering rule from §9 needed no
+   new hook: `Contract.AddRevision` already throws when `EffectiveFrom` precedes the
+   active revision's, and that propagates through the dispatcher's existing generic
+   `catch` into a `Rejected` ack for free. What's *not* done: no Contract dialog
+   actually calls `OutboxSyncService.EnqueueAsync` yet. Doing that for real needs
+   client-generated entity IDs (so a create can navigate immediately without waiting for
+   a flush) — a change that would be the first of its kind in this codebase, worth doing
+   deliberately with a real precedent to follow, not as a side effect of this pass.
+5. **Phases 7–8 were not started.** `/impeccable critique`, `polish`, `delight` and
+   `harden` all work by looking at the rendered app — screenshots, real data, real
+   devices for the PWA-specific pieces. None of that is available mid-session here;
+   running them now would mean guessing at what they'd find, which is worse than
+   waiting.
+
+### Live-verification checklist (once there's a way to look)
+
+- **Materialization** — confirm a Planned payment actually appears 14 days before its
+  due date, and that a second run the next day does not duplicate it.
+- **Notifications** — a payment reminder and a contract renewal/cancellation reminder
+  both actually arrive as push notifications on a subscribed device.
+- **iCal** — subscribe a real calendar app to `/api/calendar/feed.ics`; contract and
+  payment events show up, with the description text and the right all-day date.
+- **Timeline** — contract bars render in the corrected `--hg-money` plum; hovering a
+  payment mark shows the right amount, currency, and status word (paid/planned/
+  projected); clicking a contract's start/expiry button opens the "Open contract" action
+  and lands on the right page; a household-level (no-equipment) contract's row still
+  looks right with no equipment name.
+- **Badge** — `navigator.setAppBadge` actually changes the icon on each platform's own
+  terms (§10.1): a number on iOS 16.4+/Windows/macOS Chrome, a dot on Android, nothing
+  visible on Linux/Firefox (expected, not a bug).
+- **Offline outbox** — not wired to any dialog yet; nothing to verify here until it is.

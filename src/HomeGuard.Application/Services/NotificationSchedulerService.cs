@@ -15,19 +15,30 @@ namespace HomeGuard.Application.Services;
 /// </summary>
 public sealed class NotificationSchedulerService
 {
+    /// <summary>
+    /// Payment reminders are not user-configurable per row like warranties and service
+    /// records — nobody wants to set offsets on individual instalments. Fixed defaults
+    /// from contracts-spec.md §9.
+    /// </summary>
+    private static readonly NotificationOffset[] PaymentDefaultOffsets =
+        [NotificationOffset.OneWeekBefore, NotificationOffset.OneDayBefore, NotificationOffset.SameDay];
+
     private readonly IWarrantyRepository _warranties;
     private readonly IServiceRecordRepository _serviceRecords;
+    private readonly IContractRepository _contracts;
     private readonly IScheduledJobRepository _jobs;
     private readonly IUnitOfWork _uow;
 
     public NotificationSchedulerService(
         IWarrantyRepository warranties,
         IServiceRecordRepository serviceRecords,
+        IContractRepository contracts,
         IScheduledJobRepository jobs,
         IUnitOfWork uow)
     {
         _warranties = warranties;
         _serviceRecords = serviceRecords;
+        _contracts = contracts;
         _jobs = jobs;
         _uow = uow;
     }
@@ -38,6 +49,8 @@ public sealed class NotificationSchedulerService
 
         await ScheduleWarrantyNotificationsAsync(today, ct);
         await ScheduleServiceRecordNotificationsAsync(today, ct);
+        await ScheduleContractNotificationsAsync(today, ct);
+        await SchedulePaymentNotificationsAsync(today, ct);
 
         await _uow.SaveChangesAsync(ct);
     }
@@ -117,6 +130,106 @@ public sealed class NotificationSchedulerService
                 );
 
                 await _jobs.AddAsync(job, ct);
+            }
+        }
+    }
+
+    // ── Contracts ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Two independent reminders per contract: the ordinary offset-based ones on
+    /// <see cref="Domain.Entities.Contract.NotificationRules"/> (the household's own
+    /// choice, same mechanism as warranties), plus one fixed reminder a week before the
+    /// cancellation window actually closes (contracts-spec.md §6) — that date is what
+    /// costs real money to miss, and it is not the same as the end date, so it needs its
+    /// own rule rather than relying on the household to have configured one that happens
+    /// to land there.
+    /// </summary>
+    private async Task ScheduleContractNotificationsAsync(DateOnly today, CancellationToken ct)
+    {
+        var lookAheadEnd = today.AddMonths(7);
+        var expiring = await _contracts.GetExpiringAsync(today, lookAheadEnd, ct);
+
+        foreach (var contract in expiring)
+        {
+            if (contract.EndDate is { } end)
+            {
+                foreach (var rule in contract.NotificationRules.Where(r => r.IsEnabled))
+                {
+                    var fireDate = rule.FireDate(end);
+                    if (fireDate < today) continue;
+
+                    var correlationKey = NotificationCorrelationKey("contract", contract.Id, rule.Offset);
+                    if (await _jobs.ExistsPendingAsync(correlationKey, ct)) continue;
+
+                    var payload = new NotificationJobPayload(
+                        EntityId: contract.Id,
+                        EntityType: "Contract",
+                        Title: contract.Name,
+                        TargetDate: end,
+                        Offset: rule.Offset
+                    );
+
+                    await _jobs.AddAsync(ScheduledJob.Create(
+                        JobTypes.SendNotification, JsonSerializer.Serialize(payload),
+                        fireDate.ToDateTimeOffset(), correlationKey), ct);
+                }
+            }
+
+            if (contract.CancellationDeadline is { } deadline)
+            {
+                var fireDate = deadline.AddDays(-7);
+                if (fireDate < today) continue;
+
+                var correlationKey = $"notify:contract-cancel:{contract.Id}";
+                if (await _jobs.ExistsPendingAsync(correlationKey, ct)) continue;
+
+                var payload = new NotificationJobPayload(
+                    EntityId: contract.Id,
+                    EntityType: "Contract",
+                    Title: $"{contract.Name} — cancellation window closing",
+                    TargetDate: deadline,
+                    Offset: NotificationOffset.OneWeekBefore
+                );
+
+                await _jobs.AddAsync(ScheduledJob.Create(
+                    JobTypes.SendNotification, JsonSerializer.Serialize(payload),
+                    fireDate.ToDateTimeOffset(), correlationKey), ct);
+            }
+        }
+    }
+
+    // ── Payments ──────────────────────────────────────────────────────────────
+
+    private async Task SchedulePaymentNotificationsAsync(DateOnly today, CancellationToken ct)
+    {
+        // Planned rows only exist up to 14 days out (PaymentMaterializationService) —
+        // this window just needs to comfortably cover that plus the widest offset.
+        var due = await _contracts.GetPaymentsDueWithContractAsync(today, today.AddDays(21), ct);
+
+        foreach (var (payment, contract) in due)
+        {
+            foreach (var offset in PaymentDefaultOffsets)
+            {
+                var fireDate = payment.DueDate.AddDays(-(int)offset);
+                if (fireDate < today) continue;
+
+                var correlationKey = NotificationCorrelationKey("payment", payment.Id, offset);
+                if (await _jobs.ExistsPendingAsync(correlationKey, ct)) continue;
+
+                // EntityType is "Contract" (not "Payment", which has no page of its own)
+                // so the link opens the schedule the payment actually lives on.
+                var payload = new NotificationJobPayload(
+                    EntityId: contract.Id,
+                    EntityType: "Contract",
+                    Title: $"{contract.Name} — payment due",
+                    TargetDate: payment.DueDate,
+                    Offset: offset
+                );
+
+                await _jobs.AddAsync(ScheduledJob.Create(
+                    JobTypes.SendNotification, JsonSerializer.Serialize(payload),
+                    fireDate.ToDateTimeOffset(), correlationKey), ct);
             }
         }
     }

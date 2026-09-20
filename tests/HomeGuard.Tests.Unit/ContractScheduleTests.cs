@@ -243,4 +243,151 @@ public sealed class ContractScheduleTests
                 installmentAmount: 260m))
             .Should().Throw<InvalidOperationException>();
     }
+
+    // ── Amortization math ────────────────────────────────────────────────────
+
+    private static Contract AmortizedLoan(decimal principal, decimal annualRate, int months)
+    {
+        var monthlyRate = AmortizationMath.MonthlyRate(annualRate);
+        var installment  = AmortizationMath.AnnuityInstallment(principal, monthlyRate, months);
+
+        var c = Contract.Create(ContractKind.Loan, "Car loan", Start, "EUR");
+        c.AddRevision(
+            effectiveFrom: Start, reason: RevisionReason.Initial, firstDueDate: Start,
+            intervalMonths: 1, installmentAmount: installment, installmentCount: months,
+            remainingPrincipal: principal, annualInterestRate: annualRate);
+        return c;
+    }
+
+    [Fact]
+    public void The_annuity_instalment_fully_amortizes_the_balance_to_zero()
+    {
+        var rate        = AmortizationMath.MonthlyRate(0.06m);
+        var installment = AmortizationMath.AnnuityInstallment(12_000m, rate, 24);
+
+        var balance = AmortizationMath.BalanceAfter(12_000m, rate, installment, 24);
+
+        balance.Should().BeApproximately(0m, 0.5m);   // a few cents of rounding over 24 instalments
+    }
+
+    [Fact]
+    public void A_zero_rate_falls_back_to_straight_line_arithmetic()
+    {
+        var rate = AmortizationMath.MonthlyRate(0m);
+
+        AmortizationMath.AnnuityInstallment(1_200m, rate, 12).Should().Be(100m);
+        AmortizationMath.BalanceAfter(1_200m, rate, 100m, 6).Should().Be(600m);
+        AmortizationMath.TermFor(600m, rate, 100m).Should().Be(6);
+        AmortizationMath.SplitInstallment(600m, rate, 100m).Should().Be((100m, 0m));
+    }
+
+    [Fact]
+    public void Splitting_an_instalment_always_adds_back_to_the_instalment()
+    {
+        var rate = AmortizationMath.MonthlyRate(0.06m);
+
+        var (principal, interest) = AmortizationMath.SplitInstallment(10_000m, rate, 500m);
+
+        (principal + interest).Should().Be(500m);
+        interest.Should().BeGreaterThan(0m);
+    }
+
+    [Fact]
+    public void TermFor_inverts_AnnuityInstallment()
+    {
+        var rate        = AmortizationMath.MonthlyRate(0.08m);
+        var installment = AmortizationMath.AnnuityInstallment(50_000m, rate, 60);
+
+        AmortizationMath.TermFor(50_000m, rate, installment).Should().Be(60);
+    }
+
+    // ── Early payoff preview ─────────────────────────────────────────────────
+
+    [Fact]
+    public void Early_payoff_with_a_known_rate_shortens_the_term_and_reports_interest_saved()
+    {
+        var contract = AmortizedLoan(principal: 12_000m, annualRate: 0.06m, months: 24);
+
+        var preview = ContractService.PreviewEarlyPayment(
+            contract, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+
+        preview.Gap.Should().Be(LoanEstimateGap.None);
+        preview.InstallmentAmountAfter.Should().Be(preview.InstallmentAmountBefore);
+        preview.InstallmentsAfter.Should().BeLessThan(preview.InstallmentsBefore);
+        preview.InterestSaved.Should().BeGreaterThan(0m);
+    }
+
+    [Fact]
+    public void Early_payoff_can_shrink_the_instalment_instead_of_the_term()
+    {
+        var contract = AmortizedLoan(principal: 12_000m, annualRate: 0.06m, months: 24);
+
+        var preview = ContractService.PreviewEarlyPayment(
+            contract, extraAmount: 3_000m, EarlyPaymentEffect.ReducePayment);
+
+        preview.InstallmentsAfter.Should().Be(preview.InstallmentsBefore);
+        preview.InstallmentAmountAfter.Should().BeLessThan(preview.InstallmentAmountBefore);
+        preview.InterestSaved.Should().BeGreaterThan(0m);
+    }
+
+    [Fact]
+    public void Missing_rate_still_previews_term_and_balance_but_not_interest_saved()
+    {
+        var c = Contract.Create(ContractKind.Loan, "Interest-free instalments", Start, "EUR");
+        c.AddRevision(
+            effectiveFrom: Start, reason: RevisionReason.Initial, firstDueDate: Start,
+            intervalMonths: 1, installmentAmount: 500m, installmentCount: 24,
+            remainingPrincipal: 12_000m);   // no AnnualInterestRate
+
+        var preview = ContractService.PreviewEarlyPayment(c, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+
+        preview.Gap.Should().Be(LoanEstimateGap.MissingRate);
+        preview.InterestSaved.Should().BeNull();
+        preview.InstallmentsAfter.Should().BeLessThan(preview.InstallmentsBefore);
+    }
+
+    [Fact]
+    public void Missing_balance_leaves_the_preview_unchanged_but_flags_the_gap()
+    {
+        var contract = Loan(installments: 24, amount: 500m);   // no RemainingPrincipal recorded
+
+        var preview = ContractService.PreviewEarlyPayment(contract, extraAmount: 3_000m, EarlyPaymentEffect.ReduceTerm);
+
+        preview.Gap.Should().Be(LoanEstimateGap.MissingBalance);
+        preview.InterestSaved.Should().BeNull();
+        preview.InstallmentsAfter.Should().Be(preview.InstallmentsBefore);
+        preview.PayoffDateAfter.Should().Be(preview.PayoffDateBefore);
+    }
+
+    // ── Monthly cash-flow rollup ─────────────────────────────────────────────
+
+    [Fact]
+    public void Monthly_load_sums_every_active_contract_due_in_the_same_month_and_currency()
+    {
+        var loan = Loan(installments: 12, amount: 300m);   // EUR
+        var sub  = Contract.Create(ContractKind.Subscription, "Netflix", Start, "EUR");
+        sub.AddRevision(
+            effectiveFrom: Start, reason: RevisionReason.Initial, firstDueDate: Start,
+            intervalMonths: 1, installmentAmount: 15m);
+
+        var entries = ContractService.BuildMonthlyLoad([loan, sub], Start, Start.AddMonths(2));
+
+        var firstMonth = entries.Single(e => e.Month == "2026-01" && e.Currency == "EUR");
+        firstMonth.Total.Should().Be(315m);
+        firstMonth.Contributions.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void Monthly_load_never_blends_currencies()
+    {
+        var eurLoan = Loan(installments: 6, amount: 300m);
+        var usdSub  = Contract.Create(ContractKind.Subscription, "US service", Start, "USD");
+        usdSub.AddRevision(
+            effectiveFrom: Start, reason: RevisionReason.Initial, firstDueDate: Start,
+            intervalMonths: 1, installmentAmount: 20m);
+
+        var entries = ContractService.BuildMonthlyLoad([eurLoan, usdSub], Start, Start.AddMonths(1));
+
+        entries.Select(e => e.Currency).Distinct().Should().BeEquivalentTo(["EUR", "USD"]);
+    }
 }

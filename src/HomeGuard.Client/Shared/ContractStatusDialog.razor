@@ -1,0 +1,76 @@
+@namespace HomeGuard.Client.Common
+@inject ContractApiClient Api
+@inject IStringLocalizer<Strings> L
+
+@*
+    Nothing in the app could change a contract's status before this component existed —
+    the server route was there, nothing on the client ever called it. Status alone
+    doesn't say why; a reason is offered, never required, whenever the new status is
+    Suspended or Cancelled, so a second adult reading the record later isn't left
+    guessing (PRODUCT.md Principle 1).
+*@
+<MudDialog @bind-Visible="_visible" Options="_options">
+    <TitleContent>@L["Contract_ChangeStatusTitle"]</TitleContent>
+    <DialogContent>
+        <MudSelect @bind-Value="_status" Label="@L["Contract_NewStatus"]">
+            @foreach (var status in Statuses)
+            {
+                <MudSelectItem Value="@status">@L["ContractStatus_" + status]</MudSelectItem>
+            }
+        </MudSelect>
+
+        @if (_status is ContractStatus.Suspended or ContractStatus.Cancelled)
+        {
+            <MudTextField @bind-Value="_reason" Label="@L["Contract_StatusReason"]"
+                          HelperText="@L["Contract_StatusReasonHelp"]"
+                          Lines="2" Class="mt-3" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled"
+                   OnClick="SaveAsync" Disabled="_saving">
+            @L["Common_Save"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public EventCallback OnSaved { get; set; }
+
+    private static readonly ContractStatus[] Statuses =
+        [ContractStatus.Active, ContractStatus.Suspended, ContractStatus.Cancelled, ContractStatus.Ended];
+
+    private readonly DialogOptions _options = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    private bool _visible;
+    private bool _saving;
+
+    private Guid _contractId;
+    private ContractStatus _status;
+    private string? _reason;
+
+    public void Open(Guid contractId, ContractStatus currentStatus, string? currentReason)
+    {
+        _contractId = contractId;
+        _status     = currentStatus;
+        _reason     = currentReason;
+        _visible    = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        try
+        {
+            await Api.SetStatusAsync(_contractId, new SetStatusDto(_status, _reason));
+            _visible = false;
+            await OnSaved.InvokeAsync();
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

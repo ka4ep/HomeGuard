@@ -97,7 +97,12 @@ public enum ScheduleOrigin
     Stored = 1,
 }
 
-/// <summary>One line of the merged schedule — projections and stored rows in one sequence.</summary>
+/// <summary>
+/// One line of the merged schedule — projections and stored rows in one sequence.
+/// <see cref="PrincipalPart"/>/<see cref="InterestPart"/> are the actual split once paid,
+/// an estimate from the governing revision's rate before that, and null whenever neither
+/// is available — the same fallback-ladder rule as everywhere else in this feature.
+/// </summary>
 public sealed record ScheduleEntry(
     ScheduleOrigin Origin,
     DateOnly DueDate,
@@ -251,12 +256,13 @@ public sealed class ContractService
         return true;
     }
 
-    public async Task<Contract?> SetStatusAsync(Guid id, ContractStatus status, CancellationToken ct = default)
+    public async Task<Contract?> SetStatusAsync(
+        Guid id, ContractStatus status, string? reason = null, CancellationToken ct = default)
     {
         var contract = await _repo.GetByIdAsync(id, ct);
         if (contract is null) return null;
 
-        contract.SetStatus(status);
+        contract.SetStatus(status, reason);
         await _uow.SaveChangesAsync(ct);
         return contract;
     }
@@ -681,6 +687,18 @@ public sealed class ContractService
             nextProjected = BuildSchedule(contract, today, today.AddYears(2))
                 .FirstOrDefault(e => e.Origin == ScheduleOrigin.Projected);
         }
+
+        var payoffDate = revision?.InstallmentCount is { } count
+            ? revision.DueDateOf(count)
+            : (DateOnly?)null;
+
+        var gap = contract.Kind is ContractKind.Loan or ContractKind.Lease
+            ? revision?.RemainingPrincipal is null
+                ? LoanEstimateGap.MissingBalance
+                : revision.AnnualInterestRate is null
+                    ? LoanEstimateGap.MissingRate
+                    : LoanEstimateGap.None
+            : LoanEstimateGap.None;
 
         return new ContractSummary(
             ContractId:            contract.Id,

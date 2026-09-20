@@ -59,6 +59,8 @@ public sealed record UpdateEquipmentDto(
     string? MeterUnit = null
 );
 
+public sealed record SetTagsDto(IReadOnlyList<string> Tags);
+
 // ── Warranty ──────────────────────────────────────────────────────────────────
 
 public sealed record WarrantyDto(
@@ -73,7 +75,8 @@ public sealed record WarrantyDto(
     bool IsActive,
     int DaysRemaining,
     IReadOnlyList<NotificationRuleDto> NotificationRules,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    decimal? Cost = null
 );
 
 public sealed record CreateWarrantyDto(
@@ -83,7 +86,8 @@ public sealed record CreateWarrantyDto(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 public sealed record UpdateWarrantyDto(
@@ -92,7 +96,8 @@ public sealed record UpdateWarrantyDto(
     DateOnly EndDate,
     string? Provider = null,
     string? ContractNumber = null,
-    string? Notes = null
+    string? Notes = null,
+    decimal? Cost = null
 );
 
 // ── ServiceRecord ─────────────────────────────────────────────────────────────
@@ -231,6 +236,18 @@ public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, Ter
                              RateChange = 4, Pause = 5, AddOn = 6, Correction = 99 }
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
+public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
+public enum LoanEstimateGap    { None = 0, MissingRate = 1, MissingBalance = 2 }
+public enum BlobSyncStatus     { LocalOnly = 0, Synced = 1, SyncFailed = 2 }
+
+public sealed record BlobDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    long SizeBytes,
+    BlobSyncStatus SyncStatus,
+    DateTimeOffset CreatedAt
+);
 
 public sealed record ContractDto(
     Guid Id,
@@ -296,15 +313,21 @@ public sealed record ContractDetailDto(
     ContractDto Contract,
     string? SummaryMarkdown,
     string? Notes,
+    string? StatusReason,
     decimal? CoverageAmount,
     decimal? Deductible,
     OpeningPositionDto? Opening,
     IReadOnlyList<PlanRevisionDto> Revisions,
     IReadOnlyList<PaymentDto> Payments,
-    IReadOnlyList<NotificationRuleDto> NotificationRules
+    IReadOnlyList<NotificationRuleDto> NotificationRules,
+    IReadOnlyList<BlobDto> Attachments
 );
 
-/// <summary>One line of the merged schedule: a stored payment or a computed projection.</summary>
+/// <summary>
+/// One line of the merged schedule: a stored payment or a computed projection.
+/// <c>PrincipalPart</c>/<c>InterestPart</c> are the actual split once paid, an estimate
+/// from the governing revision's rate before that, and null when neither is available.
+/// </summary>
 public sealed record ScheduleEntryDto(
     ScheduleOrigin Origin,
     DateOnly DueDate,
@@ -415,6 +438,11 @@ public sealed record SetOpeningDto(
     decimal? RemainingBalance = null
 );
 
+public sealed record SetStatusDto(
+    ContractStatus Status,
+    string? Reason = null
+);
+
 public sealed record AddRevisionDto(
     DateOnly EffectiveFrom,
     RevisionReason Reason,
@@ -462,3 +490,46 @@ public sealed record ConfirmPaymentDto(
     decimal? AmountPaid = null,
     string? Note = null
 );
+
+public sealed record EarlyPaymentPreviewRequestDto(
+    decimal ExtraAmount,
+    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm
+);
+
+/// <summary>
+/// Before/after of paying <c>ExtraAmount</c> today. <c>InterestSaved</c> is null exactly
+/// when <c>Gap</c> is not <see cref="LoanEstimateGap.None"/> — the term and payment numbers
+/// are still real in that case, just without a rate-dependent figure next to them.
+/// </summary>
+public sealed record EarlyPaymentPreviewDto(
+    LoanEstimateGap Gap,
+    int InstallmentsBefore,
+    int InstallmentsAfter,
+    decimal InstallmentAmountBefore,
+    decimal InstallmentAmountAfter,
+    DateOnly? PayoffDateBefore,
+    DateOnly? PayoffDateAfter,
+    decimal? InterestSaved
+);
+
+// ── Finance rollup ───────────────────────────────────────────────────────────
+
+public sealed record MonthlyLoadContributionDto(
+    Guid ContractId, string ContractName, ContractKind Kind, decimal Amount);
+
+public sealed record MonthlyLoadEntryDto(
+    string Month,
+    string Currency,
+    decimal Total,
+    IReadOnlyList<MonthlyLoadContributionDto> Contributions
+);
+
+// ── Attention ─────────────────────────────────────────────────────────────────
+
+public enum AttentionSeverity { Soon = 0, Urgent = 1 }
+
+public sealed record AttentionItemDto(
+    string Kind, AttentionSeverity Severity, string Title, DateOnly Date, string Url);
+
+public sealed record AttentionDto(
+    int Count, int Urgent, int Soon, IReadOnlyList<AttentionItemDto> Items);

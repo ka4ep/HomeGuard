@@ -5,6 +5,7 @@
 @inject ServiceRecordApiClient ServiceApi
 @inject RecurringRuleApiClient RuleApi
 @inject MeterReadingApiClient MeterApi
+@inject ContractApiClient ContractApi
 @inject TimelineInterop TimelineInterop
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<Strings> L
@@ -26,6 +27,9 @@
     <MudChip T="string" Style="@ServiceChipStyle" Size="Size.Small"
              Icon="@Icons.Material.Filled.Build"
              OnClick="ToggleServicesAsync">@L["Nav_Service"]</MudChip>
+    <MudChip T="string" Style="@ContractChipStyle" Size="Size.Small"
+             Icon="@Icons.Material.Filled.Description"
+             OnClick="ToggleContractsAsync">@L["Nav_Contracts"]</MudChip>
 </MudStack>
 
 @if (_loading)
@@ -39,13 +43,20 @@
     private bool _loading = true;
     private bool _showWarranties = true;
     private bool _showServices = true;
+    private bool _showContracts = true;
     private const string ElementId = "hg-timeline";
-    private const string WarrantyColor = "#7F77DD";
-    private const string ServiceColor = "#1D9E75";
+
+    // Matches DESIGN.md's entity colours (variables.css --hg-warranty/--hg-service/--hg-money) —
+    // the JS side alpha-blends these as raw hex, so a CSS var reference will not work here.
+    private const string WarrantyColor = "#6E6BA8";
+    private const string ServiceColor = "#4E8A6B";
+    private const string ContractColor = "#8A5F72";
 
     private List<WarrantyDto> _warranties = [];
     private List<ServiceRecordDto> _services = [];
     private List<RecurringRuleWithPredictionsDto> _rules = [];
+    private List<ContractDto> _contracts = [];
+    private Dictionary<Guid, List<ScheduleEntryDto>> _schedules = [];
     private Dictionary<Guid, string> _equipMap = [];
     private Dictionary<Guid, string?> _equipMeterUnit = [];
     private Dictionary<Guid, List<MeterReadingDto>> _readings = [];
@@ -62,6 +73,10 @@
     private string ServiceChipStyle => _showServices
         ? $"background:{ServiceColor};color:white;cursor:pointer"
         : $"background:transparent;color:{ServiceColor};border:1px solid {ServiceColor};cursor:pointer";
+
+    private string ContractChipStyle => _showContracts
+        ? $"background:{ContractColor};color:white;cursor:pointer"
+        : $"background:transparent;color:{ContractColor};border:1px solid {ContractColor};cursor:pointer";
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -84,7 +99,8 @@
         var warrantyTask = WarrantyApi.GetActiveAsync();
         var serviceTask = ServiceApi.GetAllAsync();
         var rulesTask = RuleApi.GetAllWithPredictionsAsync();
-        await Task.WhenAll(equipTask, warrantyTask, serviceTask, rulesTask);
+        var contractTask = ContractApi.GetAllAsync(status: ContractStatus.Active);
+        await Task.WhenAll(equipTask, warrantyTask, serviceTask, rulesTask, contractTask);
 
         var equipment = equipTask.Result ?? [];
         _equipMap = equipment.ToDictionary(e => e.Id, e => e.Name);
@@ -92,6 +108,13 @@
         _warranties = warrantyTask.Result ?? [];
         _services = serviceTask.Result ?? [];
         _rules = rulesTask.Result ?? [];
+        _contracts = contractTask.Result ?? [];
+
+        // Each contract's own schedule — stored rows plus near-term projections, the
+        // same merged view the detail page shows.
+        var scheduleTasks = _contracts.ToDictionary(c => c.Id, c => ContractApi.GetScheduleAsync(c.Id));
+        await Task.WhenAll(scheduleTasks.Values);
+        _schedules = scheduleTasks.ToDictionary(kv => kv.Key, kv => kv.Value.Result ?? []);
 
         // Standalone meter readings — only equipment with a meter has any
         var metered = equipment.Where(e => !string.IsNullOrEmpty(e.MeterUnit)).Select(e => e.Id).ToList();
@@ -122,6 +145,12 @@
     private async Task ToggleServicesAsync()
     {
         _showServices = !_showServices;
+        await TimelineInterop.UpdateAsync(BuildRows());
+    }
+
+    private async Task ToggleContractsAsync()
+    {
+        _showContracts = !_showContracts;
         await TimelineInterop.UpdateAsync(BuildRows());
     }
 
@@ -160,24 +189,28 @@
         }
 
         // ── Service records — one row per (equipment, canonical title) cluster ─────
+        // Equipment ids come from both records and rules: a freshly set-up rule with no
+        // service history yet must still get a row, otherwise its predictions have nowhere
+        // to attach and silently never appear (see BuildRows notes on orphan rules below).
         if (_showServices)
         {
-            var byEquip = _services
-                .GroupBy(s => s.EquipmentId)
-                .OrderBy(g => _equipMap.GetValueOrDefault(g.Key, ""));
+            var equipIds = _services.Select(s => s.EquipmentId)
+                .Concat(_rules.Select(r => r.Rule.EquipmentId))
+                .Distinct()
+                .OrderBy(id => _equipMap.GetValueOrDefault(id, ""));
 
-            foreach (var grp in byEquip)
+            foreach (var equipId in equipIds)
             {
-                var equipName = _equipMap.GetValueOrDefault(grp.Key, grp.Key.ToString());
-                var meterUnit = _equipMeterUnit.GetValueOrDefault(grp.Key);
-                var sorted = grp.OrderBy(s => s.ServiceDate).ToList();
+                var equipName = _equipMap.GetValueOrDefault(equipId, equipId.ToString());
+                var meterUnit = _equipMeterUnit.GetValueOrDefault(equipId);
+                var sorted = _services.Where(s => s.EquipmentId == equipId).OrderBy(s => s.ServiceDate).ToList();
 
                 var canonicalsForEquip = sorted
                     .Select(s => _canonicals.GetValueOrDefault(s.Id, s.Title))
                     .Distinct()
                     .ToList();
 
-                var firstCanonical = canonicalsForEquip.FirstOrDefault();
+                var isFirstRowForEquip = true;
 
                 foreach (var canonical in canonicalsForEquip)
                 {
@@ -188,7 +221,7 @@
                             DateIso: s.ServiceDate.ToString("yyyy-MM-dd", null),
                             Title: s.Title,
                             EquipmentName: equipName,
-                            EquipmentId: grp.Key,
+                            EquipmentId: equipId,
                             MeterReading: s.MeterReading,
                             MeterUnit: meterUnit,
                             Cost: s.Cost,
@@ -200,7 +233,7 @@
 
                     // Predicted (dashed) points — computed ahead, not stored records.
                     var rule = _rules.FirstOrDefault(x =>
-                        x.Rule.EquipmentId == grp.Key &&
+                        x.Rule.EquipmentId == equipId &&
                         string.Equals(x.Rule.Title.Trim(), canonical.Trim(), StringComparison.OrdinalIgnoreCase));
                     if (rule is not null)
                     {
@@ -209,7 +242,7 @@
                             DateIso: p.Date.ToString("yyyy-MM-dd", null),
                             Title: canonical,
                             EquipmentName: equipName,
-                            EquipmentId: grp.Key,
+                            EquipmentId: equipId,
                             MeterReading: p.MeterReading,
                             MeterUnit: meterUnit,
                             IsPredicted: true,
@@ -218,7 +251,7 @@
 
                     // Standalone readings — ticks on the first row of the equipment's cluster only
                     List<TimelineMark>? marks = null;
-                    if (canonical == firstCanonical && _readings.TryGetValue(grp.Key, out var rds) && rds.Count > 0)
+                    if (isFirstRowForEquip && _readings.TryGetValue(equipId, out var rds) && rds.Count > 0)
                         marks = rds
                             .OrderBy(r => r.ReadingDate)
                             .Select(r => new TimelineMark(
@@ -230,18 +263,138 @@
                             .ToList();
 
                     rows.Add(new TimelineRow(
-                        Id: $"equip-{grp.Key}-{Math.Abs(canonical.GetHashCode()):x8}",
+                        Id: $"equip-{equipId}-{Math.Abs(canonical.GetHashCode()):x8}",
                         Label: canonical,
-                        Group: canonical == firstCanonical ? equipName : null,
+                        Group: isFirstRowForEquip ? equipName : null,
                         Color: ServiceColor,
                         Events: events,
                         Marks: marks
                     ));
+                    isFirstRowForEquip = false;
+                }
+
+                // Orphan rules — a recurring rule whose title doesn't match any of this
+                // equipment's existing service records (most commonly: none exist yet).
+                // Its predictions still deserve their own row instead of vanishing until
+                // the first matching record is entered.
+                var orphanRules = _rules.Where(x =>
+                    x.Rule.EquipmentId == equipId &&
+                    !canonicalsForEquip.Any(c => string.Equals(c.Trim(), x.Rule.Title.Trim(), StringComparison.OrdinalIgnoreCase)));
+
+                foreach (var rule in orphanRules)
+                {
+                    var events = rule.Predictions.Select(p => new TimelineEvent(
+                        Id: $"pred-{rule.Rule.Id}-{p.Date:yyyyMMdd}",
+                        DateIso: p.Date.ToString("yyyy-MM-dd", null),
+                        Title: rule.Rule.Title,
+                        EquipmentName: equipName,
+                        EquipmentId: equipId,
+                        MeterReading: p.MeterReading,
+                        MeterUnit: meterUnit,
+                        IsPredicted: true,
+                        RuleId: rule.Rule.Id)).ToList();
+
+                    List<TimelineMark>? marks = null;
+                    if (isFirstRowForEquip && _readings.TryGetValue(equipId, out var rds) && rds.Count > 0)
+                        marks = rds
+                            .OrderBy(r => r.ReadingDate)
+                            .Select(r => new TimelineMark(
+                                DateIso: r.ReadingDate.ToString("yyyy-MM-dd", null),
+                                Value: r.Value,
+                                Unit: meterUnit,
+                                Source: r.Source,
+                                Note: r.Note))
+                            .ToList();
+
+                    rows.Add(new TimelineRow(
+                        Id: $"rule-{rule.Rule.Id}",
+                        Label: rule.Rule.Title,
+                        Group: isFirstRowForEquip ? equipName : null,
+                        Color: ServiceColor,
+                        Events: events,
+                        Marks: marks
+                    ));
+                    isFirstRowForEquip = false;
                 }
             }
         }
 
+        // ── Contracts — one row per contract; payments ride as marks on its bar,
+        // the same tick mechanism standalone meter readings already use ──────────
+        if (_showContracts)
+        {
+            var byEquip = _contracts
+                .Where(c => c.EquipmentId is not null)
+                .GroupBy(c => c.EquipmentId!.Value)
+                .OrderBy(g => _equipMap.GetValueOrDefault(g.Key, ""));
+
+            foreach (var grp in byEquip)
+            {
+                var equipName = _equipMap.GetValueOrDefault(grp.Key, grp.Key.ToString());
+                var first = true;
+                foreach (var c in grp.OrderBy(c => c.StartDate))
+                {
+                    rows.Add(BuildContractRow(c, first ? equipName : null));
+                    first = false;
+                }
+            }
+
+            var householdLabel = L["Contract_Household"].ToString();
+            var firstHousehold = true;
+            foreach (var c in _contracts.Where(c => c.EquipmentId is null).OrderBy(c => c.StartDate))
+            {
+                rows.Add(BuildContractRow(c, firstHousehold ? householdLabel : null));
+                firstHousehold = false;
+            }
+        }
+
         return rows;
+    }
+
+    private TimelineRow BuildContractRow(ContractDto c, string? groupLabel)
+    {
+        var equipName = _equipMap.GetValueOrDefault(c.EquipmentId ?? Guid.Empty, "");
+
+        var events = new List<TimelineEvent>
+        {
+            new(Id: $"{c.Id}-start", DateIso: c.StartDate.ToString("yyyy-MM-dd", null),
+                Title: c.Name, EquipmentName: equipName, EquipmentId: c.EquipmentId,
+                IsStart: true, ContractId: c.Id),
+        };
+        if (c.EndDate is { } end)
+        {
+            events.Add(new(Id: $"{c.Id}-end", DateIso: end.ToString("yyyy-MM-dd", null),
+                Title: c.Name, EquipmentName: equipName, EquipmentId: c.EquipmentId,
+                IsExpiry: true, ContractId: c.Id));
+        }
+
+        var marks = _schedules.GetValueOrDefault(c.Id, [])
+            .Select(e => new TimelineMark(
+                DateIso: e.DueDate.ToString("yyyy-MM-dd", null),
+                Value: e.Amount,
+                Unit: c.Currency,
+                Source: PaymentMarkSource(e)))
+            .ToList();
+
+        return new TimelineRow(
+            Id: $"contract-{c.Id}",
+            Label: c.Name,
+            Group: groupLabel,
+            Color: ContractColor,
+            Events: events,
+            Marks: marks.Count > 0 ? marks : null);
+    }
+
+    private static string PaymentMarkSource(ScheduleEntryDto e)
+    {
+        if (e.Origin == ScheduleOrigin.Projected) return "Projected";
+        return e.Status switch
+        {
+            PaymentStatus.Paid    => "Paid",
+            PaymentStatus.Skipped => "Skipped",
+            PaymentStatus.Failed  => "Failed",
+            _                     => "Planned",
+        };
     }
 
     // ── Fuzzy title clustering (Levenshtein, threshold 25%) ──────────────────
@@ -298,6 +451,9 @@
             ["materializeNow"]  = L["Timeline_MaterializeNow"],
             ["openRule"]        = L["Timeline_OpenRule"],
             ["editRecord"]      = L["Timeline_EditRecord"],
+            ["contractStart"]   = L["Timeline_ContractStart"],
+            ["contractEnd"]     = L["Timeline_ContractEnd"],
+            ["openContract"]    = L["Timeline_OpenContract"],
         },
         Statuses: new Dictionary<string, string>
         {

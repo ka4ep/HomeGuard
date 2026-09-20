@@ -1,9 +1,15 @@
 @page "/contracts/{Id:guid}"
 @using System.Globalization
+@using HomeGuard.Client.Model
 @inject ContractApiClient Api
+@inject BlobApiClient Blobs
+@inject OutboxSyncService Outbox
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IDialogService Dialog
+@inject IJSRuntime JS
 @inject IStringLocalizer<Strings> L
+@implements IDisposable
 
 @*
     Sequence from the shape brief: who this is → what is next → why → history → actions.
@@ -13,21 +19,51 @@
 
 <PageTitle>@(_detail?.Contract.Name ?? L["Nav_Contracts"])</PageTitle>
 
-@if (_loading)
-{
-    <MudProgressLinear Indeterminate="true" />
-}
-else if (_detail is null)
-{
-    <MudAlert Severity="Severity.Warning">@L["Contract_NotFound"]</MudAlert>
-}
-else
-{
+@*
+    Second Object Rule (DESIGN.md): extra width buys a second object, not wider rows.
+    At >=900px the rail sits beside the open contract so switching contracts does not
+    cost the list; on phone the rail is hidden and this is exactly the page it was before.
+*@
+<div class="hg-contract-workspace">
+    <div class="hg-contract-rail">
+        @if (_rail is null)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            @foreach (var item in _rail)
+            {
+                <button type="button"
+                        class="hg-contract-rail-item @(item.Id == Id ? "is-active" : "")"
+                        @onclick="() => OpenRailItem(item.Id)">
+                    <span class="hg-status-dot" style="@RailStatusDotStyle(item)"></span>
+                    <span class="hg-contract-rail-item-text">
+                        <span class="hg-contract-rail-item-name" title="@item.Name">@item.Name</span>
+                        <span class="hg-contract-rail-item-sub hg-tabular">@RailSubLabel(item)</span>
+                    </span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="hg-contract-pane">
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (_detail is null)
+    {
+        <MudAlert Severity="Severity.Warning">@L["Contract_NotFound"]</MudAlert>
+    }
+    else
+    {
     var c = _detail.Contract;
 
     @* ── Кто это ─────────────────────────────────────────────────────────── *@
     <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-4" Spacing="2">
         <MudIconButton Icon="@Icons.Material.Filled.ArrowBack"
+                       aria-label="@L["Common_Back"]"
                        OnClick="@(() => Nav.NavigateTo("/contracts"))" />
         <MudStack Spacing="0" Style="min-width:0">
             <MudText Typo="Typo.h5" Style="overflow-wrap:anywhere">@c.Name</MudText>
@@ -44,12 +80,13 @@ else
             </MudText>
         </MudStack>
         <MudSpacer />
-        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
-            @StatusLabel(c.Status)
-        </MudChip>
+        <ContractStatusChip Status="c.Status" />
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense="true">
             <MudMenuItem OnClick="@(() => _contractDialog.OpenEdit(_detail!))">
                 @L["Common_Edit"]
+            </MudMenuItem>
+            <MudMenuItem OnClick="@(() => _statusDialog.Open(Id, c.Status, _detail!.StatusReason))">
+                @L["Contract_ChangeStatusTitle"]
             </MudMenuItem>
             <MudMenuItem OnClick="@(() => _openingDialog.Open(_detail!.Opening))">
                 @L["Opening_Title"]
@@ -67,28 +104,43 @@ else
         </MudMenu>
     </MudStack>
 
+    @if (!string.IsNullOrWhiteSpace(_detail.StatusReason))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+            @_detail.StatusReason
+        </MudText>
+    }
+
     @* ── Что дальше ──────────────────────────────────────────────────────── *@
     @if (_summary is not null)
     {
         <MudGrid Class="mb-4">
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_NextPayment"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular" Style="color:var(--hg-money)">
-                    @(_summary.NextDueAmount is { } amount ? Money(amount) : "—")
-                </MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
-                    @(_summary.NextDueDate is { } due ? ShortDate(due) : string.Empty)
-                </MudText>
+                <FieldWell Label="@L["Contract_NextPayment"]">
+                    <span class="hg-field-well-value hg-tabular" style="color:var(--hg-money)">
+                        @(_summary.NextDueAmount is { } amount ? Money(amount) : "—")
+                    </span>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
+                        @(_summary.NextDueDate is { } due ? ShortDate(due) : string.Empty)
+                    </MudText>
+                </FieldWell>
             </MudItem>
 
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_PaidSoFar"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular">@Money(_summary.PaidToDate)</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @(_summary.InstallmentsTotal is { } total
-                        ? L["Contract_Installments", _summary.InstallmentsPaid, total]
-                        : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
-                </MudText>
+                <FieldWell Label="@L["Contract_PaidSoFar"]">
+                    <span class="hg-field-well-value hg-tabular">@Money(_summary.PaidToDate)</span>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @(_summary.InstallmentsTotal is { } total
+                            ? L["Contract_Installments", _summary.InstallmentsPaid, total]
+                            : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
+                    </MudText>
+                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
+                            @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
+                        </MudText>
+                    }
+                </FieldWell>
             </MudItem>
 
             <MudItem xs="6" md="3">
@@ -105,14 +157,21 @@ else
             </MudItem>
 
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Period"]</MudText>
-                <MudText Typo="Typo.body1" Class="hg-tabular">@PeriodLabel(c)</MudText>
-                @if (c.CancellationDeadline is { } deadline)
-                {
-                    <MudText Typo="Typo.caption" Style="color:var(--hg-today)">
-                        @L["Contract_CancelBy", ShortDate(deadline)]
-                    </MudText>
-                }
+                <FieldWell Label="@L["Contract_Period"]">
+                    <span class="hg-field-well-value hg-tabular">@PeriodLabel(c)</span>
+                    @if (c.CancellationDeadline is { } deadline)
+                    {
+                        <MudText Typo="Typo.caption" Style="color:var(--hg-today-text)">
+                            @L["Contract_CancelBy", ShortDate(deadline)]
+                        </MudText>
+                    }
+                    else if (IsLoanLike(c.Kind) && _summary.PayoffDate is { } payoff)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                            @L["Contract_PayoffBy", ShortDate(payoff)]
+                        </MudText>
+                    }
+                </FieldWell>
             </MudItem>
         </MudGrid>
 
@@ -159,6 +218,78 @@ else
                   Title="@SummaryTitle"
                   Icon="@Icons.Material.Outlined.Article"
                   ShowEmpty="true" />
+
+    @* ── Документы ───────────────────────────────────────────────────────── *@
+    <div @ref="_attachmentsCardRef">
+    <MudCard Elevation="1" Class="mb-4">
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">
+                    <MudIcon Icon="@Icons.Material.Outlined.AttachFile" Class="mr-1" />
+                    @L["Attachment_Title"]
+                </MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@(_showCapture ? Icons.Material.Filled.Close : Icons.Material.Filled.Add)"
+                               aria-label="@(_showCapture ? L["Common_Close"] : L["Attachment_Add"])"
+                               OnClick="ToggleCaptureAsync" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @if (_detail.Attachments.Count == 0 && _pendingAttachments.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Contract_AttachmentsEmpty"]</MudText>
+            }
+            else
+            {
+                @foreach (var a in _detail.Attachments)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                            <MudIcon Icon="@AttachmentIcon(a.ContentType)" Size="Size.Small" Color="Color.Secondary" Style="flex-shrink:0" />
+                            <MudLink Href="@Blobs.GetDownloadUrl(a.Id)" Target="_blank" Style="overflow-wrap:anywhere; min-width:0">
+                                @a.FileName
+                            </MudLink>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular" Style="flex-shrink:0">
+                                @FormatSize(a.SizeBytes)
+                            </MudText>
+                        </MudStack>
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Class="hg-touch-target-sm" Style="flex-shrink:0"
+                                       aria-label="@L["Common_Delete"]"
+                                       OnClick="@(() => DeleteAttachmentAsync(a))" />
+                    </MudStack>
+                }
+                @foreach (var p in _pendingAttachments)
+                {
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="py-1">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width:0">
+                            <MudIcon Icon="@Icons.Material.Outlined.CloudUpload" Size="Size.Small" Color="Color.Secondary" Style="flex-shrink:0" />
+                            <MudText Typo="Typo.body2" Style="overflow-wrap:anywhere; min-width:0; flex-shrink:1">@p.FileName</MudText>
+                            <MudChip T="string" Size="Size.Small" Variant="Variant.Text" Style="flex-shrink:0">
+                                @L["Attachment_Queued"]
+                            </MudChip>
+                        </MudStack>
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline"
+                                       Size="Size.Small" Class="hg-touch-target-sm" Style="flex-shrink:0"
+                                       aria-label="@L["Common_Delete"]"
+                                       OnClick="@(() => RemovePendingAttachmentAsync(p))" />
+                    </MudStack>
+                }
+            }
+
+            <MudCollapse Expanded="_showCapture">
+                <div class="mt-2">
+                    <DocumentCapture @ref="_captureRef" OnCapture="OnDocumentCapturedAsync" Label="@L["Attachment_Add"]" />
+                    @if (_uploading)
+                    {
+                        <MudProgressLinear Indeterminate="true" Class="mt-2" />
+                    }
+                </div>
+            </MudCollapse>
+        </MudCardContent>
+    </MudCard>
+    </div>
 
     @if (c.Kind == ContractKind.Insurance
          && (_detail.CoverageAmount is not null || _detail.Deductible is not null))
@@ -248,10 +379,12 @@ else
     }
 
     <ContractDialog @ref="_contractDialog" OnSaved="OnDialogSavedAsync" />
+    <ContractStatusDialog @ref="_statusDialog" OnSaved="LoadAsync" />
     <PaymentDialog @ref="_paymentDialog" OnSaved="LoadAsync" />
     <OpeningPositionDialog @ref="_openingDialog" ContractId="Id" OnSaved="LoadAsync" />
     <RevisionDialog @ref="_revisionDialog"
                     ContractId="Id"
+                    Kind="c.Kind"
                     Currency="@c.Currency"
                     Kind="@c.Kind"
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
@@ -271,9 +404,17 @@ else
     private ContractDetailDto? _detail;
     private ContractSummaryDto? _summary;
     private List<ScheduleEntryDto> _schedule = [];
+    private List<PendingBlobUpload> _pendingAttachments = [];
+    private List<ContractDto>? _rail;
     private bool _loading = true;
+    private bool _showCapture;
+    private bool _uploading;
+    private ElementReference _attachmentsCardRef;
+    private DocumentCapture? _captureRef;
+    private bool _disposed;
 
     private ContractDialog _contractDialog = null!;
+    private ContractStatusDialog _statusDialog = null!;
     private OpeningPositionDialog _openingDialog = null!;
     private RevisionDialog _revisionDialog = null!;
     private EarlyPaymentDialog _earlyDialog = null!;
@@ -282,7 +423,27 @@ else
     private string SummaryTitle => L["Contract_Summary"];
     private string NotesTitle   => L["Form_Notes"];
 
+    protected override async Task OnInitializedAsync()
+    {
+        Outbox.OutboxChanged += OnOutboxChanged;
+        // Independent of Id: the rail is the same list regardless of which contract is
+        // open, so it loads once here rather than on every LoadAsync() (OnParametersSetAsync).
+        _rail = await Api.GetAllAsync() ?? [];
+    }
+
     protected override async Task OnParametersSetAsync() => await LoadAsync();
+
+    public void Dispose()
+    {
+        _disposed = true;
+        Outbox.OutboxChanged -= OnOutboxChanged;
+    }
+
+    private void OnOutboxChanged() => InvokeAsync(async () =>
+    {
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(Id)];
+        StateHasChanged();
+    });
 
     private async Task LoadAsync()
     {
@@ -291,13 +452,114 @@ else
         var detailTask   = Api.GetAsync(Id);
         var summaryTask  = Api.GetSummaryAsync(Id);
         var scheduleTask = Api.GetScheduleAsync(Id);
-        await Task.WhenAll(detailTask, summaryTask, scheduleTask);
+        var pendingTask  = Outbox.GetPendingBlobsForOwnerAsync(Id);
+        await Task.WhenAll(detailTask, summaryTask, scheduleTask, pendingTask);
 
         _detail   = detailTask.Result;
         _summary  = summaryTask.Result;
         _schedule = scheduleTask.Result ?? [];
+        _pendingAttachments = [.. pendingTask.Result];
         _loading  = false;
     }
+
+    // ── Documents ────────────────────────────────────────────────────────────
+
+    /// <summary>Scrolls the whole card into view (centered) when the capture panel opens
+    /// — on a phone the camera preview below the attachment list can otherwise expand
+    /// entirely off-screen with nothing telling the user to scroll for it. Navigating away
+    /// during the delay below disposes this page — StateHasChanged()/JS interop after that
+    /// throws, so both are guarded rather than left to surface as the red error banner
+    /// over a purely cosmetic scroll.</summary>
+    private async Task ToggleCaptureAsync()
+    {
+        _showCapture = !_showCapture;
+        if (!_showCapture) return;
+
+        StateHasChanged();
+        await Task.Delay(350); // let MudCollapse's expand transition finish first
+        if (_disposed || !_showCapture) return;
+
+        try { await JS.InvokeVoidAsync("homeGuardDom.scrollIntoView", _attachmentsCardRef); }
+        catch { /* page navigated away mid-scroll — nothing to recover */ }
+    }
+
+    /// <summary>
+    /// DocumentCapture fires OnCapture the instant a file is picked or a photo is taken —
+    /// there is no separate "confirm" step on its side, so the upload starts right here.
+    /// Going through the outbox (rather than BlobApiClient directly) means a capture made
+    /// with no signal is not lost: it is queued in IndexedDB and FlushAsync sends it the
+    /// moment a connection is available, same as everything else offline-first in this app.
+    /// The capture panel stays open (and its widget resets) instead of collapsing — with it
+    /// collapsing, MudCollapse doesn't destroy the DocumentCapture instance, so reopening
+    /// it to add a second file just showed the first one's stale preview again.
+    /// </summary>
+    private async Task OnDocumentCapturedAsync(CapturedDocument doc)
+    {
+        _uploading = true;
+        StateHasChanged();
+
+        await Outbox.EnqueueBlobUploadAsync(doc.Data, doc.MimeType, doc.FileName, Id, "Contract");
+        var result = await Outbox.FlushAsync();
+
+        _uploading = false;
+
+        Snackbar.Add(
+            result.Committed > 0 ? L["Attachment_Uploaded"] : L["Attachment_Saved"],
+            Severity.Success);
+
+        await LoadAsync();
+
+        if (_captureRef is not null)
+            await _captureRef.ClearCapture();
+    }
+
+    private async Task DeleteAttachmentAsync(BlobDto blob)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", blob.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        if (!await Blobs.DeleteAsync(blob.Id))
+        {
+            Snackbar.Add(L["Attachment_DeleteFailed"], Severity.Error);
+            return;
+        }
+
+        Snackbar.Add(L["Attachment_Deleted"], Severity.Success);
+        await LoadAsync();
+    }
+
+    private async Task RemovePendingAttachmentAsync(PendingBlobUpload pending)
+    {
+        var confirmed = await Dialog.ShowMessageBoxAsync(
+            title: L["Attachment_DeleteTitle"],
+            message: L["Attachment_DeleteMessage", pending.FileName],
+            yesText: L["Common_Delete"],
+            cancelText: L["Common_Cancel"]);
+
+        if (confirmed != true) return;
+
+        await Outbox.RemovePendingBlobAsync(pending.ClientOperationId);
+        _pendingAttachments = [.. await Outbox.GetPendingBlobsForOwnerAsync(Id)];
+    }
+
+    private static string AttachmentIcon(string contentType) => contentType switch
+    {
+        "application/pdf" => Icons.Material.Outlined.PictureAsPdf,
+        _ when contentType.StartsWith("image/", StringComparison.Ordinal) => Icons.Material.Outlined.InsertPhoto,
+        _ => Icons.Material.Outlined.InsertDriveFile,
+    };
+
+    private static string FormatSize(long bytes) => bytes switch
+    {
+        < 1024        => $"{bytes} B",
+        < 1024 * 1024 => $"{bytes / 1024.0:0.#} KB",
+        _             => $"{bytes / 1024.0 / 1024.0:0.#} MB",
+    };
 
     /// <summary>
     /// "Two taps from the notification": the amount and the date are already known, so
@@ -321,7 +583,11 @@ else
         await LoadAsync();
     }
 
-    private Task OnDialogSavedAsync(ContractDto? _) => LoadAsync();
+    private async Task OnDialogSavedAsync(ContractDto? _)
+    {
+        await LoadAsync();
+        _rail = await Api.GetAllAsync() ?? [];   // e.g. a rename needs to reach the rail too
+    }
 
     private Task EditPaymentAsync(ScheduleEntryDto entry)
     {
@@ -332,9 +598,24 @@ else
 
     // ── Labels ───────────────────────────────────────────────────────────────
 
+    private static bool IsLoanLike(ContractKind kind) => kind is ContractKind.Loan or ContractKind.Lease;
+
     private string KindLabel(ContractKind kind)     => L["ContractKind_" + kind];
-    private string StatusLabel(ContractStatus s)    => L["ContractStatus_" + s];
     private string ReasonLabel(RevisionReason r)    => L["RevisionReason_" + r];
+
+    // Same rule Contracts.razor's list view uses — kept in sync there rather than shared,
+    // matching how CurrencySymbol/ShortDate are already duplicated per page in this file.
+    private static string RailStatusDotStyle(ContractDto c) => c.Status switch
+    {
+        ContractStatus.Active    => "background:var(--hg-success-text)",
+        ContractStatus.Suspended => "background:var(--hg-warning-text)",
+        ContractStatus.Cancelled => "background:var(--hg-danger-text)",
+        _                        => "background:var(--hg-text-subtle)",
+    };
+
+    private string RailSubLabel(ContractDto c) => c.Provider ?? KindLabel(c.Kind);
+
+    private void OpenRailItem(Guid id) => Nav.NavigateTo($"/contracts/{id}");
 
     private string PeriodLabel(ContractDto c)
         => c.EndDate is { } end
@@ -347,15 +628,6 @@ else
     private string Money(decimal amount)
     {
         var currency = _detail?.Contract.Currency ?? "EUR";
-        return $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(currency)}";
+        return $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(currency)}";
     }
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
 }

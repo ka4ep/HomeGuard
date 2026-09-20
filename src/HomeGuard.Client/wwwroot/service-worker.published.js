@@ -26,6 +26,11 @@ async function onActivate(event) {
     await Promise.all(cacheKeys
         .filter(k => k.startsWith(cacheNamePrefix) && k !== cacheName)
         .map(k => caches.delete(k)));
+    // skipWaiting() (in onInstall) only lets the new worker activate promptly — without
+    // this, a tab already open at deploy time keeps being served by whatever worker (old
+    // or none) it started with, so a fresh publish can look like it never landed until
+    // every open tab is fully closed and reopened, not just refreshed.
+    await self.clients.claim();
 }
 
 async function onFetch(event) {

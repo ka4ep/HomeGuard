@@ -19,6 +19,7 @@ public sealed class ICalFeedGenerator
     private readonly IWarrantyRepository _warranties;
     private readonly IServiceRecordRepository _serviceRecords;
     private readonly IEquipmentRepository _equipment;
+    private readonly IContractRepository _contracts;
 
     // How far ahead to include events in the feed.
     private static readonly int LookAheadMonths = 13;
@@ -26,11 +27,13 @@ public sealed class ICalFeedGenerator
     public ICalFeedGenerator(
         IWarrantyRepository warranties,
         IServiceRecordRepository serviceRecords,
-        IEquipmentRepository equipment)
+        IEquipmentRepository equipment,
+        IContractRepository contracts)
     {
         _warranties = warranties;
         _serviceRecords = serviceRecords;
         _equipment = equipment;
+        _contracts = contracts;
     }
 
     public async Task<string> GenerateAsync(CancellationToken ct = default)
@@ -40,11 +43,13 @@ public sealed class ICalFeedGenerator
 
         var calendar = new ICalCalendar();
         calendar.Properties.Add(new CalendarProperty("X-WR-CALNAME", "HomeGuard"));
-        calendar.Properties.Add(new CalendarProperty("X-WR-CALDESC", "Warranties and service reminders"));
+        calendar.Properties.Add(new CalendarProperty("X-WR-CALDESC", "Warranties, service and contract reminders"));
         calendar.Properties.Add(new CalendarProperty("REFRESH-INTERVAL;VALUE=DURATION", "PT6H"));
 
         await AddWarrantyEventsAsync(calendar, today, horizon, ct);
         await AddServiceRecordEventsAsync(calendar, today, horizon, ct);
+        await AddContractEventsAsync(calendar, today, horizon, ct);
+        await AddPaymentEventsAsync(calendar, today, horizon, ct);
 
         return calendar.ToString() ?? string.Empty;
     }
@@ -122,6 +127,81 @@ public sealed class ICalFeedGenerator
         }
     }
 
+    // ── Contract events ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// One event per contract in the window: on <see cref="Domain.Entities.Contract.CancellationDeadline"/>
+    /// when there is one — the date that actually costs money to miss — otherwise on
+    /// <see cref="Domain.Entities.Contract.EndDate"/> itself.
+    /// </summary>
+    private async Task AddContractEventsAsync(
+        ICalCalendar calendar, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        var expiring = await _contracts.GetExpiringAsync(from, to, ct);
+
+        foreach (var contract in expiring)
+        {
+            var watched = contract.CancellationDeadline ?? contract.EndDate;
+            if (watched is not { } date) continue;
+
+            var summary = contract.CancellationDeadline is not null
+                ? $"Cancel by: {contract.Name}"
+                : $"Contract ends: {contract.Name}";
+
+            var startDt = new CalDateTime(date.Year, date.Month, date.Day);
+            var endDt   = new CalDateTime(date.Year, date.Month, date.Day);
+            endDt.AddDays(1);
+
+            var evt = new CalendarEvent
+            {
+                Uid          = $"contract-{contract.Id}@homeguard",
+                Summary      = summary,
+                Description  = BuildContractDescription(contract),
+                DtStart      = startDt,
+                DtEnd        = endDt,
+                LastModified = new CalDateTime(contract.UpdatedAt.UtcDateTime),
+            };
+
+            evt.Properties.Add(new CalendarProperty("X-HOMEGUARD-TAG", $"contract:{contract.Id}"));
+            calendar.Events.Add(evt);
+        }
+    }
+
+    // ── Payment events ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// One event per Planned payment. Only rows already materialized appear here — the
+    /// same characteristic <see cref="AddServiceRecordEventsAsync"/> already has for
+    /// predicted-but-not-yet-Planned service records, not a new limitation.
+    /// </summary>
+    private async Task AddPaymentEventsAsync(
+        ICalCalendar calendar, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        var due = await _contracts.GetPaymentsDueWithContractAsync(from, to, ct);
+
+        foreach (var (payment, contract) in due)
+        {
+            var summary = $"Payment due: {contract.Name} ({payment.AmountDue:F2} {contract.Currency})";
+
+            var startDt = new CalDateTime(payment.DueDate.Year, payment.DueDate.Month, payment.DueDate.Day);
+            var endDt   = new CalDateTime(payment.DueDate.Year, payment.DueDate.Month, payment.DueDate.Day);
+            endDt.AddDays(1);
+
+            var evt = new CalendarEvent
+            {
+                Uid          = $"payment-{payment.Id}@homeguard",
+                Summary      = summary,
+                Description  = BuildPaymentDescription(payment, contract),
+                DtStart      = startDt,
+                DtEnd        = endDt,
+                LastModified = new CalDateTime(payment.UpdatedAt.UtcDateTime),
+            };
+
+            evt.Properties.Add(new CalendarProperty("X-HOMEGUARD-TAG", $"payment:{payment.Id}"));
+            calendar.Events.Add(evt);
+        }
+    }
+
     // ── Description builders ──────────────────────────────────────────────────
 
     private static string BuildWarrantyDescription(Domain.Entities.Warranty w)
@@ -147,6 +227,28 @@ public sealed class ICalFeedGenerator
             parts.Add($"Meter reading: {sr.MeterReading}");
         if (!string.IsNullOrWhiteSpace(sr.Notes))
             parts.Add(sr.Notes);
+        return string.Join("\n", parts);
+    }
+
+    private static string BuildContractDescription(Domain.Entities.Contract c)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(c.Provider))
+            parts.Add($"Provider: {c.Provider}");
+        if (!string.IsNullOrWhiteSpace(c.ContractNumber))
+            parts.Add($"Contract: {c.ContractNumber}");
+        if (c.CancellationNoticeDays is { } notice)
+            parts.Add($"Notice period: {notice} days");
+        return string.Join("\n", parts);
+    }
+
+    private static string BuildPaymentDescription(Domain.Entities.Payment p, Domain.Entities.Contract c)
+    {
+        var parts = new List<string> { $"Kind: {p.Kind}" };
+        if (!string.IsNullOrWhiteSpace(c.ContractNumber))
+            parts.Add($"Contract: {c.ContractNumber}");
+        if (!string.IsNullOrWhiteSpace(p.Note))
+            parts.Add(p.Note);
         return string.Join("\n", parts);
     }
 }

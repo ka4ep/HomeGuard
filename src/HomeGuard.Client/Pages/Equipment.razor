@@ -1,6 +1,7 @@
 @page "/equipment"
 @using System.Globalization
 @inject EquipmentApiClient Api
+@inject WarrantyApiClient WarrantyApi
 @inject NavigationManager Nav
 @inject DensityPreference Density
 @inject IStringLocalizer<Strings> L
@@ -127,6 +128,38 @@ else
     <TitleContent>@L["Equipment_AddTitle"]</TitleContent>
     <DialogContent>
         <EquipmentForm Model="_form" />
+
+        <MudDivider Class="my-3" />
+        <MudText Typo="Typo.caption" Color="Color.Secondary">
+            @L["Equipment_AddWarranty"]: @WarrantyFormModel.YearsLabel(L, _warrantyForm.DurationHalfYears)
+        </MudText>
+        <MudSlider T="int" Value="_warrantyForm.DurationHalfYears" ValueChanged="OnWarrantyYearsChanged"
+                   Min="0" Max="20" Step="1" Color="Color.Primary" />
+        <MudCollapse Expanded="_warrantyForm.DurationHalfYears > 0">
+            <MudGrid Class="mt-1">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_warrantyForm.Name" Label=@(L["Form_Name"]) Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_warrantyForm.Provider" Label=@(L["Warranty_Provider"]) />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_warrantyForm.ContractNumber" Label=@(L["Warranty_ContractNumber"]) />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_warrantyForm.Cost" Label="@L["Warranty_Cost"]" Format="F2"
+                                     Adornment="Adornment.Start" AdornmentText="€" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_warrantyForm.Notes" Label=@(L["Form_Notes"]) Lines="2" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @L["Equipment_WarrantyEndsOn", ShortDate(ComputedWarrantyEnd)]
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </MudCollapse>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="() => _showAdd = false">@L["Common_Cancel"]</MudButton>
@@ -144,6 +177,17 @@ else
     private bool _saving;
     private EquipmentFormModel _form = new();
     private DensityMode _density = DensityMode.Cards;
+
+    // Most equipment gets exactly one warranty, starting on the purchase date, for a
+    // round number of years — dragging the slider to 0 is "no warranty" or "I'll add it
+    // later", instead of that being the default someone has to build every time.
+    private WarrantyFormModel _warrantyForm = new();
+
+    private void OnWarrantyYearsChanged(int halfYears) => _warrantyForm.DurationHalfYears = halfYears;
+
+    private DateOnly ComputedWarrantyEnd
+        => DateOnly.FromDateTime(WarrantyFormModel.ComputeEnd(
+            _form.PurchaseDate.ToDateTime(TimeOnly.MinValue), _warrantyForm.DurationHalfYears));
 
     // Attribute values cannot nest the localizer's own quotes, so the labels the table
     // needs in attributes are read once here.
@@ -176,7 +220,8 @@ else
 
     private void OpenAddDialog()
     {
-        _form = new EquipmentFormModel();
+        _form         = new EquipmentFormModel();
+        _warrantyForm = new WarrantyFormModel { Name = L["Warranty_DefaultName"] };
         _showAdd = true;
     }
 
@@ -189,11 +234,21 @@ else
             _form.Name, _form.Category, _form.PurchaseDate,
             _form.Brand, _form.Model, _form.SerialNumber,
             _form.PurchasePrice, _form.Notes,
-            _form.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            _form.ParsedTags,
             _form.MeterUnit);
 
         var result = await Api.CreateAsync(dto);
-        if (result is not null) _items?.Insert(0, result);
+        if (result is not null)
+        {
+            _items?.Insert(0, result);
+
+            if (_warrantyForm.DurationHalfYears > 0)
+            {
+                await WarrantyApi.CreateAsync(new CreateWarrantyDto(
+                    result.Id, _warrantyForm.Name, _form.PurchaseDate, ComputedWarrantyEnd,
+                    _warrantyForm.Provider, _warrantyForm.ContractNumber, _warrantyForm.Notes, _warrantyForm.Cost));
+            }
+        }
         _saving = false;
         _showAdd = false;
     }

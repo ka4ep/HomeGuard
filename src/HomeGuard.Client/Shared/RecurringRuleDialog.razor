@@ -11,25 +11,29 @@
             <MudItem xs="12">
                 <MudTextField @bind-Value="_form.Title" Label=@(L["Service_Title"]) Required="true" />
             </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Rule_IntervalIntro"]</MudText>
+            </MudItem>
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="_form.IntervalDays" Label=@(L["Rule_IntervalDaysLabel"])
-                                 HelperText=@(L["Rule_IntervalHelp"]) />
+                                 HelperText=@(L["Rule_IntervalHelp"]) HideSpinButtons="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="_form.IntervalMeter"
                                  Label=@(IntervalMeterLabel)
-                                 HelperText=@(L["Rule_IntervalHelp"]) />
+                                 HelperText=@(L["Rule_IntervalHelp"]) HideSpinButtons="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudNumericField @bind-Value="_form.MaterializeDaysAhead" Label=@(L["Rule_MaterializeDays"]) />
+                <MudNumericField @bind-Value="_form.MaterializeDaysAhead" Label=@(L["Rule_MaterializeDays"]) HideSpinButtons="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudNumericField @bind-Value="_form.PredictionsAhead" Label=@(L["Rule_PredictionsAhead"]) />
+                <MudNumericField @bind-Value="_form.PredictionsAhead" Label=@(L["Rule_PredictionsAhead"]) HideSpinButtons="true" />
             </MudItem>
             <MudItem xs="12">
-                <MudSwitch @bind-Value="_form.AnchorToPurchaseDate" Color="Color.Primary" Label=@(L["Rule_AnchorToPurchase"]) />
+                <MudSwitch @bind-Value="_form.AnchorToPurchaseDate" Color="Color.Primary" Label=@(L["Rule_AnchorToPurchase"])
+                           Disabled="HasExplicitInterval" />
                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @L["Rule_AnchorToPurchaseHelp"]
+                    @(HasExplicitInterval ? L["Rule_AnchorToPurchaseIrrelevant"] : L["Rule_AnchorToPurchaseHelp"])
                 </MudText>
             </MudItem>
             @if (_editId.HasValue)
@@ -64,6 +68,10 @@
     // MeterUnit — слово пользователя, не переводится; подставляется в переведённую подпись.
     private string IntervalMeterLabel =>
         MeterUnit is { Length: > 0 } u ? $"{L["Rule_IntervalMeterLabel"]} ({u})" : L["Rule_IntervalMeterLabel"];
+
+    /// <summary>A fixed interval on either axis needs no service history — the switch below only
+    /// matters when both are left blank for history-based averaging.</summary>
+    private bool HasExplicitInterval => _form.IntervalDays.HasValue || _form.IntervalMeter.HasValue;
 
     /// <summary>Opens for a new rule, optionally prefilled with a service record's title.</summary>
     public void OpenAdd(string? title = null)

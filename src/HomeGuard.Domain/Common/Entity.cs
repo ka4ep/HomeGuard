@@ -21,4 +21,16 @@ public abstract class Entity
         CreatedAt = DateTimeOffset.UtcNow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>
+    /// Same as <see cref="InitNew()"/>, but with a caller-supplied id. For entities created
+    /// from a client-generated idempotency key (an offline outbox retry must not create a
+    /// second row for the same logical operation).
+    /// </summary>
+    protected void InitNew(Guid id)
+    {
+        Id = id;
+        CreatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
 }

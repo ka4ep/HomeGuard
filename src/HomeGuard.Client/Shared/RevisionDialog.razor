@@ -79,6 +79,77 @@
             </MudItem>
         </MudGrid>
 
+        @if (IsLoanLike)
+        {
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">@L["Revision_BalanceAndRate"]</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.RemainingPrincipal" Format="F2"
+                                     Label=@(L["Revision_RemainingPrincipal"])
+                                     HelperText=@(L["Revision_RemainingPrincipalHelp"]) />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudNumericField @bind-Value="_form.AnnualInterestRatePercent" Format="F2"
+                                     Label=@(L["Revision_AnnualRate"])
+                                     Adornment="Adornment.End" AdornmentText="%"
+                                     HelperText=@(L["Revision_AnnualRateHelp"]) />
+                </MudItem>
+            </MudGrid>
+        }
+
+        @if (_form.Reason == RevisionReason.EarlyPayment)
+        {
+            <MudPaper Elevation="0" Class="mt-4 pa-3"
+                      Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-md)">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Revision_EarlyPaymentAssist"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" sm="5">
+                        <MudNumericField @bind-Value="_form.ExtraAmount" Format="F2"
+                                         Label=@(L["Revision_ExtraAmount"]) />
+                    </MudItem>
+                    <MudItem xs="12" sm="7">
+                        <MudRadioGroup @bind-Value="_form.Effect">
+                            <MudRadio Value="EarlyPaymentEffect.ReduceTerm" Dense="true">
+                                @L["Revision_EffectReduceTerm"]
+                            </MudRadio>
+                            <MudRadio Value="EarlyPaymentEffect.ReducePayment" Dense="true">
+                                @L["Revision_EffectReducePayment"]
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                </MudGrid>
+
+                <MudButton Variant="Variant.Outlined" Size="Size.Small" Class="mt-2"
+                           OnClick="CalculateEarlyPaymentAsync"
+                           Disabled="@(_calculating || _form.ExtraAmount is not > 0)">
+                    @L["Revision_Calculate"]
+                </MudButton>
+
+                @if (_earlyPreview is { } preview)
+                {
+                    <MudStack Spacing="1" Class="mt-3">
+                        <MudText Typo="Typo.body2">
+                            @L["Revision_InstallmentsLeft", preview.InstallmentsBefore, preview.InstallmentsAfter]
+                        </MudText>
+                        @if (preview.InterestSaved is { } saved)
+                        {
+                            <MudText Typo="Typo.body2" Style="color:var(--hg-money); font-weight:600">
+                                @L["Revision_InterestSaved", Money(saved)]
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                @(preview.Gap == LoanEstimateGap.MissingBalance
+                                    ? L["Revision_GapMissingBalance"]
+                                    : L["Revision_GapMissingRate"])
+                            </MudText>
+                        }
+                    </MudStack>
+                }
+            </MudPaper>
+        }
+
         @* ── было → станет ────────────────────────────────────────────────── *@
         <MudPaper Elevation="0" Class="mt-4 pa-3"
                   Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-md)">
@@ -135,6 +206,7 @@
 @code {
     [Parameter, EditorRequired] public Guid ContractId { get; set; }
     [Parameter, EditorRequired] public string Currency { get; set; } = "EUR";
+    [Parameter] public ContractKind Kind { get; set; }
 
     /// <summary>The revision in force — the left column of the diff.</summary>
     [Parameter] public PlanRevisionDto? Current { get; set; }
@@ -161,12 +233,15 @@
 
     private bool _visible;
     private bool _saving;
+    private bool _calculating;
     private string? _error;
     private RevisionFormModel _form = new();
+    private EarlyPaymentPreviewDto? _earlyPreview;
 
     public void Open()
     {
         _error = null;
+        _earlyPreview = null;
         _form = new RevisionFormModel
         {
             InstallmentAmount = Current?.EffectiveInstallment,
@@ -183,6 +258,35 @@
         };
         _visible = true;
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Turns the extra amount into a term/payment estimate via the server's amortisation
+    /// math, then folds the result straight into the plan fields above — the existing
+    /// "было → станет" table is what actually shows it, so this button does not need its
+    /// own diff view.
+    /// </summary>
+    private async Task CalculateEarlyPaymentAsync()
+    {
+        if (_form.ExtraAmount is not { } extra || extra <= 0) return;
+
+        _calculating = true;
+        try
+        {
+            var preview = await Api.PreviewEarlyPaymentAsync(
+                ContractId, new EarlyPaymentPreviewRequestDto(extra, _form.Effect));
+
+            _earlyPreview = preview;
+            if (preview is { InstallmentsAfter: > 0 })
+            {
+                _form.InstallmentCount   = preview.InstallmentsAfter;
+                _form.InstallmentAmount  = preview.InstallmentAmountAfter;
+            }
+        }
+        finally
+        {
+            _calculating = false;
+        }
     }
 
     private async Task SaveAsync()
@@ -211,6 +315,18 @@
                 // Сервер отказывает, если ревизия начинается раньше действующей.
                 _error = L["Revision_TooEarly"];
                 return;
+            }
+
+            // Записываем сам досрочный платёж отдельной строкой — иначе деньги ушли,
+            // а в истории и в итогах контракта это никак не отразится.
+            if (_form.Reason == RevisionReason.EarlyPayment && _form.ExtraAmount is { } extra && extra > 0)
+            {
+                var payment = await Api.AddPaymentAsync(ContractId, new AddPaymentDto(
+                    DueDate: _form.EffectiveFrom, AmountDue: extra, Kind: PaymentKind.Extra,
+                    Note: L["Revision_ExtraPaymentNote"]));
+
+                if (payment is not null)
+                    await Api.ConfirmPaymentAsync(payment.Id, new ConfirmPaymentDto(_form.EffectiveFrom, extra));
             }
 
             _visible = false;
@@ -284,24 +400,8 @@
         return last.ToString("d", CultureInfo.CurrentCulture);
     }
 
-    private string IntervalLabel(int months) => months switch
-    {
-        1  => L["Contract_PerMonth"],
-        3  => L["Contract_PerQuarter"],
-        6  => L["Contract_PerHalfYear"],
-        12 => L["Contract_PerYear"],
-        _  => L["Contract_EveryNMonths", months],
-    };
+    private string IntervalLabel(int months) => ContractFormat.IntervalLabel(L, months);
 
     private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(Currency)}";
 }

@@ -44,14 +44,15 @@ public sealed class BlobEntry : Entity
         string fileName,
         string contentType,
         long sizeBytes,
-        string localPath)
+        string localPath,
+        Guid? id = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownerEntityType);
         ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
         ArgumentException.ThrowIfNullOrWhiteSpace(localPath);
 
         var b = new BlobEntry();
-        b.InitNew();
+        if (id is { } explicitId) b.InitNew(explicitId); else b.InitNew();
         b.OwnerEntityId = ownerEntityId;
         b.OwnerEntityType = ownerEntityType;
         b.FileName = fileName;

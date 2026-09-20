@@ -1,4 +1,5 @@
 using HomeGuard.Common.Sync;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace HomeGuard.Client.Services;
@@ -20,14 +21,18 @@ public sealed class OutboxSyncService
 {
     private readonly HomeGuardDb _db;
     private readonly SyncApiClient _api;
+    private readonly BlobApiClient _blobs;
+    private readonly ILogger<OutboxSyncService> _logger;
 
     // Raised when the outbox count changes so UI can show a badge.
     public event Action? OutboxChanged;
 
-    public OutboxSyncService(HomeGuardDb db, SyncApiClient api)
+    public OutboxSyncService(HomeGuardDb db, SyncApiClient api, BlobApiClient blobs, ILogger<OutboxSyncService> logger)
     {
-        _db  = db;
-        _api = api;
+        _db     = db;
+        _api    = api;
+        _blobs  = blobs;
+        _logger = logger;
     }
 
     // ── Enqueue ───────────────────────────────────────────────────────────────
@@ -49,6 +54,43 @@ public sealed class OutboxSyncService
         OutboxChanged?.Invoke();
     }
 
+    /// <summary>
+    /// Queues a captured file for upload. Unlike <see cref="EnqueueAsync{T}"/>, this never
+    /// goes through the JSON batch endpoint — a file can be several MB, which the batch
+    /// request is not sized for. <see cref="FlushAsync"/> sends each queued file as its own
+    /// request, and the client-generated id makes a retried send idempotent server-side.
+    /// </summary>
+    public async Task EnqueueBlobUploadAsync(
+        byte[] data, string mimeType, string fileName,
+        Guid ownerEntityId, string ownerEntityType)
+    {
+        var entry = new PendingBlobUpload(
+            ClientOperationId: Guid.CreateVersion7().ToString(),
+            Data:              data,
+            MimeType:          mimeType,
+            FileName:          fileName,
+            OwnerEntityId:     ownerEntityId,
+            OwnerEntityType:   ownerEntityType,
+            CreatedAt:         DateTimeOffset.UtcNow
+        );
+
+        await _db.BlobOutboxAddAsync(entry);
+        _logger.LogInformation("Outbox: queued blob upload {FileName} ({Bytes} bytes) for {OwnerType} {OwnerId}",
+            fileName, data.Length, ownerEntityType, ownerEntityId);
+        OutboxChanged?.Invoke();
+    }
+
+    /// <summary>Pending uploads for one owner — lets a detail page show "queued" rows of its own.</summary>
+    public async Task<IReadOnlyList<PendingBlobUpload>> GetPendingBlobsForOwnerAsync(Guid ownerEntityId)
+        => [.. (await _db.BlobOutboxGetPendingAsync()).Where(b => b.OwnerEntityId == ownerEntityId)];
+
+    /// <summary>Cancels a queued upload before it ever reached the server.</summary>
+    public async Task RemovePendingBlobAsync(string clientOperationId)
+    {
+        await _db.BlobOutboxRemoveAsync(clientOperationId);
+        OutboxChanged?.Invoke();
+    }
+
     // ── Flush ─────────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -57,6 +99,24 @@ public sealed class OutboxSyncService
     /// Safe to call repeatedly — already-delivered entries are not resent.
     /// </summary>
     public async Task<FlushResult> FlushAsync(CancellationToken ct = default)
+    {
+        var commands = await FlushCommandsAsync(ct);
+        var blobs    = await FlushBlobsAsync(ct);
+
+        var result = new FlushResult(
+            Sent:      commands.Sent      + blobs.Sent,
+            Committed: commands.Committed + blobs.Committed,
+            Failed:    commands.Failed    + blobs.Failed
+        );
+
+        if (result.Sent > 0)
+            _logger.LogInformation("Outbox: flush sent {Sent}, committed {Committed}, failed {Failed}",
+                result.Sent, result.Committed, result.Failed);
+
+        return result;
+    }
+
+    private async Task<FlushResult> FlushCommandsAsync(CancellationToken ct)
     {
         var pending = await _db.OutboxGetPendingAsync();
         if (pending.Count == 0) return FlushResult.Empty;
@@ -111,7 +171,65 @@ public sealed class OutboxSyncService
         );
     }
 
-    public Task<int> PendingCountAsync() => _db.OutboxCountAsync();
+    /// <summary>
+    /// One request per queued file — there is no batch endpoint for blobs (see
+    /// <see cref="EnqueueBlobUploadAsync"/>). A network failure on one file leaves just
+    /// that one queued; the rest of the batch still gets a chance to go through.
+    /// </summary>
+    private async Task<FlushResult> FlushBlobsAsync(CancellationToken ct)
+    {
+        IReadOnlyList<PendingBlobUpload> pending;
+        try
+        {
+            pending = await _db.BlobOutboxGetPendingAsync();
+        }
+        catch (Exception ex)
+        {
+            // homeguard-db.js already drops and deletes individually-unreadable rows
+            // before they get here, but a whole-read failure (e.g. IndexedDB itself
+            // erroring) shouldn't take the JSON-command half of the flush down with it —
+            // that one already ran (FlushAsync calls FlushCommandsAsync first).
+            _logger.LogWarning(ex, "Outbox: failed to read pending blob uploads, skipping this flush");
+            return FlushResult.Empty;
+        }
+
+        if (pending.Count == 0) return FlushResult.Empty;
+
+        int committed = 0, failed = 0;
+
+        foreach (var item in pending)
+        {
+            Guid? id;
+            try
+            {
+                id = await _blobs.UploadAsync(
+                    item.Data, item.MimeType, item.FileName,
+                    item.OwnerEntityId, item.OwnerEntityType,
+                    Guid.Parse(item.ClientOperationId), ct);
+            }
+            catch (Exception ex)
+            {
+                id = null; // network failure — leave queued, retry on the next flush.
+                _logger.LogWarning(ex, "Outbox: blob upload failed for {FileName}, leaving queued", item.FileName);
+            }
+
+            if (id is not null)
+            {
+                await _db.BlobOutboxRemoveAsync(item.ClientOperationId);
+                committed++;
+            }
+            else
+            {
+                failed++;
+            }
+        }
+
+        OutboxChanged?.Invoke();
+        return new FlushResult(Sent: pending.Count, Committed: committed, Failed: failed);
+    }
+
+    public async Task<int> PendingCountAsync()
+        => await _db.OutboxCountAsync() + await _db.BlobOutboxCountAsync();
 }
 
 public sealed record FlushResult(int Sent, int Committed, int Failed)
