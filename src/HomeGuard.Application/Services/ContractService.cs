@@ -100,8 +100,8 @@ public enum ScheduleOrigin
 /// <summary>
 /// One line of the merged schedule — projections and stored rows in one sequence.
 /// <see cref="PrincipalPart"/>/<see cref="InterestPart"/> are the actual split once paid,
-/// an estimate from the governing revision's rate before that, and null whenever neither
-/// is available — the same fallback-ladder rule as everywhere else in this feature.
+/// the table's figure before that, and null whenever neither is available — the same
+/// fallback-ladder rule as everywhere else in this feature.
 /// </summary>
 public sealed record ScheduleEntry(
     ScheduleOrigin Origin,
@@ -112,8 +112,8 @@ public sealed record ScheduleEntry(
     PaymentKind Kind,
     Guid? PaymentId,
     bool IsOverdue,
-    decimal? Principal = null,
-    decimal? Interest = null,
+    decimal? PrincipalPart = null,
+    decimal? InterestPart = null,
     decimal? BalanceAfter = null);
 
 /// <summary>
@@ -146,7 +146,41 @@ public sealed record ContractSummary(
     decimal? InterestPaidToDate = null,
     decimal? InterestRemaining = null,
     decimal? TotalCost = null,
-    DateOnly? PayoffDate = null);
+    DateOnly? PayoffDate = null,
+    LoanEstimateGap EstimateGap = LoanEstimateGap.None);
+
+/// <summary>
+/// What is missing to compute a loan/lease figure honestly — the fallback ladder from
+/// contracts-spec.md §6: never block on missing data, say plainly what is missing instead.
+/// </summary>
+public enum LoanEstimateGap
+{
+    /// <summary>Not a loan/lease, or every number the math needs is present.</summary>
+    None = 0,
+
+    /// <summary>Balance is known; the rate is not. Term and balance are exact, interest is not shown.</summary>
+    MissingRate = 1,
+
+    /// <summary>No starting balance recorded at all — nothing here can be estimated yet.</summary>
+    MissingBalance = 2,
+}
+
+// ── Finance rollup ───────────────────────────────────────────────────────────
+
+/// <summary>One contract's contribution to one month's total — the stack a budget-load chart draws.</summary>
+public sealed record MonthlyLoadContribution(
+    Guid ContractId, string ContractName, ContractKind Kind, decimal Amount);
+
+/// <summary>
+/// One month's total obligation in one currency. Currencies are never blended (see
+/// contracts-spec.md decision 2), so a household paying in two currencies gets two
+/// entries for the same month.
+/// </summary>
+public sealed record MonthlyLoadEntry(
+    string Month,           // "2026-09", sorts and parses without a culture
+    string Currency,
+    decimal Total,
+    IReadOnlyList<MonthlyLoadContribution> Contributions);
 
 public sealed record EarlyPaymentCommand(
     Guid ContractId,
@@ -407,7 +441,9 @@ public sealed class ContractService
 
     /// <summary>
     /// What paying a lump sum would do, without writing anything. Null when the contract
-    /// does not exist; throws when there is no balance to reduce.
+    /// does not exist. With no balance recorded it does not fail: it returns the plan as it
+    /// stands, marked <see cref="LoanEstimateGap.MissingBalance"/>, so the dialog can say
+    /// what is missing instead of going blank.
     /// </summary>
     public async Task<EarlyPaymentPreview?> PreviewEarlyPaymentAsync(
         EarlyPaymentCommand cmd, CancellationToken ct = default)
@@ -415,11 +451,9 @@ public sealed class ContractService
         var contract = await _repo.GetWithDetailsAsync(cmd.ContractId, ct);
         if (contract is null) return null;
 
-        var position = LoanMath.TryGetPosition(contract)
-            ?? throw new InvalidOperationException(
-                "This contract has no known balance. Enter the loan amount or the balance still owed first.");
-
-        return LoanMath.PreviewEarlyPayment(position, cmd.Amount, cmd.PaidOn, cmd.Effect);
+        return LoanMath.TryGetPosition(contract) is { } position
+            ? LoanMath.PreviewEarlyPayment(position, cmd.Amount, cmd.PaidOn, cmd.Effect)
+            : LoanMath.PreviewWithoutBalance(contract, cmd.Amount, cmd.PaidOn, cmd.Effect);
     }
 
     /// <summary>
@@ -564,12 +598,19 @@ public sealed class ContractService
             .Select(p =>
             {
                 // The split written at confirmation wins; the replay fills in for rows
-                // confirmed before the rate was known.
-                decimal? principal = p.PrincipalPart, interest = p.InterestPart;
+                // confirmed before the rate was known, and the table's own figure stands in
+                // for a materialised row that has not been paid yet.
+                decimal? principal = p.PrincipalPart, interest = p.InterestPart, balanceAfter = null;
                 if (principal is null && position is not null
                     && position.Splits.TryGetValue(p.Id, out var split))
                 {
                     (principal, interest) = (split.Principal, split.Interest);
+                }
+                else if (principal is null && position is not null
+                         && p.Kind == PaymentKind.Scheduled && p.Status == PaymentStatus.Planned
+                         && position.Forward.FirstOrDefault(r => r.DueDate == p.DueDate) is { } planned)
+                {
+                    (principal, interest, balanceAfter) = (planned.Principal, planned.Interest, planned.BalanceAfter);
                 }
 
                 return new ScheduleEntry(
@@ -582,7 +623,8 @@ public sealed class ContractService
                     p.Id,
                     p.IsOverdue(today),
                     principal,
-                    interest);
+                    interest,
+                    balanceAfter);
             })
             .ToList();
 
@@ -624,7 +666,7 @@ public sealed class ContractService
                     ScheduleOrigin.Projected, due, row.Payment + (position?.Adjustments ?? 0m),
                     null, n, PaymentKind.Scheduled, null,
                     IsOverdue: due < today,
-                    Principal: row.Principal, Interest: row.Interest, BalanceAfter: row.BalanceAfter));
+                    PrincipalPart: row.Principal, InterestPart: row.Interest, BalanceAfter: row.BalanceAfter));
             }
             else
             {
@@ -688,18 +730,6 @@ public sealed class ContractService
                 .FirstOrDefault(e => e.Origin == ScheduleOrigin.Projected);
         }
 
-        var payoffDate = revision?.InstallmentCount is { } count
-            ? revision.DueDateOf(count)
-            : (DateOnly?)null;
-
-        var gap = contract.Kind is ContractKind.Loan or ContractKind.Lease
-            ? revision?.RemainingPrincipal is null
-                ? LoanEstimateGap.MissingBalance
-                : revision.AnnualInterestRate is null
-                    ? LoanEstimateGap.MissingRate
-                    : LoanEstimateGap.None
-            : LoanEstimateGap.None;
-
         return new ContractSummary(
             ContractId:            contract.Id,
             Currency:              contract.Currency,
@@ -717,7 +747,70 @@ public sealed class ContractService
             TotalCost:             position is null
                                        ? null
                                        : paidToDate + position.Forward.Sum(r => r.Payment) + position.Residual,
-            PayoffDate:            position is { Forward.Count: > 0 } ? position.Forward[^1].DueDate : null);
+            // With no balance to amortise there is no table, but the plan itself still knows
+            // when its last instalment falls.
+            PayoffDate:            position is { Forward.Count: > 0 }
+                                       ? position.Forward[^1].DueDate
+                                       : revision?.InstallmentCount is { } last ? revision.DueDateOf(last) : null,
+            EstimateGap:           EstimateGapOf(contract, revision));
+    }
+
+    /// <summary>Which rung of the fallback ladder a loan or lease is on. Anything else is never short of data.</summary>
+    public static LoanEstimateGap EstimateGapOf(Contract contract, PaymentPlanRevision? revision)
+    {
+        if (contract.Kind is not (ContractKind.Loan or ContractKind.Lease)) return LoanEstimateGap.None;
+
+        var hasBalance = revision?.RemainingPrincipal is not null || contract.Opening?.RemainingBalance is not null;
+        if (!hasBalance) return LoanEstimateGap.MissingBalance;
+
+        return revision?.AnnualInterestRate is null ? LoanEstimateGap.MissingRate : LoanEstimateGap.None;
+    }
+
+    // ── Finance rollup ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Every active contract's schedule for the next <paramref name="months"/> months,
+    /// merged into one month-by-month, currency-by-currency total — the numbers a
+    /// budget-load chart needs to show which month several obligations land on at once.
+    /// Currencies are never blended (contracts-spec.md decision 2): a household paying in
+    /// two currencies gets two entries for the same month.
+    /// </summary>
+    public async Task<IReadOnlyList<MonthlyLoadEntry>> GetMonthlyLoadAsync(
+        int months, CancellationToken ct = default)
+    {
+        var today = Today;
+        var from  = new DateOnly(today.Year, today.Month, 1);
+        var to    = from.AddMonths(months).AddDays(-1);
+
+        var contracts = await _repo.GetActiveWithSchedulesAsync(ct);
+        return BuildMonthlyLoad(contracts, from, to);
+    }
+
+    /// <summary>Pure, and public for the same reason as <see cref="BuildSchedule"/>.</summary>
+    public static IReadOnlyList<MonthlyLoadEntry> BuildMonthlyLoad(
+        IEnumerable<Contract> contracts, DateOnly from, DateOnly to)
+    {
+        var buckets = new Dictionary<(string Month, string Currency), List<MonthlyLoadContribution>>();
+
+        foreach (var contract in contracts)
+        {
+            foreach (var entry in BuildSchedule(contract, from, to))
+            {
+                if (entry.Status == PaymentStatus.Skipped) continue;
+
+                var key = (entry.DueDate.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture),
+                           contract.Currency);
+                if (!buckets.TryGetValue(key, out var list))
+                    buckets[key] = list = [];
+
+                list.Add(new MonthlyLoadContribution(contract.Id, contract.Name, contract.Kind, entry.Amount));
+            }
+        }
+
+        return [.. buckets
+            .Select(kv => new MonthlyLoadEntry(
+                kv.Key.Month, kv.Key.Currency, kv.Value.Sum(c => c.Amount), kv.Value))
+            .OrderBy(e => e.Month).ThenBy(e => e.Currency)];
     }
 
     /// <summary>

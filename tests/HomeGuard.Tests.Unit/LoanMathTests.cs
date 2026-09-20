@@ -295,9 +295,9 @@ public sealed class LoanMathTests
 
         var first = ContractService.BuildSchedule(c, Start, Start.AddMonths(11))[0];
 
-        first.Interest.Should().Be(100m);
-        first.Principal.Should().Be(first.Amount - 100m);
-        first.BalanceAfter.Should().Be(10_000m - first.Principal!.Value);
+        first.InterestPart.Should().Be(100m);
+        first.PrincipalPart.Should().Be(first.Amount - 100m);
+        first.BalanceAfter.Should().Be(10_000m - first.PrincipalPart!.Value);
     }
 
     [Fact]

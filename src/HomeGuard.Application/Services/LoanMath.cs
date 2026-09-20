@@ -56,7 +56,8 @@ public sealed record EarlyPaymentPreview(
     bool PaysOffEverything,
     LoanOutlook Before,
     LoanOutlook After,
-    decimal? InterestSaved);
+    decimal? InterestSaved,
+    LoanEstimateGap Gap = LoanEstimateGap.None);
 
 /// <summary>
 /// The interest arithmetic, kept pure so it can be checked against a bank's own table.
@@ -283,7 +284,8 @@ public static class LoanMath
                 position.Balance, balanceAfter, true,
                 before,
                 new LoanOutlook(0, 0m, null, 0m, position.Residual),
-                position.RateKnown ? before.InterestRemaining : null);
+                position.RateKnown ? before.InterestRemaining : null,
+                GapOf(position));
         }
 
         IReadOnlyList<AmortizationRow> rows;
@@ -314,7 +316,39 @@ public static class LoanMath
             position.RateKnown, effect, amount, paidOn, position.NextDue,
             position.Balance, balanceAfter, false,
             before, after,
-            position.RateKnown ? before.InterestRemaining - after.InterestRemaining : null);
+            position.RateKnown ? before.InterestRemaining - after.InterestRemaining : null,
+            GapOf(position));
+    }
+
+    private static LoanEstimateGap GapOf(LoanPosition position)
+        => position.RateKnown ? LoanEstimateGap.None : LoanEstimateGap.MissingRate;
+
+    /// <summary>
+    /// The rung below "no rate": a plan with no principal and no bank balance. Nothing can
+    /// be recomputed, so the preview says so and shows the plan exactly as it stands.
+    /// </summary>
+    public static EarlyPaymentPreview PreviewWithoutBalance(
+        Contract contract, decimal amount, DateOnly paidOn, EarlyPaymentEffect effect)
+    {
+        if (amount <= 0m)
+            throw new ArgumentOutOfRangeException(nameof(amount), "An early payment must be positive.");
+
+        var revision = contract.ActiveRevision
+            ?? throw new InvalidOperationException("This contract has no active plan to pay against.");
+
+        var paidIn = InstallmentsPaidIn(contract, revision);
+        var left   = revision.InstallmentCount is { } total ? Math.Max(total - paidIn, 0) : 0;
+        var same   = new LoanOutlook(
+            left,
+            revision.InstallmentAmount,
+            revision.InstallmentCount is { } last ? revision.DueDateOf(last) : null,
+            0m,
+            left * revision.InstallmentAmount);
+
+        return new EarlyPaymentPreview(
+            RateKnown: false, effect, amount, paidOn, revision.DueDateOf(paidIn + 1),
+            BalanceBefore: 0m, BalanceAfter: 0m, PaysOffEverything: false,
+            same, same, InterestSaved: null, LoanEstimateGap.MissingBalance);
     }
 
     private static LoanOutlook Outlook(IReadOnlyList<AmortizationRow> rows, decimal residual)

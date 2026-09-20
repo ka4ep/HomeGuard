@@ -236,9 +236,9 @@ public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, Ter
                              RateChange = 4, Pause = 5, AddOn = 6, Correction = 99 }
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
-public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum LoanEstimateGap    { None = 0, MissingRate = 1, MissingBalance = 2 }
-public enum BlobSyncStatus     { LocalOnly = 0, Synced = 1, SyncFailed = 2 }
+public enum BlobSyncStatus    { LocalOnly = 0, Synced = 1, SyncFailed = 2 }
 
 public sealed record BlobDto(
     Guid Id,
@@ -337,9 +337,15 @@ public sealed record ScheduleEntryDto(
     PaymentKind Kind,
     Guid? PaymentId,
     bool IsOverdue,
-    decimal? Principal = null,
-    decimal? Interest = null,
-    decimal? BalanceAfter = null
+    decimal? PrincipalPart = null,
+    decimal? InterestPart = null,
+    decimal? BalanceAfter = null,
+    // Set only when PaymentSchedule is rendering a cross-contract list (Home's upcoming
+    // strip) — the server's per-contract /schedule endpoint never populates these, so the
+    // single-contract callers (ContractDetail) see them as null exactly as before.
+    Guid? ContractId = null,
+    string? ContractName = null,
+    string? Currency = null
 );
 
 public sealed record ContractSummaryDto(
@@ -357,7 +363,8 @@ public sealed record ContractSummaryDto(
     decimal? InterestPaidToDate = null,
     decimal? InterestRemaining = null,
     decimal? TotalCost = null,
-    DateOnly? PayoffDate = null
+    DateOnly? PayoffDate = null,
+    LoanEstimateGap EstimateGap = LoanEstimateGap.None
 );
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -389,7 +396,8 @@ public sealed record EarlyPaymentPreviewDto(
     bool PaysOffEverything,
     LoanOutlookDto Before,
     LoanOutlookDto After,
-    decimal? InterestSaved
+    decimal? InterestSaved,
+    LoanEstimateGap Gap = LoanEstimateGap.None
 );
 
 /// <summary>A call that can fail with a reason worth showing — the server's own words.</summary>
@@ -489,27 +497,6 @@ public sealed record ConfirmPaymentDto(
     DateOnly PaidDate,
     decimal? AmountPaid = null,
     string? Note = null
-);
-
-public sealed record EarlyPaymentPreviewRequestDto(
-    decimal ExtraAmount,
-    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm
-);
-
-/// <summary>
-/// Before/after of paying <c>ExtraAmount</c> today. <c>InterestSaved</c> is null exactly
-/// when <c>Gap</c> is not <see cref="LoanEstimateGap.None"/> — the term and payment numbers
-/// are still real in that case, just without a rate-dependent figure next to them.
-/// </summary>
-public sealed record EarlyPaymentPreviewDto(
-    LoanEstimateGap Gap,
-    int InstallmentsBefore,
-    int InstallmentsAfter,
-    decimal InstallmentAmountBefore,
-    decimal InstallmentAmountAfter,
-    DateOnly? PayoffDateBefore,
-    DateOnly? PayoffDateAfter,
-    decimal? InterestSaved
 );
 
 // ── Finance rollup ───────────────────────────────────────────────────────────

@@ -3,12 +3,14 @@
 Covers insurance policies, subscriptions, loans and leases, and how they surface
 on the home screen. Companion to `timeline-spec.md`.
 
-Status: **design agreed 2026-08-10** (§13). Phases 0–3 built: domain, schema, API, the
-screens, and the loan arithmetic (`LoanMath`): balance replayed from confirmed payments,
-principal/interest split stored at confirmation, early-payment preview and commit. Without
-a rate on the plan the app stays in "simple mode" and makes no claim about interest.
-Not in phase 3: a price-history sparkline, and a full amortisation table view (the schedule
-rows already carry principal, interest and running balance).
+Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12: domain,
+schema, API, and the screens. Phase 3 (interest, amortisation, and — pulled forward
+from Phase 4 — the monthly cash-flow rollup) built as of 2026-08-15: see §14 for what
+shipped, the fallback ladder that replaces the original "stay silent without a rate"
+stance, and what Phase 3 still leaves for later. Phases 4–6 built the same day: see
+§15 for what shipped and, importantly, what did not — background badge updates, the
+client half of the offline outbox, and phases 7–8 (`critique`/`polish`/`harden`) all
+need a live, viewable app to do honestly and were left rather than shipped unverified.
 
 ---
 
@@ -642,12 +644,12 @@ changing shape weekly — the passes cost real tokens and get overwritten.
 | **1** | ✅ **`/impeccable shape`** → `.impeccable/surfaces/contracts.md`, before any Razor is written | small |
 | **1.5** | Groundwork both later phases depend on, and neither can bolt on afterwards: i18n plumbing (resx + `IStringLocalizer`, culture bootstrap, per-user language, existing screens migrated off literals) and the shared Cards / List density switch (§13.8, §13.9) | medium |
 | **2** | ✅ `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; migration; CRUD endpoints; `MarkdownCard`; list + detail pages, four dialogs, equipment section and the Home strip | large |
-| **3** | ✅ Loans & leases: amortization, early-payoff preview + commit, residual · price-history UI still open | medium |
-| **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration, Home rollups (`/api/finance/*`) | medium |
-| **5** | Attention pipeline (§10): `/api/attention`, service-worker badge + tag-replaced summary notification, offline cache, manifest shortcuts | small–medium |
-| **6** | Offline: outbox operation types, revision-ordering conflict rule | small–medium |
-| **7** | **`/impeccable critique`** → fix → **`polish`**, then **`delight`** on icon + attention strip | small |
-| **8** | **`/impeccable harden`** before the rest of the family gets the link | small |
+| **3** | ✅ Loans & leases: amortization, early-payoff preview, principal/interest split · ✅ the monthly cash-flow rollup pulled forward from Phase 4 · residual and a price-history sparkline still open (§14) | medium |
+| **4** | ✅ Payment materialization background service · ✅ push notifications (contract renewal, cancellation window, payment due) · ✅ iCal feed gains contract/payment events · ✅ timeline integration · ~~Home rollups (`/api/finance/*`)~~ done in Phase 3 | medium |
+| **5** | ✅ `/api/attention` · ✅ foreground icon badge (app open) · background badge-on-push and the tag-replaced summary notification not built — needs a live device, see §15 | small–medium |
+| **6** | ✅ Outbox operation types + server dispatch, revision-ordering conflict rule (free — the domain already throws) · client dialogs still call the API directly, not the outbox — see §15 | small–medium |
+| **7** | **`/impeccable critique`** → fix → **`polish`**, then **`delight`** on icon + attention strip — blocked on a viewable app, see §15 | small |
+| **8** | **`/impeccable harden`** before the rest of the family gets the link — blocked on a viewable app, see §15 | small |
 
 Design passes are phases, not afterthoughts: `document` before anything is drawn,
 `shape` before the new screens exist, and the refine passes only once the screens hold
@@ -743,7 +745,7 @@ Still genuinely open, decide when the code gets there:
    somewhere else. This is a widening of the original guardrail, not a reversal of it:
    the app still never invents a number it was not given.
 
-2. **Amortization math lives in `AmortizationMath`** (`HomeGuard.Application/Services`),
+2. **Amortization math lives in `AmortizationMath`** _(superseded by §16.1–16.2)_ (`HomeGuard.Application/Services`),
    a pure static class: the standard fixed-rate annuity formulas (instalment,
    balance-after-k, principal/interest split, term-for-a-balance), each falling back to
    straight-line arithmetic at a 0% rate. `ContractService.BalanceBeforeInstallment` /
@@ -757,7 +759,7 @@ Still genuinely open, decide when the code gets there:
    `PaymentSchedule.razor` renders it as a small caption under the amount, never
    competing with it.
 
-3. **Early payoff is a preview, not a new commit endpoint.**
+3. **Early payoff is a preview, not a new commit endpoint.** _(superseded by §16.3)_
    `ContractService.PreviewEarlyPayment` (pure, `POST /api/contracts/{id}/early-payment/preview`)
    answers "what would this lump sum change" — before/after term, instalment, payoff
    date, and interest saved (`null` under a gap, not zero — zero would claim there is
@@ -885,3 +887,38 @@ job was plugging contracts and payments into it, not building it:
   terms (§10.1): a number on iOS 16.4+/Windows/macOS Chrome, a dot on Android, nothing
   visible on Linux/Firefox (expected, not a bug).
 - **Offline outbox** — not wired to any dialog yet; nothing to verify here until it is.
+
+---
+
+## 16. Reconciliation — 2026-09-20 (two Phase 3 implementations become one)
+
+Phase 3 was built twice in parallel: once on `main` (2026-08-15, §14: `AmortizationMath`,
+a pure `PreviewEarlyPayment`, `LoanEstimateGap`, the monthly rollup) and once on
+`feature/contracts-and-i18n` (`LoanMath`: balance replayed from payments, an atomic
+early-payment commit). Merging them left both in the same files and `main` did not
+compile. They are now one engine, and this section supersedes the parts of §14 it names.
+
+1. **One engine: `LoanMath`** (`HomeGuard.Application/Services`). `AmortizationMath` and
+   `ContractService.BalanceBeforeInstallment` / `SplitInstallmentAt` / the static
+   `PreviewEarlyPayment` are removed; their tests were ported, not dropped
+   (`ContractScheduleTests`, "Amortization" and "Early payoff preview").
+2. **The balance follows the payments, and honours `Opening`.** This reverses §14.2's
+   "never from `Opening`": a contract entered halfway through its life has a bank balance
+   at the cut-off, and walking forward from the plan's original principal ignores it.
+   `LoanMath.TryGetPosition` anchors on the most recent thing anyone actually knows —
+   the bank's balance at the cut-off, or the principal of a later revision — and replays
+   confirmed payments from there. Without a rate it runs at 0 % ("simple mode").
+3. **Early payment is committed atomically on the server** (`POST …/early-payment`),
+   reversing §14.3's "preview only, composed client-side": one call records the paid
+   `Payment(Kind=Extra)` and appends the `EarlyPayment` revision, so the two halves cannot
+   disagree. The preview (`…/early-payment/preview`) keeps §14.1's fallback ladder: a
+   missing rate or balance is reported as `Gap`, never as a failure.
+4. **Kept from §14 unchanged:** `LoanEstimateGap` (now also on `ContractSummary` and on
+   the early-payment preview), the monthly cash-flow rollup and `/api/finance/monthly`,
+   the split caption under each schedule row, status reasons, attachments.
+5. **`RevisionDialog` no longer offers "Early payment"** as a reason; the lump sum has its
+   own dialog. The revision's instalment count is "from this revision's first due date",
+   and the dialog is pre-filled with what is left and the balance now owed.
+6. **`InterestPaidToDate` is nullable.** It is computed as paid − principal repaid − fees
+   and needs the first revision's original principal; a loan entered by balance alone
+   shows nothing rather than a number covering only the tracked months.

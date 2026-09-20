@@ -437,6 +437,7 @@
   <data name="Contract_HasPlan" xml:space="preserve"><value>Оплачивается по графику</value></data>
   <data name="Contract_Installment" xml:space="preserve"><value>Взнос</value></data>
   <data name="Early_Menu" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="Early_GapMissingBalance" xml:space="preserve"><value>Для этого договора не указаны ни сумма кредита, ни остаток долга, поэтому пересчитать нечего. Сначала укажите их.</value></data>
   <data name="Early_Title" xml:space="preserve"><value>Досрочный платёж</value></data>
   <data name="Early_Amount" xml:space="preserve"><value>Сумма</value></data>
   <data name="Early_BalanceHelp" xml:space="preserve"><value>Сейчас остаток: {0}</value></data>
@@ -449,10 +450,9 @@
   <data name="Early_Commit" xml:space="preserve"><value>Записать платёж</value></data>
   <data name="Early_Failed" xml:space="preserve"><value>Не удалось записать платёж.</value></data>
   <data name="Contract_Payoff" xml:space="preserve"><value>Будет погашен</value></data>
-  <data name="Contract_InterestPaid" xml:space="preserve"><value>Выплачено процентов</value></data>
+  <data name="Contract_InterestPaidTotal" xml:space="preserve"><value>Выплачено процентов</value></data>
   <data name="Contract_InterestLeft" xml:space="preserve"><value>Осталось процентов</value></data>
   <data name="Contract_TotalCost" xml:space="preserve"><value>Полная стоимость</value></data>
-  <data name="Schedule_Split" xml:space="preserve"><value>долг {0} · проценты {1}</value></data>
   <data name="Schedule_Extra" xml:space="preserve"><value>досрочный платёж</value></data>
   <data name="Revision_Count" xml:space="preserve"><value>Взносов с этой даты</value></data>
   <data name="Revision_CountHelp" xml:space="preserve"><value>Сколько платежей охватывают новые условия. Оставьте пустым, если идёт до отмены.</value></data>

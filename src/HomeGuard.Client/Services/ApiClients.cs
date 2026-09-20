@@ -415,15 +415,6 @@ public sealed class ContractApiClient
             : null;
     }
 
-    public async Task<EarlyPaymentPreviewDto?> PreviewEarlyPaymentAsync(
-        Guid id, EarlyPaymentPreviewRequestDto dto, CancellationToken ct = default)
-    {
-        var resp = await _http.PostAsJsonAsync($"api/contracts/{id}/early-payment/preview", dto, ct);
-        return resp.IsSuccessStatusCode
-            ? await resp.Content.ReadFromJsonAsync<EarlyPaymentPreviewDto>(ct)
-            : null;
-    }
-
     public Task<List<MonthlyLoadEntryDto>?> GetMonthlyLoadAsync(int months = 12, CancellationToken ct = default)
         => _http.GetFromJsonAsync<List<MonthlyLoadEntryDto>>($"api/finance/monthly?months={months}", ct);
 }

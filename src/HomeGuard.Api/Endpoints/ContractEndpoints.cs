@@ -31,7 +31,6 @@ public static class ContractEndpoints
 
         grp.MapGet   ("/{id:guid}/revisions",       GetRevisions);
         grp.MapPost  ("/{id:guid}/revisions",       AddRevision);
-        grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
 
         grp.MapPost  ("/{id:guid}/early-payment/preview", PreviewEarlyPayment);
         grp.MapPost  ("/{id:guid}/early-payment",         CommitEarlyPayment);
@@ -450,10 +449,6 @@ public sealed record ConfirmPaymentRequest(
     DateOnly PaidDate,
     decimal? AmountPaid = null,
     string? Note = null);
-
-public sealed record EarlyPaymentPreviewRequest(
-    decimal ExtraAmount,
-    EarlyPaymentEffect Effect = EarlyPaymentEffect.ReduceTerm);
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 

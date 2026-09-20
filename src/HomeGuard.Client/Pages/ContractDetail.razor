@@ -134,26 +134,36 @@
                             ? L["Contract_Installments", _summary.InstallmentsPaid, total]
                             : _summary.InstallmentsPaid.ToString(CultureInfo.CurrentCulture))
                     </MudText>
-                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate > 0)
+                    @if (IsLoanLike(c.Kind) && _summary.InterestPaidToDate is > 0 and { } paidInterest)
                     {
                         <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block">
-                            @L["Contract_InterestPaid", Money(_summary.InterestPaidToDate)]
+                            @L["Contract_InterestPaid", Money(paidInterest)]
                         </MudText>
                     }
                 </FieldWell>
             </MudItem>
 
             <MudItem xs="6" md="3">
-                <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Balance"]</MudText>
-                <MudText Typo="Typo.h6" Class="hg-tabular">
-                    @(_summary.RemainingBalance is { } balance ? Money(balance) : "—")
-                </MudText>
-                @if (_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()?.AnnualInterestRate is { } rate)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="hg-tabular">
-                        @L["Contract_RatePerYear", (rate * 100m).ToString("0.##", CultureInfo.CurrentCulture)]
-                    </MudText>
-                }
+                <FieldWell Label="@L["Contract_Balance"]">
+                    <span class="hg-field-well-value hg-tabular">
+                        @(_summary.RemainingBalance is { } balance ? Money(balance) : "—")
+                    </span>
+                    @if (IsLoanLike(c.Kind) && _summary.EstimateGap != LoanEstimateGap.None)
+                    {
+                        <MudText Typo="Typo.caption" Class="d-block" Style="color:var(--hg-today-text); cursor:pointer"
+                                 @onclick="@(() => _revisionDialog.Open())">
+                            @(_summary.EstimateGap == LoanEstimateGap.MissingBalance
+                                ? L["Contract_GapMissingBalance"]
+                                : L["Contract_GapMissingRate"])
+                        </MudText>
+                    }
+                    @if (_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()?.AnnualInterestRate is { } rate)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block hg-tabular">
+                            @L["Contract_RatePerYear", (rate * 100m).ToString("0.##", CultureInfo.CurrentCulture)]
+                        </MudText>
+                    }
+                </FieldWell>
             </MudItem>
 
             <MudItem xs="6" md="3">
@@ -175,33 +185,25 @@
             </MudItem>
         </MudGrid>
 
-        @if (_summary.PayoffDate is not null || _summary.InterestPaidToDate is not null)
+        @if (IsLoanLike(c.Kind) && (_summary.InterestRemaining is not null || _summary.TotalCost is not null))
         {
             <MudGrid Class="mb-4">
-                <MudItem xs="6" md="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Payoff"]</MudText>
-                    <MudText Typo="Typo.body1" Class="hg-tabular">
-                        @(_summary.PayoffDate is { } payoff ? ShortDate(payoff) : "—")
-                    </MudText>
-                </MudItem>
-                <MudItem xs="6" md="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_InterestPaid"]</MudText>
-                    <MudText Typo="Typo.body1" Class="hg-tabular">
-                        @(_summary.InterestPaidToDate is { } paidInterest ? Money(paidInterest) : "—")
-                    </MudText>
-                </MudItem>
-                <MudItem xs="6" md="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_InterestLeft"]</MudText>
-                    <MudText Typo="Typo.body1" Class="hg-tabular">
-                        @(_summary.InterestRemaining is { } leftInterest ? Money(leftInterest) : "—")
-                    </MudText>
-                </MudItem>
-                <MudItem xs="6" md="3">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_TotalCost"]</MudText>
-                    <MudText Typo="Typo.body1" Class="hg-tabular">
-                        @(_summary.TotalCost is { } cost ? Money(cost) : "—")
-                    </MudText>
-                </MudItem>
+                @if (_summary.InterestRemaining is { } leftInterest)
+                {
+                    <MudItem xs="6" md="3">
+                        <FieldWell Label="@L["Contract_InterestLeft"]">
+                            <span class="hg-field-well-value hg-tabular">@Money(leftInterest)</span>
+                        </FieldWell>
+                    </MudItem>
+                }
+                @if (_summary.TotalCost is { } cost)
+                {
+                    <MudItem xs="6" md="3">
+                        <FieldWell Label="@L["Contract_TotalCost"]">
+                            <span class="hg-field-well-value hg-tabular">@Money(cost)</span>
+                        </FieldWell>
+                    </MudItem>
+                }
             </MudGrid>
         }
 
@@ -386,7 +388,6 @@
                     ContractId="Id"
                     Kind="c.Kind"
                     Currency="@c.Currency"
-                    Kind="@c.Kind"
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
                     InstallmentsRemaining="@_summary?.InstallmentsRemaining"
                     CurrentBalance="@_summary?.RemainingBalance"
@@ -396,7 +397,9 @@
                         Currency="@c.Currency"
                         Balance="@_summary?.RemainingBalance"
                         OnSaved="LoadAsync" />
-}
+    }
+    </div>
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }

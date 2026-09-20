@@ -47,7 +47,11 @@
                       Style="background:var(--hg-bg-raised); border-radius:var(--hg-radius-md)">
                 <MudText Typo="Typo.subtitle2" Class="mb-2">@L["Revision_Preview"]</MudText>
 
-                @if (p.PaysOffEverything)
+                @if (p.Gap == LoanEstimateGap.MissingBalance)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@L["Early_GapMissingBalance"]</MudText>
+                }
+                else if (p.PaysOffEverything)
                 {
                     <MudText Typo="Typo.body2" Style="color:var(--hg-money)">@L["Early_PaysOff"]</MudText>
                 }
@@ -123,9 +127,19 @@
                     </MudText>
                 }
 
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
-                    @L["Early_TakesEffect", ShortDate(p.EffectiveFrom)]
-                </MudText>
+                @if (p.Gap == LoanEstimateGap.MissingRate)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+                        @L["Revision_GapMissingRate"]
+                    </MudText>
+                }
+
+                @if (p.Gap != LoanEstimateGap.MissingBalance)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2 d-block">
+                        @L["Early_TakesEffect", ShortDate(p.EffectiveFrom)]
+                    </MudText>
+                }
             </MudPaper>
         }
 
@@ -137,7 +151,7 @@
     <DialogActions>
         <MudButton OnClick="() => _visible = false">@L["Common_Cancel"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CommitAsync"
-                   Disabled="@(_saving || _preview is null)">
+                   Disabled="@(_saving || _preview is null || _preview.Gap == LoanEstimateGap.MissingBalance)">
             @L["Early_Commit"]
         </MudButton>
     </DialogActions>
@@ -247,14 +261,5 @@
         => date is { } d ? d.ToString("d", CultureInfo.CurrentCulture) : "—";
 
     private string Money(decimal amount)
-        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {CurrencySymbol(Currency)}";
-
-    private static string CurrencySymbol(string currency) => currency switch
-    {
-        "EUR" => "€",
-        "USD" => "$",
-        "CZK" => "Kč",
-        "GBP" => "£",
-        _     => currency,
-    };
+        => $"{amount.ToString("N2", CultureInfo.CurrentCulture)} {ContractFormat.CurrencySymbol(Currency)}";
 }
