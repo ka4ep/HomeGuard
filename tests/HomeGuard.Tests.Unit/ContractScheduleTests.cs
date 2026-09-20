@@ -159,7 +159,7 @@ public sealed class ContractScheduleTests
         summary.InstallmentsPaid.Should().Be(4);
         summary.InstallmentsTotal.Should().Be(60);
         summary.InstallmentsRemaining.Should().Be(56);
-        summary.RemainingBalance.Should().Be(14_250m);
+        summary.RemainingBalance.Should().Be(14_000m);    // 14 250 на срез минус 250 после него
         summary.CurrentInstallment.Should().Be(250m);
         summary.Currency.Should().Be("EUR");
     }

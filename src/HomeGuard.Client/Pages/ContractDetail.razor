@@ -57,6 +57,13 @@ else
             <MudMenuItem OnClick="@(() => _revisionDialog.Open())">
                 @L["Revision_Title"]
             </MudMenuItem>
+            @if (c.Kind is ContractKind.Loan or ContractKind.Lease)
+            {
+                <MudMenuItem OnClick="@(() => _earlyDialog.Open())"
+                             Disabled="@(_summary?.RemainingBalance is null)">
+                    @L["Early_Menu"]
+                </MudMenuItem>
+            }
         </MudMenu>
     </MudStack>
 
@@ -108,6 +115,36 @@ else
                 }
             </MudItem>
         </MudGrid>
+
+        @if (_summary.PayoffDate is not null || _summary.InterestPaidToDate is not null)
+        {
+            <MudGrid Class="mb-4">
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_Payoff"]</MudText>
+                    <MudText Typo="Typo.body1" Class="hg-tabular">
+                        @(_summary.PayoffDate is { } payoff ? ShortDate(payoff) : "—")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_InterestPaid"]</MudText>
+                    <MudText Typo="Typo.body1" Class="hg-tabular">
+                        @(_summary.InterestPaidToDate is { } paidInterest ? Money(paidInterest) : "—")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_InterestLeft"]</MudText>
+                    <MudText Typo="Typo.body1" Class="hg-tabular">
+                        @(_summary.InterestRemaining is { } leftInterest ? Money(leftInterest) : "—")
+                    </MudText>
+                </MudItem>
+                <MudItem xs="6" md="3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@L["Contract_TotalCost"]</MudText>
+                    <MudText Typo="Typo.body1" Class="hg-tabular">
+                        @(_summary.TotalCost is { } cost ? Money(cost) : "—")
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        }
 
         @if (_summary.OverdueCount > 0)
         {
@@ -218,8 +255,14 @@ else
                     Currency="@c.Currency"
                     Kind="@c.Kind"
                     Current="@_detail.Revisions.OrderByDescending(r => r.Version).FirstOrDefault()"
-                    InstallmentsPaid="@(_summary?.InstallmentsPaid ?? 0)"
+                    InstallmentsRemaining="@_summary?.InstallmentsRemaining"
+                    CurrentBalance="@_summary?.RemainingBalance"
                     OnSaved="LoadAsync" />
+    <EarlyPaymentDialog @ref="_earlyDialog"
+                        ContractId="Id"
+                        Currency="@c.Currency"
+                        Balance="@_summary?.RemainingBalance"
+                        OnSaved="LoadAsync" />
 }
 
 @code {
@@ -233,6 +276,7 @@ else
     private ContractDialog _contractDialog = null!;
     private OpeningPositionDialog _openingDialog = null!;
     private RevisionDialog _revisionDialog = null!;
+    private EarlyPaymentDialog _earlyDialog = null!;
     private PaymentDialog _paymentDialog = null!;
 
     private string SummaryTitle => L["Contract_Summary"];

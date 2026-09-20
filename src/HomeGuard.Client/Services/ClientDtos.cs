@@ -313,7 +313,10 @@ public sealed record ScheduleEntryDto(
     int? InstallmentNo,
     PaymentKind Kind,
     Guid? PaymentId,
-    bool IsOverdue
+    bool IsOverdue,
+    decimal? Principal = null,
+    decimal? Interest = null,
+    decimal? BalanceAfter = null
 );
 
 public sealed record ContractSummaryDto(
@@ -327,8 +330,50 @@ public sealed record ContractSummaryDto(
     decimal? CurrentInstallment,
     DateOnly? NextDueDate,
     decimal? NextDueAmount,
-    int OverdueCount
+    int OverdueCount,
+    decimal? InterestPaidToDate = null,
+    decimal? InterestRemaining = null,
+    decimal? TotalCost = null,
+    DateOnly? PayoffDate = null
 );
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
+
+public sealed record EarlyPaymentRequestDto(
+    decimal Amount,
+    DateOnly PaidOn,
+    EarlyPaymentEffect Effect,
+    string? Note = null
+);
+
+public sealed record LoanOutlookDto(
+    int InstallmentsLeft,
+    decimal Installment,
+    DateOnly? PayoffDate,
+    decimal InterestRemaining,
+    decimal TotalRemaining
+);
+
+public sealed record EarlyPaymentPreviewDto(
+    bool RateKnown,
+    EarlyPaymentEffect Effect,
+    decimal Amount,
+    DateOnly PaidOn,
+    DateOnly EffectiveFrom,
+    decimal BalanceBefore,
+    decimal BalanceAfter,
+    bool PaysOffEverything,
+    LoanOutlookDto Before,
+    LoanOutlookDto After,
+    decimal? InterestSaved
+);
+
+/// <summary>A call that can fail with a reason worth showing — the server's own words.</summary>
+public sealed record ApiResult<T>(T? Value, string? Error)
+{
+    public bool Ok => Error is null;
+}
 
 public sealed record CreateContractDto(
     ContractKind Kind,

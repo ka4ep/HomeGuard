@@ -8,9 +8,8 @@
     job is to show what the change does before it is committed. The diff is computed from
     the plan itself: instalment, interval, how many are left, when the last one falls.
 
-    What it deliberately does NOT show is interest. Recomputing an amortisation schedule
-    needs a rate, and inventing one would be worse than staying quiet — so a loan's
-    principal split stays untouched until the rate math lands.
+    Interest is not previewed here: this dialog records new terms as given. The lump-sum
+    case, where interest is what the decision turns on, has its own dialog.
 *@
 <MudDialog @bind-Visible="_visible" Options="_options">
     <TitleContent>@L["Revision_Title"]</TitleContent>
@@ -46,8 +45,8 @@
             </MudItem>
             <MudItem xs="12" sm="4">
                 <MudNumericField @bind-Value="_form.InstallmentCount" Min="1"
-                                 Label=@(L["Contract_Count"])
-                                 HelperText=@(L["Contract_CountHelp"]) />
+                                 Label=@(L["Revision_Count"])
+                                 HelperText=@(L["Revision_CountHelp"]) />
             </MudItem>
 
             @if (IsLoanLike)
@@ -140,8 +139,11 @@
     /// <summary>The revision in force — the left column of the diff.</summary>
     [Parameter] public PlanRevisionDto? Current { get; set; }
 
-    /// <summary>How many instalments are already behind us, opening position included.</summary>
-    [Parameter] public int InstallmentsPaid { get; set; }
+    /// <summary>How many instalments the plan in force still has to run.</summary>
+    [Parameter] public int? InstallmentsRemaining { get; set; }
+
+    /// <summary>What is owed now, worked out from the payments — the honest starting point for a new principal.</summary>
+    [Parameter] public decimal? CurrentBalance { get; set; }
 
     [Parameter] public EventCallback OnSaved { get; set; }
 
@@ -169,8 +171,12 @@
         {
             InstallmentAmount = Current?.EffectiveInstallment,
             IntervalMonths    = Current?.IntervalMonths ?? 1,
-            InstallmentCount  = Current?.InstallmentCount,
-            RemainingPrincipal  = Current?.RemainingPrincipal,
+            // A revision counts its instalments from its own first date, so what is left —
+            // not what the old plan started with — is the number to carry forward.
+            InstallmentCount  = Current?.InstallmentCount is null
+                ? null
+                : InstallmentsRemaining ?? Current.InstallmentCount,
+            RemainingPrincipal  = CurrentBalance ?? Current?.RemainingPrincipal,
             InterestRatePercent = Current?.AnnualInterestRate * 100m,
             ResidualAmount      = Current?.ResidualAmount,
             ResidualDueDateNullable = Current?.ResidualDueDate?.ToDateTime(TimeOnly.MinValue),
@@ -239,8 +245,8 @@
                 IntervalLabel(_form.IntervalMonths),
                 Current?.IntervalMonths != _form.IntervalMonths);
 
-            var beforeLeft = RemainingCount(Current?.InstallmentCount);
-            var afterLeft  = RemainingCount(_form.InstallmentCount);
+            var beforeLeft = Current?.InstallmentCount is null ? null : InstallmentsRemaining ?? Current.InstallmentCount;
+            var afterLeft  = _form.InstallmentCount;
 
             yield return new PreviewRow(
                 L["Revision_Remaining"],
@@ -250,7 +256,10 @@
 
             yield return new PreviewRow(
                 L["Revision_LastDue"],
-                LastDue(Current?.InstallmentCount, Current?.IntervalMonths ?? 1),
+                Current is { InstallmentCount: { } total }
+                    ? Current.FirstDueDate.AddMonths((total - 1) * Current.IntervalMonths)
+                          .ToString("d", CultureInfo.CurrentCulture)
+                    : "—",
                 LastDue(_form.InstallmentCount, _form.IntervalMonths),
                 true);
 
@@ -267,15 +276,9 @@
         }
     }
 
-    private int? RemainingCount(int? total)
-        => total is { } t ? Math.Max(t - InstallmentsPaid, 0) : null;
-
     private string LastDue(int? count, int intervalMonths)
     {
-        if (count is not { } total) return "—";
-
-        var remaining = Math.Max(total - InstallmentsPaid, 0);
-        if (remaining == 0) return "—";
+        if (count is not { } remaining || remaining < 1) return "—";
 
         var last = _form.EffectiveFrom.AddMonths((remaining - 1) * intervalMonths);
         return last.ToString("d", CultureInfo.CurrentCulture);

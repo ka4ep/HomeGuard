@@ -3,10 +3,12 @@
 Covers insurance policies, subscriptions, loans and leases, and how they surface
 on the home screen. Companion to `timeline-spec.md`.
 
-Status: **design agreed 2026-08-10** (§13). Phases 0–2 built as of 2026-08-12:
-domain, schema, API, and the screens. Phase 3 (interest and amortisation) is next —
-until it lands, nothing in the app shows a principal/interest split or recomputes a
-payoff, because that needs a rate and inventing one would be worse than silence.
+Status: **design agreed 2026-08-10** (§13). Phases 0–3 built: domain, schema, API, the
+screens, and the loan arithmetic (`LoanMath`): balance replayed from confirmed payments,
+principal/interest split stored at confirmation, early-payment preview and commit. Without
+a rate on the plan the app stays in "simple mode" and makes no claim about interest.
+Not in phase 3: a price-history sparkline, and a full amortisation table view (the schedule
+rows already carry principal, interest and running balance).
 
 ---
 
@@ -640,7 +642,7 @@ changing shape weekly — the passes cost real tokens and get overwritten.
 | **1** | ✅ **`/impeccable shape`** → `.impeccable/surfaces/contracts.md`, before any Razor is written | small |
 | **1.5** | Groundwork both later phases depend on, and neither can bolt on afterwards: i18n plumbing (resx + `IStringLocalizer`, culture bootstrap, per-user language, existing screens migrated off literals) and the shared Cards / List density switch (§13.8, §13.9) | medium |
 | **2** | ✅ `Contract` + `PaymentPlanRevision` + `Payment` + `Opening`; migration; CRUD endpoints; `MarkdownCard`; list + detail pages, four dialogs, equipment section and the Home strip | large |
-| **3** | Loans & leases: amortization, early-payoff preview + commit, residual, price-history UI | medium |
+| **3** | ✅ Loans & leases: amortization, early-payoff preview + commit, residual · price-history UI still open | medium |
 | **4** | Projection + materialization background service, push notifications, iCal payments, timeline integration, Home rollups (`/api/finance/*`) | medium |
 | **5** | Attention pipeline (§10): `/api/attention`, service-worker badge + tag-replaced summary notification, offline cache, manifest shortcuts | small–medium |
 | **6** | Offline: outbox operation types, revision-ordering conflict rule | small–medium |

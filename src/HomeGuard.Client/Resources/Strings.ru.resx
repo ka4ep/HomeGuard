@@ -368,6 +368,26 @@
   <data name="Contract_FirstDue" xml:space="preserve"><value>Первый платёж</value></data>
   <data name="Contract_HasPlan" xml:space="preserve"><value>Оплачивается по графику</value></data>
   <data name="Contract_Installment" xml:space="preserve"><value>Взнос</value></data>
+  <data name="Early_Menu" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="Early_Title" xml:space="preserve"><value>Досрочный платёж</value></data>
+  <data name="Early_Amount" xml:space="preserve"><value>Сумма</value></data>
+  <data name="Early_BalanceHelp" xml:space="preserve"><value>Сейчас остаток: {0}</value></data>
+  <data name="Early_Date" xml:space="preserve"><value>Дата платежа</value></data>
+  <data name="Early_ReduceTerm" xml:space="preserve"><value>Сократить срок (взнос прежний)</value></data>
+  <data name="Early_ReducePayment" xml:space="preserve"><value>Уменьшить взнос (срок прежний)</value></data>
+  <data name="Early_PaysOff" xml:space="preserve"><value>Этот платёж полностью закрывает кредит.</value></data>
+  <data name="Early_Saved" xml:space="preserve"><value>Экономия на процентах ≈ {0}</value></data>
+  <data name="Early_TakesEffect" xml:space="preserve"><value>Новые условия действуют с платежа {0}.</value></data>
+  <data name="Early_Commit" xml:space="preserve"><value>Записать платёж</value></data>
+  <data name="Early_Failed" xml:space="preserve"><value>Не удалось записать платёж.</value></data>
+  <data name="Contract_Payoff" xml:space="preserve"><value>Будет погашен</value></data>
+  <data name="Contract_InterestPaid" xml:space="preserve"><value>Выплачено процентов</value></data>
+  <data name="Contract_InterestLeft" xml:space="preserve"><value>Осталось процентов</value></data>
+  <data name="Contract_TotalCost" xml:space="preserve"><value>Полная стоимость</value></data>
+  <data name="Schedule_Split" xml:space="preserve"><value>долг {0} · проценты {1}</value></data>
+  <data name="Schedule_Extra" xml:space="preserve"><value>досрочный платёж</value></data>
+  <data name="Revision_Count" xml:space="preserve"><value>Взносов с этой даты</value></data>
+  <data name="Revision_CountHelp" xml:space="preserve"><value>Сколько платежей охватывают новые условия. Оставьте пустым, если идёт до отмены.</value></data>
   <data name="Contract_Principal" xml:space="preserve"><value>Сумма кредита</value></data>
   <data name="Contract_PrincipalHelp" xml:space="preserve"><value>Сколько нужно вернуть к первому платежу. Если кредит уже идёт, потом задайте «Договор шёл и до этого».</value></data>
   <data name="Contract_Rate" xml:space="preserve"><value>Процентная ставка, % годовых</value></data>
