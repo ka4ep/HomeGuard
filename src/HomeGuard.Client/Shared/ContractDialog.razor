@@ -113,6 +113,33 @@
                         <MudDatePicker @bind-Date="_form.FirstDueDateNullable"
                                        Label=@(L["Contract_FirstDue"]) DateFormat="yyyy-MM-dd" />
                     </MudItem>
+
+                    @if (IsLoanLike)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_form.LoanPrincipal" Format="F2" Min="0"
+                                             Label=@(L["Contract_Principal"])
+                                             HelperText=@(L["Contract_PrincipalHelp"]) />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_form.InterestRatePercent" Format="F2" Min="0"
+                                             Label=@(L["Contract_Rate"])
+                                             HelperText=@(L["Contract_RateHelp"]) />
+                        </MudItem>
+
+                        @if (_form.Kind == ContractKind.Lease)
+                        {
+                            <MudItem xs="12" sm="6">
+                                <MudNumericField @bind-Value="_form.ResidualAmount" Format="F2" Min="0"
+                                                 Label=@(L["Contract_Residual"])
+                                                 HelperText=@(L["Contract_ResidualHelp"]) />
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <MudDatePicker @bind-Date="_form.ResidualDueDateNullable" Clearable="true"
+                                               Label=@(L["Contract_ResidualDue"]) DateFormat="yyyy-MM-dd" />
+                            </MudItem>
+                        }
+                    }
                 }
             }
 
@@ -164,6 +191,8 @@
     private Guid? _editId;
     private string? _error;
     private ContractFormModel _form = new();
+
+    private bool IsLoanLike => _form.Kind is ContractKind.Loan or ContractKind.Lease;
 
     public void OpenAdd()
     {
@@ -235,7 +264,11 @@
                     FirstDueDate:      _form.FirstDueDate,
                     IntervalMonths:    _form.IntervalMonths,
                     InstallmentAmount: amount,
-                    InstallmentCount:  _form.InstallmentCount));
+                    InstallmentCount:  _form.InstallmentCount,
+                    RemainingPrincipal: IsLoanLike ? _form.LoanPrincipal : null,
+                    AnnualInterestRate: IsLoanLike ? _form.AnnualInterestRate : null,
+                    ResidualAmount:     _form.Kind == ContractKind.Lease ? _form.ResidualAmount : null,
+                    ResidualDueDate:    _form.Kind == ContractKind.Lease ? _form.ResidualDueDate : null));
             }
 
             _visible = false;

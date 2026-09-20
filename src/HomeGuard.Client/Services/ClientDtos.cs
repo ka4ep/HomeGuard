@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HomeGuard.Client.Services;
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
@@ -216,16 +218,23 @@ public sealed record NotificationRuleDto(
 );
 
 // ── Contracts ─────────────────────────────────────────────────────────────────
-// Enums travel as their integer values; the client mirrors them so a status never
-// has to be compared as a string.
+// Enums travel as strings (the API registers JsonStringEnumConverter); the client mirrors
+// them so a status never has to be compared as a string.
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ContractKind   { Insurance = 1, Subscription = 2, Loan = 3, Lease = 4, Other = 99 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ContractStatus { Active = 1, Ended = 2, Cancelled = 3, Suspended = 4 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RenewalMode    { None = 0, Auto = 1, Manual = 2 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentKind    { Scheduled = 0, Extra = 1, DownPayment = 2, Residual = 3, Fee = 4, Refund = 5 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentStatus  { Planned = 0, Paid = 1, Skipped = 2, Failed = 3 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, TermChange = 3,
                              RateChange = 4, Pause = 5, AddOn = 6, Correction = 99 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
 public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
 public enum LoanEstimateGap    { None = 0, MissingRate = 1, MissingBalance = 2 }
@@ -328,14 +337,9 @@ public sealed record ScheduleEntryDto(
     PaymentKind Kind,
     Guid? PaymentId,
     bool IsOverdue,
-    decimal? PrincipalPart = null,
-    decimal? InterestPart = null,
-    // Set only when PaymentSchedule is rendering a cross-contract list (Home's upcoming
-    // strip) — the server's per-contract /schedule endpoint never populates these, so the
-    // single-contract callers (ContractDetail) see them as null exactly as before.
-    Guid? ContractId = null,
-    string? ContractName = null,
-    string? Currency = null
+    decimal? Principal = null,
+    decimal? Interest = null,
+    decimal? BalanceAfter = null
 );
 
 public sealed record ContractSummaryDto(
@@ -350,10 +354,49 @@ public sealed record ContractSummaryDto(
     DateOnly? NextDueDate,
     decimal? NextDueAmount,
     int OverdueCount,
-    decimal InterestPaidToDate,
-    DateOnly? PayoffDate,
-    LoanEstimateGap EstimateGap
+    decimal? InterestPaidToDate = null,
+    decimal? InterestRemaining = null,
+    decimal? TotalCost = null,
+    DateOnly? PayoffDate = null
 );
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum EarlyPaymentEffect { ReduceTerm = 0, ReducePayment = 1 }
+
+public sealed record EarlyPaymentRequestDto(
+    decimal Amount,
+    DateOnly PaidOn,
+    EarlyPaymentEffect Effect,
+    string? Note = null
+);
+
+public sealed record LoanOutlookDto(
+    int InstallmentsLeft,
+    decimal Installment,
+    DateOnly? PayoffDate,
+    decimal InterestRemaining,
+    decimal TotalRemaining
+);
+
+public sealed record EarlyPaymentPreviewDto(
+    bool RateKnown,
+    EarlyPaymentEffect Effect,
+    decimal Amount,
+    DateOnly PaidOn,
+    DateOnly EffectiveFrom,
+    decimal BalanceBefore,
+    decimal BalanceAfter,
+    bool PaysOffEverything,
+    LoanOutlookDto Before,
+    LoanOutlookDto After,
+    decimal? InterestSaved
+);
+
+/// <summary>A call that can fail with a reason worth showing — the server's own words.</summary>
+public sealed record ApiResult<T>(T? Value, string? Error)
+{
+    public bool Ok => Error is null;
+}
 
 public sealed record CreateContractDto(
     ContractKind Kind,

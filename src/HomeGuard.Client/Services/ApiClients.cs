@@ -377,6 +377,35 @@ public sealed class ContractApiClient
         return resp.IsSuccessStatusCode;
     }
 
+    public Task<ApiResult<EarlyPaymentPreviewDto>> PreviewEarlyPaymentAsync(
+        Guid id, EarlyPaymentRequestDto dto, CancellationToken ct = default)
+        => PostForResultAsync<EarlyPaymentPreviewDto>($"api/contracts/{id}/early-payment/preview", dto, ct);
+
+    public Task<ApiResult<ContractDetailDto>> CommitEarlyPaymentAsync(
+        Guid id, EarlyPaymentRequestDto dto, CancellationToken ct = default)
+        => PostForResultAsync<ContractDetailDto>($"api/contracts/{id}/early-payment", dto, ct);
+
+    // A problem response carries the reason in `detail` (409) or as a bare string (400).
+    private async Task<ApiResult<T>> PostForResultAsync<T>(string url, object body, CancellationToken ct)
+    {
+        var resp = await _http.PostAsJsonAsync(url, body, ct);
+        if (resp.IsSuccessStatusCode)
+            return new ApiResult<T>(await resp.Content.ReadFromJsonAsync<T>(ct), null);
+
+        var text = await resp.Content.ReadAsStringAsync(ct);
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.String)
+                return new ApiResult<T>(default, doc.RootElement.GetString() ?? resp.ReasonPhrase ?? "Error");
+            if (doc.RootElement.TryGetProperty("detail", out var detail))
+                return new ApiResult<T>(default, detail.GetString() ?? resp.ReasonPhrase ?? "Error");
+        }
+        catch (System.Text.Json.JsonException) { }
+
+        return new ApiResult<T>(default, string.IsNullOrWhiteSpace(text) ? resp.ReasonPhrase ?? "Error" : text);
+    }
+
     public async Task<PaymentDto?> ConfirmPaymentAsync(
         Guid paymentId, ConfirmPaymentDto dto, CancellationToken ct = default)
     {

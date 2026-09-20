@@ -443,6 +443,36 @@
   <data name="Contract_FirstDue" xml:space="preserve"><value>First payment</value></data>
   <data name="Contract_HasPlan" xml:space="preserve"><value>It is paid on a schedule</value></data>
   <data name="Contract_Installment" xml:space="preserve"><value>Instalment</value></data>
+  <data name="Early_Menu" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Early_Title" xml:space="preserve"><value>Early payment</value></data>
+  <data name="Early_Amount" xml:space="preserve"><value>Amount</value></data>
+  <data name="Early_BalanceHelp" xml:space="preserve"><value>Owed now: {0}</value></data>
+  <data name="Early_Date" xml:space="preserve"><value>Paid on</value></data>
+  <data name="Early_ReduceTerm" xml:space="preserve"><value>Shorten the term (same instalment)</value></data>
+  <data name="Early_ReducePayment" xml:space="preserve"><value>Lower the instalment (same term)</value></data>
+  <data name="Early_PaysOff" xml:space="preserve"><value>This pays the loan off entirely.</value></data>
+  <data name="Early_Saved" xml:space="preserve"><value>Saves about {0} in interest</value></data>
+  <data name="Early_TakesEffect" xml:space="preserve"><value>The new terms start with the payment due on {0}.</value></data>
+  <data name="Early_Commit" xml:space="preserve"><value>Record the payment</value></data>
+  <data name="Early_Failed" xml:space="preserve"><value>Could not record the payment.</value></data>
+  <data name="Contract_Payoff" xml:space="preserve"><value>Paid off by</value></data>
+  <data name="Contract_InterestPaid" xml:space="preserve"><value>Interest paid</value></data>
+  <data name="Contract_InterestLeft" xml:space="preserve"><value>Interest to pay</value></data>
+  <data name="Contract_TotalCost" xml:space="preserve"><value>Total cost</value></data>
+  <data name="Schedule_Split" xml:space="preserve"><value>principal {0} · interest {1}</value></data>
+  <data name="Schedule_Extra" xml:space="preserve"><value>early payment</value></data>
+  <data name="Revision_Count" xml:space="preserve"><value>Instalments from this date</value></data>
+  <data name="Revision_CountHelp" xml:space="preserve"><value>How many payments the new terms cover. Leave empty if it runs until cancelled.</value></data>
+  <data name="Contract_Principal" xml:space="preserve"><value>Loan amount</value></data>
+  <data name="Contract_PrincipalHelp" xml:space="preserve"><value>The amount owed at the first payment. For a loan that is already running, use "Already running" afterwards.</value></data>
+  <data name="Contract_Rate" xml:space="preserve"><value>Interest rate, % per year</value></data>
+  <data name="Contract_RateHelp" xml:space="preserve"><value>Leave empty for an interest-free loan.</value></data>
+  <data name="Contract_RatePerYear" xml:space="preserve"><value>{0} % per year</value></data>
+  <data name="Contract_Residual" xml:space="preserve"><value>Residual / buy-out payment</value></data>
+  <data name="Contract_ResidualHelp" xml:space="preserve"><value>The final payment on top of the instalments.</value></data>
+  <data name="Contract_ResidualDue" xml:space="preserve"><value>Residual payment date</value></data>
+  <data name="Revision_Principal" xml:space="preserve"><value>Balance owed from this date</value></data>
+  <data name="Revision_PrincipalHelp" xml:space="preserve"><value>Take it from the bank statement.</value></data>
   <data name="Contract_Interval" xml:space="preserve"><value>How often</value></data>
   <data name="Contract_NoticeDays" xml:space="preserve"><value>Notice period, days</value></data>
   <data name="Contract_NoticeHelp" xml:space="preserve"><value>How long before the end the chance to cancel closes.</value></data>
