@@ -368,6 +368,16 @@
   <data name="Contract_FirstDue" xml:space="preserve"><value>Первый платёж</value></data>
   <data name="Contract_HasPlan" xml:space="preserve"><value>Оплачивается по графику</value></data>
   <data name="Contract_Installment" xml:space="preserve"><value>Взнос</value></data>
+  <data name="Contract_Principal" xml:space="preserve"><value>Сумма кредита</value></data>
+  <data name="Contract_PrincipalHelp" xml:space="preserve"><value>Сколько нужно вернуть к первому платежу. Если кредит уже идёт, потом задайте «Договор шёл и до этого».</value></data>
+  <data name="Contract_Rate" xml:space="preserve"><value>Процентная ставка, % годовых</value></data>
+  <data name="Contract_RateHelp" xml:space="preserve"><value>Оставьте пустым, если кредит без процентов.</value></data>
+  <data name="Contract_RatePerYear" xml:space="preserve"><value>{0} % годовых</value></data>
+  <data name="Contract_Residual" xml:space="preserve"><value>Остаточный платёж / выкуп</value></data>
+  <data name="Contract_ResidualHelp" xml:space="preserve"><value>Последний платёж сверх обычных взносов.</value></data>
+  <data name="Contract_ResidualDue" xml:space="preserve"><value>Дата остаточного платежа</value></data>
+  <data name="Revision_Principal" xml:space="preserve"><value>Остаток долга с этой даты</value></data>
+  <data name="Revision_PrincipalHelp" xml:space="preserve"><value>Возьмите из выписки банка.</value></data>
   <data name="Contract_Interval" xml:space="preserve"><value>Как часто</value></data>
   <data name="Contract_NoticeDays" xml:space="preserve"><value>Срок уведомления, дней</value></data>
   <data name="Contract_NoticeHelp" xml:space="preserve"><value>За сколько до конца закрывается возможность отказаться.</value></data>

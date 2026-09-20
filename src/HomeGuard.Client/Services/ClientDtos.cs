@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HomeGuard.Client.Services;
 
 // ── Equipment ─────────────────────────────────────────────────────────────────
@@ -211,16 +213,23 @@ public sealed record NotificationRuleDto(
 );
 
 // ── Contracts ─────────────────────────────────────────────────────────────────
-// Enums travel as their integer values; the client mirrors them so a status never
-// has to be compared as a string.
+// Enums travel as strings (the API registers JsonStringEnumConverter); the client mirrors
+// them so a status never has to be compared as a string.
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ContractKind   { Insurance = 1, Subscription = 2, Loan = 3, Lease = 4, Other = 99 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ContractStatus { Active = 1, Ended = 2, Cancelled = 3, Suspended = 4 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RenewalMode    { None = 0, Auto = 1, Manual = 2 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentKind    { Scheduled = 0, Extra = 1, DownPayment = 2, Residual = 3, Fee = 4, Refund = 5 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PaymentStatus  { Planned = 0, Paid = 1, Skipped = 2, Failed = 3 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum RevisionReason { Initial = 0, PriceChange = 1, EarlyPayment = 2, TermChange = 3,
                              RateChange = 4, Pause = 5, AddOn = 6, Correction = 99 }
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ScheduleOrigin { Projected = 0, Stored = 1 }
 
 public sealed record ContractDto(

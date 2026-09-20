@@ -105,6 +105,17 @@ public sealed class ContractFormModel
     public int?     InstallmentCount  { get; set; }
     public DateTime? FirstDueDateNullable { get; set; } = DateTime.Today;
 
+    // Loans and leases only.
+    public decimal?  LoanPrincipal       { get; set; }
+    public decimal?  InterestRatePercent { get; set; }
+    public decimal?  ResidualAmount      { get; set; }
+    public DateTime? ResidualDueDateNullable { get; set; }
+
+    public decimal? AnnualInterestRate => InterestRatePercent / 100m;
+
+    public DateOnly? ResidualDueDate
+        => ResidualDueDateNullable is { } d ? DateOnly.FromDateTime(d) : null;
+
     public DateOnly StartDate
         => StartDateNullable is { } d ? DateOnly.FromDateTime(d) : DateOnly.FromDateTime(DateTime.Today);
 
@@ -136,6 +147,17 @@ public sealed class RevisionFormModel
     public int            IntervalMonths { get; set; } = 1;
     public int?           InstallmentCount { get; set; }
     public string?        Note           { get; set; }
+
+    // Loans and leases only.
+    public decimal?  RemainingPrincipal  { get; set; }
+    public decimal?  InterestRatePercent { get; set; }
+    public decimal?  ResidualAmount      { get; set; }
+    public DateTime? ResidualDueDateNullable { get; set; }
+
+    public decimal? AnnualInterestRate => InterestRatePercent / 100m;
+
+    public DateOnly? ResidualDueDate
+        => ResidualDueDateNullable is { } d ? DateOnly.FromDateTime(d) : null;
 
     public DateTime? EffectiveFromNullable { get; set; } = DateTime.Today;
 
