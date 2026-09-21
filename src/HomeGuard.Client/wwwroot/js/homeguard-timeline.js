@@ -117,9 +117,17 @@ window.homeGuardTimeline = {
         if (days <= 0) return '';
         if (days < 7) return `${days}d`;
         if (days < 30) return `${Math.round(days / 7)}w`;
-        if (days < 365) return `${Math.round(days / 30)}mo`;
-        const y = Math.floor(days / 365), m = Math.round((days % 365) / 30);
-        return m ? `${y}y ${m}mo` : `${y}y`;
+        // Rounding the month count can itself hit 12 (e.g. a 2-years-minus-a-day warranty
+        // span) — that must carry into a year rather than ever displaying "12mo".
+        if (days < 365) {
+            const m = Math.round(days / 30);
+            return m >= 12 ? '1y' : `${m}mo`;
+        }
+        const y = Math.floor(days / 365);
+        let m = Math.round((days % 365) / 30);
+        let years = y;
+        if (m >= 12) { years += 1; m = 0; }
+        return m ? `${years}y ${m}mo` : `${years}y`;
     },
 
     _fmtDate(d) {
